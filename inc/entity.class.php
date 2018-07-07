@@ -72,7 +72,7 @@ class Entity extends CommonTreeDropdown {
                                                    // Inventory
                                                    'entities_id_software', 'level', 'name',
                                                    'completename', 'entities_id',
-                                                   'ancestors_cache', 'sons_cache', 'comment'],
+                                                   'ancestors_cache', 'sons_cache', 'comment', 'alias'],
                                           // Inventory
                                           'infocom'
                                           => ['autofill_buy_date', 'autofill_delivery_date',
@@ -143,7 +143,16 @@ class Entity extends CommonTreeDropdown {
    static function getTypeName($nb = 0) {
       return _n('Entity', 'Entities', $nb);
    }
-
+   
+   function getAdditionalFields() {
+      //Get the pre-existing fields such as child of entity dropdown
+      $existingFields = parent::getAdditionalFields();
+      $newFields = [['name'     => 'alias',
+                         'label'    => __('Alias'),
+                         'type'     => 'text',
+                         'list'     => false]];
+      return array_merge($existingFields, $newFields);
+   }
 
    function canCreateItem() {
       // Check the parent
@@ -599,6 +608,15 @@ class Entity extends CommonTreeDropdown {
          'massiveaction'      => false
       ];
 
+      $tab[] = [
+         'id'                 => '123',
+         'table'              => $this->getTable(),
+         'field'              => 'alias',
+         'name'               => __('Alias'),
+         'datatype'           => 'text',
+         'massiveaction'      => false
+      ];
+      
       // add objectlock search options
       $tab = array_merge($tab, ObjectLock::rawSearchOptionsToAdd(get_class($this)));
 

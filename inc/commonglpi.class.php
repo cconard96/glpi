@@ -864,14 +864,33 @@ class CommonGLPI {
          if (isset($this->fields["entities_id"])
                && Session::isMultiEntitiesMode()
                && $this->isEntityAssign()) {
-            $entname = Dropdown::getDropdownName("glpi_entities", $this->fields["entities_id"]);
-            if ($this->isRecursive()) {
-               $entname = sprintf(__('%1$s + %2$s'), $entname, __('Child entities'));
+            if (isset($this->fields["alias"])) {
+               $oldName = $name;
+               $name = $this->fields["alias"];
+               $entname = Dropdown::getDropdownName("glpi_entities", $this->fields["entities_id"]);
+               if ($this->isRecursive()) {
+                  $entname = sprintf(__('%1$s + %2$s'), $entname, __('Child entities'));
+                  $tooltip = sprintf(__('%1$s (%2$s)'), $oldName, $entname);
+                  $name = sprintf(__('%1$s + %2$s'), $name, __('Child entities'));
+               } else {
+                  $tooltip = $oldName;
+               }
+            } else {
+               $entname = Dropdown::getDropdownName("glpi_entities", $this->fields["entities_id"]);
+               if ($this->isRecursive()) {
+                  $entname = sprintf(__('%1$s + %2$s'), $entname, __('Child entities'));
+               }
+               $name = sprintf(__('%1$s (%2$s)'), $name, $entname);
             }
-            $name = sprintf(__('%1$s (%2$s)'), $name, $entname);
 
          }
-         echo "<td class='b big'>";
+         
+         
+         if (isset($tooltip)) {
+            echo "<td class='b big' title='".$tooltip."'>";
+         } else {
+            echo "<td class='b big'>";
+         }
          if (!self::isLayoutWithMain() || self::isLayoutExcludedPage()) {
             if ($this instanceof CommonITILObject) {
                echo "<span class='status'>";
