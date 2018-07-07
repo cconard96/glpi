@@ -2832,6 +2832,20 @@ class CommonDBTM extends CommonGLPI {
 
 
    /**
+    * Is the object may be archive
+    *
+    * @return boolean
+   **/
+   function maybeArchived() {
+
+      if (!isset($this->fields['id'])) {
+         $this->getEmpty();
+      }
+      return array_key_exists('is_archived', $this->fields);
+   }
+   
+   
+   /**
     * Is the object may be deleted
     *
     * @return boolean

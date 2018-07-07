@@ -339,6 +339,7 @@ class Search {
       $p['order']               = 'ASC';//
       $p['start']               = 0;//
       $p['is_deleted']          = 0;
+      $p['is_archived']          = 0;
       $p['export_all']          = 0;
       if (class_exists($itemtype)) {
          $p['target']       = $itemtype::getSearchURL();
@@ -363,6 +364,11 @@ class Search {
                }
                break;
             case 'is_deleted':
+               if ($val == 1) {
+                  $p[$key] = '1';
+               }
+               break;
+            case 'is_archived':
                if ($val == 1) {
                   $p[$key] = '1';
                }
@@ -597,6 +603,16 @@ class Search {
       $COMMONWHERE = self::addDefaultWhere($data['itemtype']);
       $first       = empty($COMMONWHERE);
 
+      // Add archived if item have it
+      if ($data['item'] && $data['item']->maybeArchived()) {
+         $LINK = " AND ";
+         if ($first) {
+            $LINK  = " ";
+            $first = false;
+         }
+         $COMMONWHERE .= $LINK."`$itemtable`.`is_archived` = ".(int)$data['search']['is_archived']." ";
+      }
+      
       // Add deleted if item have it
       if ($data['item'] && $data['item']->maybeDeleted()) {
          $LINK = " AND ";
@@ -930,6 +946,11 @@ class Search {
                      $query_num  = str_replace($data['itemtype'], $ctype, $query_num);
                      $query_num .= " AND `$ctable`.`id` IS NOT NULL ";
 
+                     // Add archived if item have it
+                     if ($citem && $citem->maybeArchived()) {
+                        $query_num .= " AND `$ctable`.`is_archived` = 0 ";
+                     }
+                     
                      // Add deleted if item have it
                      if ($citem && $citem->maybeDeleted()) {
                         $query_num .= " AND `$ctable`.`is_deleted` = 0 ";
@@ -942,6 +963,11 @@ class Search {
 
                   } else {// Ref table case
                      $reftable = getTableForItemType($data['itemtype']);
+                     if ($data['item'] && $data['item']->maybeArchived()) {
+                        $tmpquery = str_replace("`".$CFG_GLPI["union_search_type"][$data['itemtype']]."`.
+                                                   `is_archived`",
+                                                "`$reftable`.`is_archived`", $tmpquery);
+                     }
                      if ($data['item'] && $data['item']->maybeDeleted()) {
                         $tmpquery = str_replace("`".$CFG_GLPI["union_search_type"][$data['itemtype']]."`.
                                                    `is_deleted`",
@@ -1012,6 +1038,11 @@ class Search {
 
                   $tmpquery .= " AND `$ctable`.`id` IS NOT NULL ";
 
+                  // Add archived if item have it
+                  if ($citem && $citem->maybeArchived()) {
+                     $tmpquery .= " AND `$ctable`.`is_archived` = 0 ";
+                  }
+                  
                   // Add deleted if item have it
                   if ($citem && $citem->maybeDeleted()) {
                      $tmpquery .= " AND `$ctable`.`is_deleted` = 0 ";
@@ -1037,6 +1068,11 @@ class Search {
                                       `$ctable`.`entities_id` AS ENTITY ".
                               $FROM.
                               $WHERE;
+                  if ($data['item']->maybeArchived()) {
+                     $tmpquery = str_replace("`".$CFG_GLPI["union_search_type"][$data['itemtype']]."`.
+                                                `is_archived`",
+                                             "`$reftable`.`is_archived`", $tmpquery);
+                  }
                   if ($data['item']->maybeDeleted()) {
                      $tmpquery = str_replace("`".$CFG_GLPI["union_search_type"][$data['itemtype']]."`.
                                                 `is_deleted`",
@@ -1489,7 +1525,12 @@ class Search {
                                                          'display'
                                                             => false]);
             }
-
+            
+            if ($item !== null && $item->maybeArchived()) {
+               $archive_ctrl        = self::isArchivedSwitch($data['search']['is_archived']);
+               $search_config_top .= $archive_ctrl;
+            }
+            
             if ($item !== null && $item->maybeDeleted()) {
                $delete_ctrl        = self::isDeletedSwitch($data['search']['is_deleted']);
                $search_config_top .= $delete_ctrl;
@@ -1814,7 +1855,28 @@ class Search {
              "</div>";
    }
 
+   static function isArchivedSwitch($is_archived) {
+      global $CFG_GLPI;
 
+      if (!isset($_POST["itemtype"])) {
+         return;
+      }
+
+      $rand = mt_rand();
+      return "<div class='switch grey_border pager_controls'>".
+             "<label for='is_archivedswitch$rand' title='".__s('Show the archive')."' >".
+                "<span class='sr-only'>" . __s('Show the archive') . "</span>" .
+                "<input type='hidden' name='is_archived' value='0' /> ".
+                "<input type='checkbox' id='is_archivedswitch$rand' name='is_archived' value='1' ".
+                  ($is_archived?"checked='checked'":"").
+                  " onClick = \"toogle('is_archived','','','');
+                              document.forms['searchform".$_POST["itemtype"]."'].submit();\" />".
+                "<span class='fa fa-archive pointer'></span>".
+                "<span class='lever'></span>" .
+                "</label>".
+             "</div>";
+   }
+   
    /**
     * Compute title (use case of PDF OUTPUT)
     *
@@ -2088,6 +2150,7 @@ class Search {
       // Default values of parameters
       $p['sort']         = '';
       $p['is_deleted']   = 0;
+      $p['is_archived']   = 0;
       $p['as_map']       = 0;
       $p['criteria']     = [];
       $p['metacriteria'] = [];
@@ -5386,6 +5449,7 @@ class Search {
       $default_values["order"]       = "ASC";
       $default_values["sort"]        = 1;
       $default_values["is_deleted"]  = 0;
+      $default_values["is_archived"]  = 0;
       $default_values["as_map"]      = 0;
 
       if (isset($params['start'])) {
@@ -5416,6 +5480,7 @@ class Search {
       // order
       // sort
       // is_deleted
+      // is_archived
       // itemtype
       // criteria : array (0 => array (link =>
       //                               field =>
@@ -5513,7 +5578,7 @@ class Search {
       foreach ($default_values as $key => $val) {
          if (!isset($params[$key])) {
             if ($usesession
-                && ($key == 'is_deleted' || $key == 'as_map' || !isset($saved_params['criteria'])) // retrieve session only if not a new request
+                && ($key == 'is_deleted' || $key == 'is_archived' || $key == 'as_map' || !isset($saved_params['criteria'])) // retrieve session only if not a new request
                 && isset($_SESSION['glpisearch'][$itemtype][$key])) {
                $params[$key] = $_SESSION['glpisearch'][$itemtype][$key];
             } else {
