@@ -290,6 +290,7 @@ function update93to94() {
    $migration->addField("glpi_changevalidations", "timeline_position", "tinyint(1) NOT NULL DEFAULT '0'");
    $migration->addField("glpi_problemtasks", "timeline_position", "tinyint(1) NOT NULL DEFAULT '0'");
 
+   $migration->addConfig(['lock_palette' => 0]);
    // ************ Keep it at the end **************
    $migration->executeMigration();
 

@@ -155,7 +155,8 @@ class User extends CommonDBTM {
 
       if (isset($this->fields['id'])) {
          foreach ($CFG_GLPI['user_pref_field'] as $f) {
-            if (is_null($this->fields[$f])) {
+            if (is_null($this->fields[$f]) || 
+               $f == 'palette' && $CFG_GLPI['lock_palette'] == true) {
                $this->fields[$f] = $CFG_GLPI[$f];
             }
          }

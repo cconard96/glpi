@@ -234,6 +234,10 @@ class Config extends CommonDBTM {
                                                       ? $input['lock_item_list'] : []));
       }
 
+      if ($CFG_GLPI['lock_palette']) {
+         $input['palette'] = $CFG_GLPI['palette'];
+      }
+
       // Beware : with new management system, we must update each value
       unset($input['id']);
       unset($input['_glpi_csrf_token']);
@@ -1144,7 +1148,8 @@ class Config extends CommonDBTM {
          $this->getPalettes(),
          [
             'id'        => 'theme-selector',
-            'selected'  => $data['palette']
+            'selected'  => $data['palette'],
+            'disabled'  => $CFG_GLPI['lock_palette']
          ]
       );
       echo Html::scriptBlock("
@@ -1165,6 +1170,14 @@ class Config extends CommonDBTM {
          $('label[for=theme-selector]').on('click', function(){ $('#theme-selector').select2('open'); });
       ");
       echo "</td>";
+      if (!$userpref) {
+         echo "<td><label for='lock_palette'>" . __("Lock palette to default") . "</label></td><td>";
+         Dropdown::showYesNo('lock_palette',
+                             $data['lock_palette'],
+                             -1,
+                             ['rand' => $rand]);
+         echo "</td></tr>";
+      }
       echo "<td><label for='layout-selector'>" . __('Layout')."</label></td><td>";
 
       $layout_options = [
@@ -1199,9 +1212,8 @@ class Config extends CommonDBTM {
       ");
       echo "</select>";
       echo "</td>";
-      echo "</tr>";
 
-      echo "<tr class='tab_bg_2'><td><label for='dropdown_highcontrast_css$rand'>".__('Enable high contrast')."</label></td>";
+      echo "<td><label for='dropdown_highcontrast_css$rand'>".__('Enable high contrast')."</label></td>";
       echo "<td>";
       Dropdown::showYesNo('highcontrast_css', $data['highcontrast_css'], -1, ['rand' => $rand]);
       echo "</td>";
