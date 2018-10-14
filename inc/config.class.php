@@ -1143,15 +1143,15 @@ class Config extends CommonDBTM {
 
       echo "<tr class='tab_bg_2'>";
       echo "<td><label for='theme-selector'>" . __("Color palette") . "</label></td><td>";
-      echo Html::select(
-         'palette',
-         $this->getPalettes(),
-         [
-            'id'        => 'theme-selector',
-            'selected'  => $data['palette'],
-            'disabled'  => $CFG_GLPI['lock_palette']
-         ]
-      );
+      $dropdownParams = [
+         'id'        => 'theme-selector',
+         'selected'  => $data['palette']
+      ];
+      if ($userpref && $CFG_GLPI['lock_palette']) {
+         $dropdownParams['disabled'] = true;
+      }
+      echo Html::select('palette', $this->getPalettes(), $dropdownParams);
+
       echo Html::scriptBlock("
          function formatThemes(theme) {
              if (!theme.id) {
@@ -1212,6 +1212,9 @@ class Config extends CommonDBTM {
       ");
       echo "</select>";
       echo "</td>";
+      if ($userpref) {
+         echo "<tr>";
+      }
 
       echo "<td><label for='dropdown_highcontrast_css$rand'>".__('Enable high contrast')."</label></td>";
       echo "<td>";
