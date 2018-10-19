@@ -1140,13 +1140,14 @@ class Config extends CommonDBTM {
 
       echo "<tr class='tab_bg_2'>";
       echo "<td><label for='theme-selector'>" . __("Color palette") . "</label></td><td>";
-      $dropdownParams = [
-         'id'        => 'theme-selector',
-         'selected'  => $data['palette']
-      ];
-
-      echo Html::select('palette', $this->getPalettes(), $dropdownParams);
-
+      echo Html::select(
+         'palette',
+         $this->getPalettes(),
+         [
+            'id'        => 'theme-selector',
+            'selected'  => $data['palette']
+         ]
+      );
       echo Html::scriptBlock("
          function formatThemes(theme) {
              if (!theme.id) {
@@ -1165,7 +1166,6 @@ class Config extends CommonDBTM {
          $('label[for=theme-selector]').on('click', function(){ $('#theme-selector').select2('open'); });
       ");
       echo "</td>";
-
       echo "<td><label for='layout-selector'>" . __('Layout')."</label></td><td>";
 
       $layout_options = [
@@ -1200,9 +1200,9 @@ class Config extends CommonDBTM {
       ");
       echo "</select>";
       echo "</td>";
-      echo "<tr>";
+      echo "</tr>";
 
-      echo "<td><label for='dropdown_highcontrast_css$rand'>".__('Enable high contrast')."</label></td>";
+      echo "<tr class='tab_bg_2'><td><label for='dropdown_highcontrast_css$rand'>".__('Enable high contrast')."</label></td>";
       echo "<td>";
       Dropdown::showYesNo('highcontrast_css', $data['highcontrast_css'], -1, ['rand' => $rand]);
       echo "</td>";
@@ -2768,7 +2768,6 @@ class Config extends CommonDBTM {
 
       return $values;
    }
-
 
    /**
     * Get message that informs the user he's using a development version

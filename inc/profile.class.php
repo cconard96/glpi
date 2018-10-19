@@ -1964,7 +1964,7 @@ class Profile extends CommonDBTM {
       ];
 
       $tab[] = [
-         'id'                 => '48',
+         'id'                 => '109',
          'table'              => 'glpi_profilerights',
          'field'              => 'rights',
          'name'               => __('Personalization'),
@@ -2909,7 +2909,6 @@ class Profile extends CommonDBTM {
                $columns[$right_value]        = $label;
 
                $checked                      = ((($profile_right & $right) == $right) ? 1 : 0);
-
                $row['columns'][$right_value] = ['checked' => $checked];
                if (!$param['canedit']) {
                   $row['columns'][$right_value]['readonly'] = true;
