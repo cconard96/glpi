@@ -48,7 +48,7 @@ class Profile extends CommonDBTM {
                                           'reservation', 'rssfeed_public',
                                           'show_group_hardware', 'task', 'ticket',
                                           'tickettemplates_id', 'ticket_cost',
-                                          'ticketvalidation', 'ticket_status'];
+                                          'ticketvalidation', 'ticket_status','personalization'];
 
 
    /// Common fields used for all profiles type
@@ -93,6 +93,7 @@ class Profile extends CommonDBTM {
                   $ong[3] = __('Assistance'); // Helpdesk
                   $ong[4] = __('Life cycles');
                   $ong[6] = __('Tools');
+                  $ong[8] = __('Setup');
                } else {
                   $ong[2] = __('Assets');
                   $ong[3] = __('Assistance');
@@ -152,7 +153,11 @@ class Profile extends CommonDBTM {
                break;
 
             case 8 :
-               $item->showFormSetup();
+               if ($item->fields['interface'] == 'helpdesk') {
+                  $item->showFormSetupHelpdesk();
+               } else {
+                  $item->showFormSetup();
+               }
                break;
          }
       }
@@ -1408,6 +1413,11 @@ class Profile extends CommonDBTM {
       $rights = [['itemtype'  => 'Config',
                             'label'     => __('General setup'),
                             'field'     => 'config'],
+                      ['rights'  => [
+                         READ    => __('Read'),
+                         UPDATE  => __('Update')],
+                        'label'  => __('Personalization'),
+                        'field'  => 'personalization'],
                       ['itemtype'  => 'DisplayPreference',
                             'label'     => __('Search result display'),
                             'field'     => 'search_config'],
@@ -1460,6 +1470,48 @@ class Profile extends CommonDBTM {
                       ['itemtype'  => 'LineOperator',
                        'label'     => _n('Line operator', 'Line operators', Session::getPluralNumber()),
                        'field'     => 'lineoperator']];
+
+      $this->displayRightsChoiceMatrix($rights, ['canedit'       => $canedit,
+                                                      'default_class' => 'tab_bg_2',
+                                                      'title'         => __('Setup')]);
+
+      if ($canedit
+          && $closeform) {
+         echo "<div class='center'>";
+         echo "<input type='hidden' name='id' value='".$this->fields['id']."'>";
+         echo "<input type='submit' name='update' value=\""._sx('button', 'Save')."\" class='submit'>";
+         echo "</div>\n";
+         Html::closeForm();
+      }
+      echo "</div>";
+
+      $this->showLegend();
+   }
+
+
+   /**
+    * Print the helpdesk form for a profile
+    *
+    * @param $openform     boolean  open the form (true by default)
+    * @param $closeform    boolean  close the form (true by default)
+   **/
+   function showFormSetupHelpdesk($openform = true, $closeform = true) {
+
+      if (!self::canView()) {
+         return false;
+      }
+
+      echo "<div class='spaced'>";
+      if (($canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]))
+          && $openform) {
+         echo "<form method='post' action='".$this->getFormURL()."'>";
+      }
+
+      $rights = [['rights'  => [
+                     READ    => __('Read'),
+                     UPDATE  => __('Update')],
+                  'label'  => __('Personalization'),
+                  'field'  => 'personalization']];
 
       $this->displayRightsChoiceMatrix($rights, ['canedit'       => $canedit,
                                                       'default_class' => 'tab_bg_2',
@@ -1908,6 +1960,21 @@ class Profile extends CommonDBTM {
          'joinparams'         => [
             'jointype'           => 'child',
             'condition'          => "AND `NEWTABLE`.`name`= 'config'"
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '48',
+         'table'              => 'glpi_profilerights',
+         'field'              => 'rights',
+         'name'               => __('Personalization'),
+         'datatype'           => 'right',
+         'rightclass'         => 'Config',
+         'rightname'          => 'personalization',
+         'noread'             => true,
+         'joinparams'         => [
+            'jointype'           => 'child',
+            'condition'          => "AND `NEWTABLE`.`name`= 'personalization'"
          ]
       ];
 
@@ -2842,6 +2909,7 @@ class Profile extends CommonDBTM {
                $columns[$right_value]        = $label;
 
                $checked                      = ((($profile_right & $right) == $right) ? 1 : 0);
+
                $row['columns'][$right_value] = ['checked' => $checked];
                if (!$param['canedit']) {
                   $row['columns'][$right_value]['readonly'] = true;

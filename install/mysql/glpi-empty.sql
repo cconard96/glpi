@@ -2666,6 +2666,11 @@ INSERT INTO `glpi_displaypreferences` VALUES ('261','SavedSearch','9','1','0');
 INSERT INTO `glpi_displaypreferences` VALUES ('262','SavedSearch','3','1','0');
 INSERT INTO `glpi_displaypreferences` VALUES ('263','SavedSearch','10','1','0');
 INSERT INTO `glpi_displaypreferences` VALUES ('264','SavedSearch','11','1','0');
+INSERT INTO `glpi_displaypreferences` VALUES ('265','Plugin','4','1','0');
+INSERT INTO `glpi_displaypreferences` VALUES ('266','Plugin','5','2','0');
+INSERT INTO `glpi_displaypreferences` VALUES ('267','Plugin','6','3','0');
+INSERT INTO `glpi_displaypreferences` VALUES ('268','Plugin','7','4','0');
+INSERT INTO `glpi_displaypreferences` VALUES ('269','Plugin','8','5','0');
 
 ### Dump table glpi_documentcategories
 
@@ -7080,6 +7085,14 @@ INSERT INTO `glpi_profilerights` VALUES ('866','6','datacenter','255');
 INSERT INTO `glpi_profilerights` VALUES ('867','7','datacenter','255');
 INSERT INTO `glpi_profilerights` VALUES ('868','8','datacenter','0');
 INSERT INTO `glpi_profilerights` VALUES ('870','4','rule_asset','1055');
+INSERT INTO `glpi_profilerights` VALUES ('871','1','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('872','2','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('873','3','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('874','4','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('875','5','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('876','6','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('877','7','personalization','3');
+INSERT INTO `glpi_profilerights` VALUES ('878','8','personalization','1');
 
 ### Dump table glpi_profiles
 

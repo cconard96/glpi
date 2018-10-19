@@ -234,10 +234,6 @@ class Config extends CommonDBTM {
                                                       ? $input['lock_item_list'] : []));
       }
 
-      if ($CFG_GLPI['lock_palette']) {
-         $input['palette'] = $CFG_GLPI['palette'];
-      }
-
       // Beware : with new management system, we must update each value
       unset($input['id']);
       unset($input['_glpi_csrf_token']);
@@ -993,6 +989,7 @@ class Config extends CommonDBTM {
       $rand      = mt_rand();
 
       $canedit = Config::canUpdate();
+      $canedituser = Session::haveRight('personalization', UPDATE);
       if (array_key_exists('last_login', $data)) {
          $userpref = true;
          if ($data["id"] === Session::getLoginUserID()) {
@@ -1002,7 +999,7 @@ class Config extends CommonDBTM {
          }
       }
 
-      if ($canedit || $userpref) {
+      if ($canedit || ($userpref && $canedituser)) {
          echo "<form name='form' action='$url' method='post'>";
       }
 
@@ -1147,9 +1144,7 @@ class Config extends CommonDBTM {
          'id'        => 'theme-selector',
          'selected'  => $data['palette']
       ];
-      if ($userpref && $CFG_GLPI['lock_palette']) {
-         $dropdownParams['disabled'] = true;
-      }
+
       echo Html::select('palette', $this->getPalettes(), $dropdownParams);
 
       echo Html::scriptBlock("
@@ -1170,14 +1165,7 @@ class Config extends CommonDBTM {
          $('label[for=theme-selector]').on('click', function(){ $('#theme-selector').select2('open'); });
       ");
       echo "</td>";
-      if (!$userpref) {
-         echo "<td><label for='lock_palette'>" . __("Lock palette to default") . "</label></td><td>";
-         Dropdown::showYesNo('lock_palette',
-                             $data['lock_palette'],
-                             -1,
-                             ['rand' => $rand]);
-         echo "</td></tr>";
-      }
+
       echo "<td><label for='layout-selector'>" . __('Layout')."</label></td><td>";
 
       $layout_options = [
@@ -1212,9 +1200,7 @@ class Config extends CommonDBTM {
       ");
       echo "</select>";
       echo "</td>";
-      if ($userpref) {
-         echo "<tr>";
-      }
+      echo "<tr>";
 
       echo "<td><label for='dropdown_highcontrast_css$rand'>".__('Enable high contrast')."</label></td>";
       echo "<td>";
@@ -1301,49 +1287,6 @@ class Config extends CommonDBTM {
          echo "</td></tr>";
       }
 
-      // Only for user
-      if (array_key_exists('personal_token', $data)) {
-         echo "<tr class='tab_bg_1'><th colspan='4'>". __('Remote access keys') ."</th></tr>";
-
-         echo "<tr class='tab_bg_1'><td>";
-         echo __("Personal token");
-         echo "</td><td colspan='2'>";
-         if (!empty($data["personal_token"])) {
-            echo "<div class='copy_to_clipboard_wrapper'>";
-            echo Html::input('_personal_token', [
-                                 'value'    => $data["personal_token"],
-                                 'style'    => 'width:90%'
-                             ]);
-            echo "</div>";
-            echo "(".sprintf(__('generated on %s'),
-                                Html::convDateTime($data["personal_token_date"])).")";
-         }
-         echo "</td><td>";
-         Html::showCheckbox(['name'  => '_reset_personal_token',
-                             'title' => __('Regenerate')]);
-         echo "&nbsp;&nbsp;".__('Regenerate');
-         echo "</td></tr>";
-
-         echo "<tr class='tab_bg_1'><td>";
-         echo __("API token");
-         echo "</td><td colspan='2'>";
-         if (!empty($data["api_token"])) {
-            echo "<div class='copy_to_clipboard_wrapper'>";
-            echo Html::input('_api_token', [
-                                 'value'    => $data["api_token"],
-                                 'style'    => 'width:90%'
-                             ]);
-            echo "</div>";
-            echo "(".sprintf(__('generated on %s'),
-                                Html::convDateTime($data["api_token_date"])).")";
-         }
-         echo "</td><td>";
-         Html::showCheckbox(['name'  => '_reset_api_token',
-                             'title' => __('Regenerate')]);
-         echo "&nbsp;&nbsp;".__('Regenerate');
-         echo "</td></tr>";
-      }
-
       echo "<tr><th colspan='4'>".__('Due date progression')."</th></tr>";
 
       echo "<tr class='tab_bg_1'>".
@@ -1396,7 +1339,7 @@ class Config extends CommonDBTM {
          echo "</td></tr>";
       }
 
-      if ($canedit || $userpref) {
+      if ($canedit || ($userpref && $canedituser)) {
          echo "<tr class='tab_bg_2'>";
          echo "<td colspan='4' class='center'>";
          echo "<input type='submit' name='update' class='submit' value=\""._sx('button', 'Save')."\">";
@@ -2825,6 +2768,7 @@ class Config extends CommonDBTM {
 
       return $values;
    }
+
 
    /**
     * Get message that informs the user he's using a development version
