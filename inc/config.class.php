@@ -999,7 +999,7 @@ class Config extends CommonDBTM {
          }
       }
 
-      if ($canedit || ($userpref && $canedituser)) {
+      if ((!$userpref && $canedit) || ($userpref && $canedituser)) {
          echo "<form name='form' action='$url' method='post'>";
       }
 
@@ -1339,7 +1339,7 @@ class Config extends CommonDBTM {
          echo "</td></tr>";
       }
 
-      if ($canedit || ($userpref && $canedituser)) {
+      if ((!$userpref && $canedit) || ($userpref && $canedituser)) {
          echo "<tr class='tab_bg_2'>";
          echo "<td colspan='4' class='center'>";
          echo "<input type='submit' name='update' class='submit' value=\""._sx('button', 'Save')."\">";

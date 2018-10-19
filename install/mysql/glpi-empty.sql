@@ -1373,7 +1373,6 @@ INSERT INTO `glpi_configs` VALUES ('206','core','purge_all','0');
 INSERT INTO `glpi_configs` VALUES ('207','core','purge_user_auth_changes','0');
 INSERT INTO `glpi_configs` VALUES ('208','core','purge_plugins','0');
 INSERT INTO `glpi_configs` VALUES ('209','core','display_login_source','1');
-INSERT INTO `glpi_configs` VALUES ('210','core','lock_palette','0');
 
 ### Dump table glpi_consumableitems
 
@@ -2666,11 +2665,6 @@ INSERT INTO `glpi_displaypreferences` VALUES ('261','SavedSearch','9','1','0');
 INSERT INTO `glpi_displaypreferences` VALUES ('262','SavedSearch','3','1','0');
 INSERT INTO `glpi_displaypreferences` VALUES ('263','SavedSearch','10','1','0');
 INSERT INTO `glpi_displaypreferences` VALUES ('264','SavedSearch','11','1','0');
-INSERT INTO `glpi_displaypreferences` VALUES ('265','Plugin','4','1','0');
-INSERT INTO `glpi_displaypreferences` VALUES ('266','Plugin','5','2','0');
-INSERT INTO `glpi_displaypreferences` VALUES ('267','Plugin','6','3','0');
-INSERT INTO `glpi_displaypreferences` VALUES ('268','Plugin','7','4','0');
-INSERT INTO `glpi_displaypreferences` VALUES ('269','Plugin','8','5','0');
 
 ### Dump table glpi_documentcategories
 
