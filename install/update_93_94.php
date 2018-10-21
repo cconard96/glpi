@@ -291,15 +291,17 @@ function update93to94() {
    $migration->addField("glpi_problemtasks", "timeline_position", "tinyint(1) NOT NULL DEFAULT '0'");
 
    /** Give all existing profiles access to personalizations for legacy functionality */
-   $iterator = $DB->request('glpi_profiles',
-                              ['SELECT' => 'id']);
-   while ($profile = $iterator->next()) {
-      $values = [
-         'profiles_id'  => $profile['id'],
-         'name'         => 'personalization',
-         'rights'       => 3
-      ];
-      $migration->insertInTable('glpi_profilerights', $values);
+   if (countElementsInTable("glpi_profilerights", ['name' => 'personalization']) == 0) {
+      $iterator = $DB->request(['SELECT' => 'id', 'FROM' => 'glpi_profiles']);
+      while ($profile = $iterator->next()) {
+         $values = [
+            'id'           => null,
+            'profiles_id'  => $profile['id'],
+            'name'         => 'personalization',
+            'rights'       => 3
+         ];
+         $DB->insertOrDie('glpi_profilerights', $values);
+      }
    }
    // ************ Keep it at the end **************
    $migration->executeMigration();
