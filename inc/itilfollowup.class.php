@@ -1071,4 +1071,50 @@ class ITILFollowup  extends CommonDBChild {
       }
       parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
    }
+
+   function getWorkflowTriggers() {
+      $followup_types = ['ticket', 'change', 'problem'];
+      $triggers = [];
+      foreach ($followup_types as $type) {
+         $triggers["{$type}_followup_add"] = [
+              'name' => sprintf(__('%1Ss followup added'), $type),
+              'description' => sprintf(__('Initiated when a %1s followup is added'), $type),
+              'outputs' => [
+                  'items_id' => [
+                     'name' => __('ID'),
+                     'description' => __('The ID of the followup that was added'),
+                     'type' => 'int'
+                  ]
+              ]
+          ];
+          $triggers["{$type}_followup_update"] = [
+              'name' => sprintf(__('%1Ss followup updated'), $type),
+              'description' => sprintf(__('Initiated when a %1s followup is updated'), $type),
+              'outputs' => [
+                  'items_id' => [
+                     'name' => __('ID'),
+                     'description' => __('The ID of the followup that was updated'),
+                     'type' => 'int'
+                  ],
+                  'changes' => [
+                     'name' => __('ID'),
+                     'description' => __('The changes made to the followup'),
+                     'type' => 'assoc_array'
+                  ]
+              ]
+          ];
+          $triggers["{$type}_followup_purge"] = [
+              'name' => sprintf(__('%1Ss followup delete'), $type),
+              'description' => sprintf(__('Initiated when a %1s followup is deleted'), $type),
+              'outputs' => [
+                  'items_id' => [
+                     'name' => __('ID'),
+                     'description' => __('The ID of the followup that was deleted'),
+                     'type' => 'int'
+                  ]
+              ]
+          ];
+      }
+      return $triggers;
+   }
 }
