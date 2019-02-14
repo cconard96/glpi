@@ -28,51 +28,53 @@
  * You should have received a copy of the GNU General Public License
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
-*/
+ */
+
+namespace Glpi\Workflow;
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 /**
- * WorkflowRun class.
- * This class stores state data for an instance or run of a workflow
- * @since 10.0.0
+ * TaskAddITILObject class
+ *
  */
-class WorkflowRun extends CommonDBTM {
+class TaskAddITILObject extends WorkflowTask {
 
-   private $variables = [];
-   //TODO Validate variable types
-
-   /**
-    * Gets the current step number for this workflow run
-    * @return int Step number
-    * @since 10.0.0
-    */
-   public function getStep() {
-      return $this->fields['step'];
+   public function execute(WorkflowState $run): void {
+      
    }
 
-   private function saveState() {
-      global $DB;
-      $DB->beginTransaction();
-      try {
-         $DB->deleteOrDie('glpi_workflowruns_variables', ['workflowruns_id' => $this->getID()]);
-         foreach (self::variables as $name => $data) {
-            $DB->insertOrDie('glpi_workflowruns_variables', [
-                'workflowruns_id'   => $this->getID(),
-                'name'              => $name,
-                'value'             => $data['value'],
-                'type'              => isset($data['type']) ? $data['type'] : 'string'
-            ]);
-         }
-         $DB->commit();
-      } catch (Exception $e) {
-         $DB->rollBack();
+   public function getCaption(WorkflowState $run): string {
+      return __('Create ITIL Object');
+   }
+
+   public function getDescription(WorkflowRun $run): string {
+      return __('Creates a ticket, change, or problem');
+   }
+
+   public function getInputDefinitions(array $input): array {
+      $inputs = [];
+      $inputs['itemtype'] = [
+          'name' => __('Item type'),
+          'type' => 'string',
+          'allowedvalues' => ['Ticket', 'Change', 'Problem']
+      ];
+      switch ($input['itemtype']) {
+         case 'Ticket':
+            break;
+         case 'Change':
+            break;
+         case 'Problem':
+            break;
+         default:
+            break;
       }
    }
 
-   private function restoreState() {
+   public function getOutputDefinitions(array $input): array {
       
    }
+
 }

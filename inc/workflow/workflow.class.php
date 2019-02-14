@@ -30,6 +30,8 @@
  * ---------------------------------------------------------------------
 */
 
+namespace Glpi\Workflow;
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -46,5 +48,23 @@ class Workflow extends CommonDBTM {
 
    static function getTypeName($nb = 0) {
       return _n('Workflow', 'Workflows', $nb);
+   }
+
+   public function showForm($ID, $options = []) {
+      $this->initForm($ID, $options);
+      $this->showFormHeader($options);
+
+      echo "<tr class='tab_bg_1'>";
+      echo "<div class='workflow_container'>";
+      echo "<div class='workflow_drawer'>";
+      
+      echo "</div";
+      echo "<div id='workflow_designer' class='workflow_designer'>";
+      
+      echo "</div";
+      echo "</div";
+      echo "</tr>";
+      $this->showFormButtons();
+      return true;
    }
 }
