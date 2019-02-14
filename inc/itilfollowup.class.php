@@ -1117,4 +1117,5 @@ class ITILFollowup  extends CommonDBChild {
       }
       return $triggers;
    }
+
 }
