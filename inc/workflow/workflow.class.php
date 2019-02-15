@@ -56,8 +56,13 @@ class Workflow extends CommonDBTM {
 
       echo "<tr class='tab_bg_1'>";
       echo "<div class='workflow_container'>";
-      echo "<div class='workflow_drawer'>";
+      echo "<div class='workflow_decks'>";
+      echo "<div class='workflow_deck_triggers'>";
       
+      echo "</div";
+      echo "<div class='workflow_deck_tasks'>";
+      
+      echo "</div";
       echo "</div";
       echo "<div id='workflow_designer' class='workflow_designer'>";
       

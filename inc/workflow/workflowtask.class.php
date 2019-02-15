@@ -36,6 +36,11 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
+/**
+ * WorkflowTask class.
+ * A WorkflowTask is a WorkflowCard that executes an action or task given some input.
+ * @since 10.0.0
+ */
 abstract class WorkflowTask extends WorkflowCard
 {
    /**
@@ -45,5 +50,17 @@ abstract class WorkflowTask extends WorkflowCard
     */
    public function isContainerTask() : bool {
       return false;
+   }
+
+   /**
+    * Does this task block until criteria are met? (Ex: wait for approval response)
+    * @return bool True if this task blocks until criteria are met
+    */
+   public function isBlocking() : bool {
+      return false;
+   }
+
+   public function isReady() : bool {
+      return true;
    }
 }
