@@ -1009,35 +1009,35 @@ class Search extends DbTestCase {
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'ASC'
                ]
             ], ' ORDER BY `ITEM_Computer_5` ASC '
          ],
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'DESC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'DESC'
                ]
             ], ' ORDER BY `ITEM_Computer_5` DESC '
          ],
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'INVALID'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'INVALID'
                ]
             ], ' ORDER BY `ITEM_Computer_5` DESC '
          ],
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
                ]
             ], ' ORDER BY `ITEM_Computer_5` ASC '
          ],
@@ -1045,36 +1045,36 @@ class Search extends DbTestCase {
          [
             [
                [
-                  'itemtype'  => 'IPAddress',
-                  'field_id'  => 1,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'IPAddress',
+                  'searchopt_id' => 1,
+                  'order'        => 'ASC'
                ]
             ], ' ORDER BY INET_ATON(`glpi_ipaddresses`.`name`) ASC '
          ],
          [
             [
                [
-                  'itemtype'  => 'IPAddress',
-                  'field_id'  => 1,
-                  'order'     => 'DESC'
+                  'itemtype'     => 'IPAddress',
+                  'searchopt_id' => 1,
+                  'order'        => 'DESC'
                ]
             ], ' ORDER BY INET_ATON(`glpi_ipaddresses`.`name`) DESC '
          ],
          [
             [
                [
-                  'itemtype'  => 'User',
-                  'field_id'  => 1,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'User',
+                  'searchopt_id' => 1,
+                  'order'        => 'ASC'
                ]
             ], ' ORDER BY `glpi_users`.`name` ASC '
          ],
          [
             [
                [
-                  'itemtype'  => 'User',
-                  'field_id'  => 1,
-                  'order'     => 'DESC'
+                  'itemtype'     => 'User',
+                  'searchopt_id' => 1,
+                  'order'        => 'DESC'
                ]
             ], ' ORDER BY `glpi_users`.`name` DESC '
          ],
@@ -1082,56 +1082,56 @@ class Search extends DbTestCase {
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'ASC'
                ],
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 6,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 6,
+                  'order'        => 'ASC'
                ],
             ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Computer_6` ASC '
          ],
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'ASC'
                ],
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 6,
-                  'order'     => 'DESC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 6,
+                  'order'        => 'DESC'
                ],
             ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Computer_6` DESC '
          ],
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'ASC'
                ],
                [
-                  'itemtype'  => 'Monitor',
-                  'field_id'  => 6,
-                  'order'     => 'DESC'
+                  'itemtype'     => 'Monitor',
+                  'searchopt_id' => 6,
+                  'order'        => 'DESC'
                ],
             ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Monitor_6` DESC '
          ],
          [
             [
                [
-                  'itemtype'  => 'Computer',
-                  'field_id'  => 5,
-                  'order'     => 'ASC'
+                  'itemtype'     => 'Computer',
+                  'searchopt_id' => 5,
+                  'order'        => 'ASC'
                ],
                [
-                  'itemtype'  => 'IPAddress',
-                  'field_id'  => 1,
-                  'order'     => 'DESC'
+                  'itemtype'     => 'IPAddress',
+                  'searchopt_id' => 1,
+                  'order'        => 'DESC'
                ],
             ], ' ORDER BY `ITEM_Computer_5` ASC, INET_ATON(`glpi_ipaddresses`.`name`) DESC '
          ]
@@ -1182,9 +1182,9 @@ class Search extends DbTestCase {
       $_SESSION['glpinames_format'] = \User::FIRSTNAME_BEFORE;
       $user_order_1 = \Search::addOrderBy([
          [
-            'itemtype'  => 'Ticket',
-            'field_id'  => 4,
-            'order'     => 'ASC'
+            'itemtype'     => 'Ticket',
+            'searchopt_id' => 4,
+            'order'        => 'ASC'
          ]
       ]);
       $this->string($user_order_1)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` ASC,
@@ -1192,9 +1192,9 @@ class Search extends DbTestCase {
                                  `$table_addtable`.`name` ASC ");
       $user_order_2 = \Search::addOrderBy([
          [
-            'itemtype'  => 'Ticket',
-            'field_id'  => 4,
-            'order'     => 'DESC'
+            'itemtype'     => 'Ticket',
+            'searchopt_id' => 4,
+            'order'        => 'DESC'
          ]
       ]);
       $this->string($user_order_2)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` DESC,
@@ -1204,9 +1204,9 @@ class Search extends DbTestCase {
       $_SESSION['glpinames_format'] = \User::REALNAME_BEFORE;
       $user_order_3 = \Search::addOrderBy([
          [
-            'itemtype'  => 'Ticket',
-            'field_id'  => 4,
-            'order'     => 'ASC'
+            'itemtype'     => 'Ticket',
+            'searchopt_id' => 4,
+            'order'        => 'ASC'
          ]
       ]);
       $this->string($user_order_3)->isEqualTo(" ORDER BY `$table_addtable`.`realname` ASC,
@@ -1214,9 +1214,9 @@ class Search extends DbTestCase {
                                  `$table_addtable`.`name` ASC ");
       $user_order_4 = \Search::addOrderBy([
          [
-            'itemtype'  => 'Ticket',
-            'field_id'  => 4,
-            'order'     => 'DESC'
+            'itemtype'     => 'Ticket',
+            'searchopt_id' => 4,
+            'order'        => 'DESC'
          ]
       ]);
       $this->string($user_order_4)->isEqualTo(" ORDER BY `$table_addtable`.`realname` DESC,

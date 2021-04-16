@@ -3105,9 +3105,12 @@ JAVASCRIPT;
     *    Old functionality maintained by checking the type of the first parameter.
     *    This backwards compatibility will be removed in a later version.
     *
-    * @param string  $itemtype  ID of the device type
-    * @param integer $ID        field to add
-    * @param string  $order     order define
+    * @param array  $sort_fields The search options to order on. This array should contain one or more associative arrays containing:
+    *    - itemtype: The itemtype the search option belongs to
+    *    - id: The search option ID
+    *    - order: The sort direction (Default: ASC). Invalid sort directions will be replaced with the default option
+    * @param ?integer $_id    field to add (Deprecated)
+    * @param string  $_order  order define (Deprecated)
     *
     * @return string ORDER BY query string
     *
@@ -3121,9 +3124,9 @@ JAVASCRIPT;
          //Toolbox::deprecated('The parameters for Search::addOrderBy have changed to allow sorting by multiple fields. Please update your calling code.');
          $sort_fields = [
             [
-               'itemtype'  => $sort_fields,
-               'field_id'  => $_id,
-               'order'     => $_order
+               'itemtype'     => $sort_fields,
+               'searchopt_id' => $_id,
+               'order'        => $_order
             ]
          ];
       }
@@ -3132,7 +3135,7 @@ JAVASCRIPT;
 
       foreach ($sort_fields as $sort_field) {
          $itemtype = $sort_field['itemtype'];
-         $ID = $sort_field['field_id'];
+         $ID = $sort_field['searchopt_id'];
          $order = $sort_field['order'] ?? 'ASC';
          // Order security check
          if ($order != 'ASC') {
