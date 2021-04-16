@@ -1280,8 +1280,6 @@ class Html {
       // load log filters everywhere
       Html::requireJs('log_filters');
 
-      Html::requireJs('datatables');
-
       $tpl_vars['css_files'][] = 'css/legacy/jquery-glpi.scss';
       if (CommonGLPI::isLayoutWithMain()
           && !CommonGLPI::isLayoutExcludedPage()) {
@@ -6314,9 +6312,6 @@ JAVASCRIPT;
             $_SESSION['glpi_js_toload'][$name][] = 'public/lib/photoswipe.js';
          case 'reservations':
             $_SESSION['glpi_js_toload'][$name][] = 'js/reservations.js';
-            break;
-         case 'datatables':
-            $_SESSION['glpi_js_toload'][$name][] = 'public/lib/datatables.js';
             break;
          default:
             $found = false;

@@ -96,10 +96,8 @@
       const search_table = $('#search_{{ rand }}').on('preXhr.dt', (e, settings, data) => {
          data.glpi_search = {};
       }).DataTable({
-         fixedHeader: true,
-         fixedColumns: true,
          select: true,
-         serverSide: true,
+         serverSide: false,
          ajax: {
             url: "{{ config('root_doc') }}/ajax/search_result.php",
          }
