@@ -968,6 +968,72 @@ class Search extends DbTestCase {
            ->isEqualTo($this->cleanSQL($lj_provider['sql']));
    }
 
+   protected function addOrderByProvider(): array {
+      return [
+         // Generic examples
+         [
+            'Computer', 5, 'ASC',
+            ' ORDER BY `ITEM_Computer_5` ASC '
+         ],
+         [
+            'Computer', 5, 'DESC',
+            ' ORDER BY `ITEM_Computer_5` DESC '
+         ],
+         [
+            'Computer', 5, 'INVALID',
+            ' ORDER BY `ITEM_Computer_5` DESC '
+         ],
+         // Simple Hard-coded cases
+         [
+            'IPAddress', 1, 'ASC',
+            ' ORDER BY INET_ATON(`glpi_ipaddresses`.`name`) ASC '
+         ],
+         [
+            'IPAddress', 1, 'DESC',
+            ' ORDER BY INET_ATON(`glpi_ipaddresses`.`name`) DESC '
+         ],
+         [
+            'User', 1, 'ASC',
+            ' ORDER BY `glpi_users`.`name` ASC'
+         ],
+         [
+            'User', 1, 'DESC',
+            ' ORDER BY `glpi_users`.`name` DESC'
+         ]
+      ];
+   }
+
+   /**
+    * @dataProvider addOrderByProvider
+    */
+   public function testAddOrderBy($itemtype, $id, $order, $expected) {
+      $result = \Search::addOrderBy($itemtype, $id, $order);
+      $this->string($result)->isEqualTo($expected);
+
+      // Complex cases
+      $table_addtable = 'glpi_users_af1042e23ce6565cfe58c6db91f84692';
+
+      $_SESSION['glpinames_format'] = \User::FIRSTNAME_BEFORE;
+      $user_order_1 = \Search::addOrderBy('Ticket', 4, 'ASC');
+      $this->string($user_order_1)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` ASC,
+                                 `$table_addtable`.`realname` ASC,
+                                 `$table_addtable`.`name` ASC");
+      $user_order_2 = \Search::addOrderBy('Ticket', 4, 'DESC');
+      $this->string($user_order_2)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` DESC,
+                                 `$table_addtable`.`realname` DESC,
+                                 `$table_addtable`.`name` DESC");
+
+      $_SESSION['glpinames_format'] = \User::REALNAME_BEFORE;
+      $user_order_3 = \Search::addOrderBy('Ticket', 4, 'ASC');
+      $this->string($user_order_3)->isEqualTo(" ORDER BY `$table_addtable`.`realname` ASC,
+                                 `$table_addtable`.`firstname` ASC,
+                                 `$table_addtable`.`name` ASC");
+      $user_order_4 = \Search::addOrderBy('Ticket', 4, 'DESC');
+      $this->string($user_order_4)->isEqualTo(" ORDER BY `$table_addtable`.`realname` DESC,
+                                 `$table_addtable`.`firstname` DESC,
+                                 `$table_addtable`.`name` DESC");
+   }
+
    private function cleanSQL($sql) {
       $sql = str_replace("\r\n", ' ', $sql);
       $sql = str_replace("\n", ' ', $sql);

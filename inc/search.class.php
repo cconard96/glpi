@@ -3156,6 +3156,7 @@ JAVASCRIPT;
       }
 
       switch ($table.".".$field) {
+         // FIXME Dead case? Can't see any itemtype referencing this table in their search options to be able to get here.
          case "glpi_auth_tables.name" :
             $user_searchopt = self::getOptions('User');
             return " ORDER BY `glpi_users`.`authtype` $order,
@@ -3180,7 +3181,7 @@ JAVASCRIPT;
                                  `".$table.$addtable."`.`name` $order";
             }
             return " ORDER BY `".$table.$addtable."`.`name` $order";
-
+         //FIXME glpi_networkequipments.ip seems like a dead case
          case "glpi_networkequipments.ip" :
          case "glpi_ipaddresses.name" :
             return " ORDER BY INET_ATON(`$table$addtable`.`$field`) $order ";
