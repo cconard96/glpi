@@ -420,10 +420,7 @@ class Search {
                      'order'        => $sort_field[1],
                   ];
                }
-               // Reverse the order of the sort fields because MySQL processes them in reverse and it isn't intuitive.
-               // This will correct that.
-               //TODO Ensure the order that orders are done is the same for all SQL DBMS
-               $p[$key] = array_reverse($sort_fields);
+               $p[$key] = $sort_fields;
                break;
             case 'is_deleted':
                if ($val == 1) {
