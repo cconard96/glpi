@@ -369,7 +369,13 @@ class Search {
       // Default values of parameters
       $p['criteria']            = [];
       $p['metacriteria']        = [];
-      $p['sort']                = '1'; //
+      $p['sort']                = [
+         [
+            'itemtype'     => $itemtype,
+            'searchopt_id' => 1,
+            'order'        => 'ASC'
+         ]
+      ]; //
       $p['order']               = 'ASC';//
       $p['start']               = 0;//
       $p['is_deleted']          = 0;
@@ -537,7 +543,13 @@ class Search {
 
       // Add order item
       if (!in_array($p['sort'], $data['toview'])) {
-         array_push($data['toview'], $p['sort']);
+         if (is_array($p['sort'])) {
+            foreach ($p['sort'] as $sort_field) {
+               $data['toview'][] = $sort_field['searchopt_id'];
+            }
+         } else {
+            array_push($data['toview'], $p['sort']);
+         }
       }
 
       // Special case for Ticket : put ID in front
