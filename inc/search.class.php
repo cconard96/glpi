@@ -396,10 +396,28 @@ class Search {
                }
                break;
             case 'sort':
-               $p[$key] = intval($val);
-               if ($p[$key] < 0) {
-                  $p[$key] = 1;
+               $to_sort_fields = explode(',', $val);
+               $sort_fields = [];
+               foreach ($to_sort_fields as $sort_field) {
+                  $sort_field = (strpos($sort_field, '_') !== false) ?
+                     explode('_', $sort_field, 2) : [$sort_field, $params['order'] ?? 'ASC'];
+                  if (!in_array($sort_field[1], ['ASC', 'DESC'])) {
+                     // Bad order value. Ignore this sort field.
+                     continue;
+                  }
+                  if ($sort_field[0] < 0) {
+                     $sort_field[0] = 1;
+                  }
+                  $sort_fields[] = [
+                     'itemtype'     => $itemtype,
+                     'searchopt_id' => (int) $sort_field[0],
+                     'order'        => $sort_field[1],
+                  ];
                }
+               // Reverse the order of the sort fields because MySQL processes them in reverse and it isn't intuitive.
+               // This will correct that.
+               //TODO Ensure the order that orders are done is the same for all SQL DBMS
+               $p[$key] = array_reverse($sort_fields);
                break;
             case 'is_deleted':
                if ($val == 1) {
@@ -710,14 +728,16 @@ class Search {
 
       //// 4 - ORDER
       $ORDER = " ORDER BY `id` ";
-      foreach ($data['tocompute'] as $val) {
-         if ($data['search']['sort'] == $val) {
-            $ORDER = self::addOrderBy(
-               $data['itemtype'],
-               $data['search']['sort'],
-               $data['search']['order']
-            );
+      $sort_fields = [];
+      foreach ($data['search']['sort'] as $sort_field) {
+         foreach ($data['tocompute'] as $val) {
+            if ($sort_field['searchopt_id'] == $val) {
+               $sort_fields[] = $sort_field;
+            }
          }
+      }
+      if (count($sort_fields)) {
+         $ORDER = self::addOrderBy($sort_fields);
       }
 
       $SELECT = rtrim(trim($SELECT), ',');
@@ -1522,7 +1542,19 @@ class Search {
             'criteria'     => Toolbox::stripslashes_deep($search['criteria']),
             'metacriteria' => Toolbox::stripslashes_deep($search['metacriteria'])
       ], '&');
-      $parameters = "sort={$search['sort']}&order={$search['order']}&{$globallinkto}";
+
+      $sort_string = '';
+      foreach ($search['sort'] as $sort_field) {
+         $sort_string .= $sort_field['searchopt_id'].(isset($sort_field['order']) ? '_'.$sort_field['order'] : '');
+      }
+
+      $parameters = "sort={$sort_string}";
+
+      if (isset($search['order'])) {
+         $parameters .= "&order={$search['order']}";
+      }
+
+      $parameters .= "&{$globallinkto}";
 
       if (isset($_GET['_in_modal'])) {
          $parameters .= "&_in_modal=1";
