@@ -1,6 +1,6 @@
 <div class="table-responsive-md">
    <table class="search-results table card-table table-hover {{ data['search']['is_deleted'] ? "table-danger deleted-results" : "" }}"
-          id="search_{{ rand }}">
+          id="search_{{ rand }}" data-search-itemtype="{{ data['itemtype'] }}">
       <thead>
          <tr>
             {% if showmassiveactions %}
@@ -13,13 +13,21 @@
             </th>
             {% endif %}
 
+            {% set sorts = data['search']['sort'] %}
+
             {% for col in data['data']['cols'] %}
                {# construct header link (for sorting) #}
                {% set linkto = "" %}
                {% set so_no_sort = col['searchopt']['nosort'] ?? false %}
                {% set meta = col['meta'] ?? false %}
-               {% if not meta and not no_sort and not so_no_sort %}
-                  {% set linkto = prehref ~ "sort=" ~ col['id'] ~ "&order=" ~ (order == "ASC" ? "DESC" : "ASC") ~ "&start=" ~ start ~ "&" ~ posthref %}
+               {% set sort_order = 'nosort' %}
+               {% set can_sort = not meta and not no_sort and not so_no_sort %}
+               {% if can_sort %}
+                  {% for sort_opt in sorts %}
+                     {% if sort_opt['searchopt_id'] == col['id'] %}
+                        {% set sort_order = sort_opt['order'] %}
+                     {% endif %}
+                  {% endfor %}
                {% endif %}
 
                {% set col_name = col['name'] %}
@@ -34,14 +42,9 @@
                   {% set col_name = __('%1$s - %2$s')|format(col['itemtype']|itemtype_name, col_name) %}
                {% endif %}
 
-               <th>
+               <th data-searchopt-id="{{ col['id'] }}" {{ not can_sort ? 'data-nosort="true"' }} data-sort-order="{{ sort_order }}">
                   {% set sort_icon = (sort == col['id'] ? "<i class=\"fas fa-sort-" ~ (order == "ASC" ? "down" : "up") ~ "\"></i>" : "") %}
-
-                  {% if linkto is empty %}
-                     {{ col_name }}&nbsp;{{ sort_icon }}
-                  {% else %}
-                     <a href="{{ linkto }}">{{ col_name }}&nbsp;{{ sort_icon|raw }}</a>
-                  {% endif %}
+                  {{ col_name }}
                </th>
             {% endfor %}
 
@@ -90,3 +93,8 @@
       </tbody>
    </table>
 </div>
+<script>
+   $(document).on('ready', () => {
+      new GLPI.Search.SearchTable("search_{{ rand }}");
+   });
+</script>
