@@ -72,11 +72,13 @@ GLPI.Search.SearchTable = class {
                     });
                 }
 
-                query_params.set('sort', orders.filter((v, k) => {
-                    return orders[k]['searchopt_id'] !== '' && orders[k]['order'] !== 'nosort';
-                }).map((v, k) => {
-                    return orders[k]['searchopt_id']+'_'+orders[k]['order'];
+                query_params.set('sort', orders.filter((o) => {
+                    return o['searchopt_id'] !== '' && o['order'] !== 'nosort';
+                }).map((o) => {
+                    return o['searchopt_id']+'_'+o['order'];
                 }).join(','));
+                query_params.delete('reset');
+
                 window.location.search = query_params.toString();
             });
         }

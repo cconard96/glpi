@@ -173,15 +173,9 @@ table.search-results {
    thead th[data-searchopt-id]:not([data-searchopt-id=""]) {
       cursor: pointer;
 
-      &[data-sort-order="ASC"]:after {
-         content: "\f077";
-         font-family: "Font Awesome 5 Free";
-         margin-left: 5px;
-      }
-      &[data-sort-order="DESC"]:after {
-         content: "\f078";
-         font-family: "Font Awesome 5 Free";
-         margin-left: 5px;
+      .sort-indicator {
+         vertical-align: super;
+         font-size: 1.2em;
       }
    }
 }
