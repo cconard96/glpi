@@ -30,6 +30,8 @@
  * ---------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -78,6 +80,43 @@ class Rack extends CommonDBTM {
       return $ong;
    }
 
+   public function getFormFields() {
+      return [
+         [
+            'name'         => 'name',
+            'label'        => __('Name'),
+            'type'         => 'string',
+            'params'       => [
+               'autocomplete' => true,
+            ],
+         ],
+         [
+            'name'         => 'states_id',
+            'label'        => __('Status'),
+            'type'         => 'dropdown',
+            'itemtype'     => State::class,
+            'params'       => [
+               'entity'    => $this->fields["entities_id"],
+               'condition' => ['is_visible_rack' => 1],
+            ],
+         ],
+         [
+            'name'         => 'locations_id',
+            'label'        => Location::getTypeName(1),
+            'type'         => 'dropdown',
+            'itemtype'     => Location::class,
+            'params'       => [
+               'entity'    => $this->fields["entities_id"],
+            ],
+         ],
+         [
+            'name'         => 'racktypes_id',
+            'label'        => _n('Type', 'Types', 1),
+            'type'         => 'dropdown',
+            'itemtype'     => RackType::class,
+         ]
+      ];
+   }
 
    function showForm($ID, $options = []) {
       global $DB, $CFG_GLPI;
@@ -85,6 +124,11 @@ class Rack extends CommonDBTM {
       $tplmark = $this->getAutofillMark('name', $options);
 
       $this->initForm($ID, $options);
+      TemplateRenderer::getInstance()->display('dynamic_form.html.twig', [
+         'item'   => $this,
+         'params' => $options,
+      ]);
+      return true;
       $this->showFormHeader($options);
 
       echo "<tr class='tab_bg_1'>";

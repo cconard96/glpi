@@ -1,0 +1,110 @@
+
+{% import "components/form/fields_macros.html.twig" as fields %}
+
+{% set bg = "" %}
+{% if item.isDeleted() %}
+   {% set bg = "asset-deleted" %}
+{% endif %}
+
+<div class="asset {{ bg }}">
+   {% include("components/form/header.html.twig") %}
+
+   {% set rand = random() %}
+   {% set params  = params ?? [] %}
+   {% set target       = params['target'] ?? item.getFormURL() %}
+   {% set withtemplate = params['withtemplate'] ?? "" %}
+
+   {# TODO form-select normal size for select2 #}
+
+   <div class="card-body">
+      <div class="d-flex flex-row flex-wrap flex-xl-nowrap">
+         <div class="row flex-row align-items-start">
+            <div class="row flex-row">
+               {% set form_fields = item.getFormFields %}
+               {% for field in form_fields %}
+                  {% if field['type'] == 'bool' or field['type'] == 'boolean' %}
+
+                  {% elseif field['type'] == 'string' or field['type'] == 'shorttext' %}
+                     {% if field['params']['autocomplete'] %}
+                        {{ fields.autoNameField(
+                           field['name'],
+                           item,
+                           field['label'],
+                           withtemplate
+                        ) }}
+                     {% else %}
+                        {{ fields.textField(
+                           field['name'],
+                           item.fields[field['name']],
+                           field['label'],
+                        ) }}
+                     {% endif %}
+                  {% elseif field['type'] == 'email' %}
+                     {{ fields.textField(
+                        field['name'],
+                        item.fields[field['name']],
+                        field['label'],
+                        {'type': 'email'}
+                     ) }}
+                  {% elseif field['type'] == 'phone' %}
+                     {{ fields.textField(
+                        field['name'],
+                        item.fields[field['name']],
+                        field['label'],
+                        {'type': 'phone'}
+                     ) }}
+                  {% elseif field['type'] == 'url' %}
+                     {{ fields.textField(
+                        field['name'],
+                        item.fields[field['name']],
+                        field['label'],
+                        {'type': 'url'}
+                     ) }}
+                  {% elseif field['type'] == 'text' or field['type'] == 'longtext' %}
+
+                  {% elseif field['type'] == 'number' %}
+
+                  {% elseif field['type'] == 'date' %}
+
+                  {% elseif field['type'] == 'time' %}
+
+                  {% elseif field['type'] == 'datetime' %}
+
+                  {% elseif field['type'] == 'password' %}
+
+                  {% elseif field['type'] == 'hidden' %}
+
+                  {% elseif field['type'] == 'color' %}
+
+                  {% elseif field['type'] == 'image' %}
+
+                  {% elseif field['type'] == 'dropdown' %}
+                     {% if field['itemtype'] is defined %}
+                        {{ fields.dropdownField(
+                           field['itemtype'],
+                           field['name'],
+                           item.fields[field['name']],
+                           field['label']|default(field['itemtype']|itemtype_name(1)),
+                           field['params']|default({})
+                        ) }}
+                     {% endif %}
+                  {% elseif field['type'] == 'raw' %}
+
+                  {% endif %}
+               {% endfor %}
+            </div> {# .row #}
+         </div> {# .row #}
+         {% include("components/form/pictures.html.twig") %}
+      </div> {# .flex-row #}
+   </div> {# .card-body #}
+
+   {% include("components/form/buttons.html.twig") %}
+   {% include("components/form/inventory_info.html.twig") %}
+
+
+   {% if params['formfooter'] == null %}
+      <div class="card-footer mx-n2 mb-n2 mt-4">
+         {% include("components/form/dates.html.twig") %}
+      </div>
+   {% endif %}
+</div>
