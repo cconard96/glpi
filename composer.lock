@@ -207,16 +207,16 @@
         },
         {
             "name": "glpi-project/inventory_format",
-            "version": "1.0.8",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/glpi-project/inventory_format.git",
-                "reference": "6a69de14433a5e3a2a1d837d4e776ca2cb859fda"
+                "reference": "c740e12ced299222b48da236ccc26193a113dc37"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/glpi-project/inventory_format/zipball/6a69de14433a5e3a2a1d837d4e776ca2cb859fda",
-                "reference": "6a69de14433a5e3a2a1d837d4e776ca2cb859fda",
+                "url": "https://api.github.com/repos/glpi-project/inventory_format/zipball/c740e12ced299222b48da236ccc26193a113dc37",
+                "reference": "c740e12ced299222b48da236ccc26193a113dc37",
                 "shasum": ""
             },
             "require": {
@@ -230,7 +230,8 @@
             "bin": [
                 "bin/convert",
                 "bin/build_hw_jsons",
-                "bin/refresh_hw_sources"
+                "bin/refresh_hw_sources",
+                "bin/validate"
             ],
             "type": "library",
             "extra": {
@@ -264,7 +265,7 @@
                 "issues": "https://github.com/glpi-project/inventory_format/issues",
                 "source": "https://github.com/glpi-project/inventory_format"
             },
-            "time": "2021-05-17T14:13:51+00:00"
+            "time": "2021-06-28T07:07:43+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -3363,16 +3364,16 @@
         },
         {
             "name": "swaggest/json-schema",
-            "version": "v0.12.32",
+            "version": "v0.12.35",
             "source": {
                 "type": "git",
                 "url": "https://github.com/swaggest/php-json-schema.git",
-                "reference": "f92567a1f4fcb0296758b471654171acfdb6031b"
+                "reference": "d0126bd830c92a498691d278f01d3ce13a2c9c0a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swaggest/php-json-schema/zipball/f92567a1f4fcb0296758b471654171acfdb6031b",
-                "reference": "f92567a1f4fcb0296758b471654171acfdb6031b",
+                "url": "https://api.github.com/repos/swaggest/php-json-schema/zipball/d0126bd830c92a498691d278f01d3ce13a2c9c0a",
+                "reference": "d0126bd830c92a498691d278f01d3ce13a2c9c0a",
                 "shasum": ""
             },
             "require": {
@@ -3406,9 +3407,9 @@
             "support": {
                 "email": "vearutop@gmail.com",
                 "issues": "https://github.com/swaggest/php-json-schema/issues",
-                "source": "https://github.com/swaggest/php-json-schema/tree/v0.12.32"
+                "source": "https://github.com/swaggest/php-json-schema/tree/v0.12.35"
             },
-            "time": "2021-05-12T14:36:39+00:00"
+            "time": "2021-06-17T22:28:26+00:00"
         },
         {
             "name": "symfony/cache",
@@ -6241,5 +6242,5 @@
     "platform-overrides": {
         "php": "7.3.0"
     },
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }
