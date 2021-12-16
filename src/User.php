@@ -2318,7 +2318,7 @@ JAVASCRIPT;
             echo "<input type='hidden' name='name' value=\"" . $this->fields["name"] . "\" class='form-control'></td>";
         }
 
-        if (!empty($this->fields["name"])) {
+        if ($ID > 0 && !empty($this->fields["name"])) {
             echo "<td rowspan='7'>" . _n('Picture', 'Pictures', 1) . "</td>";
             echo "<td rowspan='7'>";
             echo self::getPictureForUser($ID);
