@@ -1,0 +1,1844 @@
+{
+  "agent.form.php": {
+    "type": "item_form"
+  },
+  "agent.php": {
+    "type": "search"
+  },
+  "allassets.php": {
+    "type": "search"
+  },
+  "apiclient.form.php": {
+    "type": "item_form"
+  },
+  "appliance.form.php": {
+    "type": "item_form"
+  },
+  "appliance.php": {
+    "type": "search"
+  },
+  "appliance_item.form.php": {
+    "type": "item_form"
+  },
+  "appliance_item_relation.form.php": {
+    "type": "item_form"
+  },
+  "applianceenvironment.form.php": {
+    "type": "item_form"
+  },
+  "applianceenvironment.php": {
+    "type": "search"
+  },
+  "appliancetype.form.php": {
+    "type": "item_form"
+  },
+  "appliancetype.php": {
+    "type": "search"
+  },
+  "auth.others.php": {
+    "type": "special"
+  },
+  "auth.settings.php": {
+    "type": "special"
+  },
+  "authldap.form.php": {
+    "type": "item_form"
+  },
+  "authldap.php": {
+    "type": "search"
+  },
+  "authmail.form.php": {
+    "type": "item_form"
+  },
+  "authmail.php": {
+    "type": "search"
+  },
+  "autoupdatesystem.form.php": {
+    "type": "item_form"
+  },
+  "autoupdatesystem.php": {
+    "type": "search"
+  },
+  "blacklist.form.php": {
+    "type": "item_form"
+  },
+  "blacklist.php": {
+    "type": "search"
+  },
+  "blacklistedmailcontent.form.php": {
+    "type": "item_form"
+  },
+  "blacklistedmailcontent.php": {
+    "type": "search"
+  },
+  "budget.form.php": {
+    "type": "item_form"
+  },
+  "budget.php": {
+    "type": "search"
+  },
+  "budgettype.form.php": {
+    "type": "item_form"
+  },
+  "budgettype.php": {
+    "type": "search"
+  },
+  "businesscriticity.form.php": {
+    "type": "item_form"
+  },
+  "businesscriticity.php": {
+    "type": "search"
+  },
+  "cable.form.php": {
+    "type": "item_form"
+  },
+  "cable.php": {
+    "type": "search"
+  },
+  "cablestrand.form.php": {
+    "type": "item_form"
+  },
+  "cablestrand.php": {
+    "type": "search"
+  },
+  "cabletype.form.php": {
+    "type": "item_form"
+  },
+  "cabletype.php": {
+    "type": "search"
+  },
+  "calendar.form.php": {
+    "type": "item_form"
+  },
+  "calendar.php": {
+    "type": "search"
+  },
+  "calendar_holiday.form.php": {
+    "type": "item_form"
+  },
+  "calendarsegment.form.php": {
+    "type": "item_form"
+  },
+  "cartridge.form.php": {
+    "type": "item_form"
+  },
+  "cartridgeitem.form.php": {
+    "type": "item_form"
+  },
+  "cartridgeitem.php": {
+    "type": "search"
+  },
+  "cartridgeitem_printermodel.form.php": {
+    "type": "item_form"
+  },
+  "cartridgeitemtype.form.php": {
+    "type": "item_form"
+  },
+  "cartridgeitemtype.php": {
+    "type": "search"
+  },
+  "central.php": {
+    "type": "special"
+  },
+  "certificate.form.php": {
+    "type": "item_form"
+  },
+  "certificate.php": {
+    "type": "search"
+  },
+  "certificate_item.form.php": {
+    "type": "item_form"
+  },
+  "certificatetype.form.php": {
+    "type": "item_form"
+  },
+  "certificatetype.php": {
+    "type": "search"
+  },
+  "change.form.php": {
+    "type": "item_form"
+  },
+  "change.php": {
+    "type": "search"
+  },
+  "change_group.form.php": {
+    "type": "item_form"
+  },
+  "change_item.form.php": {
+    "type": "item_form"
+  },
+  "change_problem.form.php": {
+    "type": "item_form"
+  },
+  "change_supplier.form.php": {
+    "type": "item_form"
+  },
+  "change_ticket.form.php": {
+    "type": "item_form"
+  },
+  "change_user.form.php": {
+    "type": "item_form"
+  },
+  "changecost.form.php": {
+    "type": "item_form"
+  },
+  "changetask.form.php": {
+    "type": "item_form"
+  },
+  "changetemplate.form.php": {
+    "type": "item_form"
+  },
+  "changetemplate.php": {
+    "type": "search"
+  },
+  "changetemplatehiddenfield.form.php": {
+    "type": "item_form"
+  },
+  "changetemplatemandatoryfield.form.php": {
+    "type": "item_form"
+  },
+  "changetemplatepredefinedfield.form.php": {
+    "type": "item_form"
+  },
+  "changevalidation.form.php": {
+    "type": "item_form"
+  },
+  "cluster.form.php": {
+    "type": "item_form"
+  },
+  "cluster.php": {
+    "type": "search"
+  },
+  "clustertype.form.php": {
+    "type": "item_form"
+  },
+  "clustertype.php": {
+    "type": "search"
+  },
+  "commonitilcost.form.php": {
+    "type": "item_form"
+  },
+  "commonitiltask.form.php": {
+    "type": "item_form"
+  },
+  "commonitilvalidation.form.php": {
+    "type": "item_form"
+  },
+  "computer.form.php": {
+    "type": "item_form"
+  },
+  "computer.php": {
+    "type": "search"
+  },
+  "computer_item.form.php": {
+    "type": "item_form"
+  },
+  "computerantivirus.form.php": {
+    "type": "item_form"
+  },
+  "computermodel.form.php": {
+    "type": "item_form"
+  },
+  "computermodel.php": {
+    "type": "search"
+  },
+  "computertype.form.php": {
+    "type": "item_form"
+  },
+  "computertype.php": {
+    "type": "search"
+  },
+  "computervirtualmachine.form.php": {
+    "type": "item_form"
+  },
+  "config.form.php": {
+    "type": "item_form"
+  },
+  "consumable.form.php": {
+    "type": "item_form"
+  },
+  "consumableitem.form.php": {
+    "type": "item_form"
+  },
+  "consumableitem.php": {
+    "type": "search"
+  },
+  "consumableitemtype.form.php": {
+    "type": "item_form"
+  },
+  "consumableitemtype.php": {
+    "type": "search"
+  },
+  "contact.form.php": {
+    "type": "item_form"
+  },
+  "contact.php": {
+    "type": "search"
+  },
+  "contact_supplier.form.php": {
+    "type": "item_form"
+  },
+  "contacttype.form.php": {
+    "type": "item_form"
+  },
+  "contacttype.php": {
+    "type": "search"
+  },
+  "contract.form.php": {
+    "type": "item_form"
+  },
+  "contract.php": {
+    "type": "search"
+  },
+  "contract_item.form.php": {
+    "type": "item_form"
+  },
+  "contract_supplier.form.php": {
+    "type": "item_form"
+  },
+  "contractcost.form.php": {
+    "type": "item_form"
+  },
+  "contracttype.form.php": {
+    "type": "item_form"
+  },
+  "contracttype.php": {
+    "type": "search"
+  },
+  "cron.php": {
+    "type": "special"
+  },
+  "crontask.form.php": {
+    "type": "item_form"
+  },
+  "crontask.php": {
+    "type": "search"
+  },
+  "css.php": {
+    "type": "special"
+  },
+  "dashboard_assets.php": {
+    "type": "special"
+  },
+  "dashboard_helpdesk.php": {
+    "type": "special"
+  },
+  "database.form.php": {
+    "type": "item_form"
+  },
+  "database.php": {
+    "type": "search"
+  },
+  "databaseinstance.form.php": {
+    "type": "item_form"
+  },
+  "databaseinstance.php": {
+    "type": "search"
+  },
+  "databaseinstancecategory.form.php": {
+    "type": "item_form"
+  },
+  "databaseinstancecategory.php": {
+    "type": "search"
+  },
+  "databaseinstancetype.form.php": {
+    "type": "item_form"
+  },
+  "databaseinstancetype.php": {
+    "type": "search"
+  },
+  "datacenter.form.php": {
+    "type": "item_form"
+  },
+  "datacenter.php": {
+    "type": "search"
+  },
+  "dcroom.form.php": {
+    "type": "item_form"
+  },
+  "dcroom.php": {
+    "type": "search"
+  },
+  "device.form.php": {
+    "type": "item_form"
+  },
+  "device.php": {
+    "type": "search"
+  },
+  "devicemodel.form.php": {
+    "type": "item_form"
+  },
+  "devicemodel.php": {
+    "type": "search"
+  },
+  "devices.php": {
+    "type": "special"
+  },
+  "devicetype.form.php": {
+    "type": "item_form"
+  },
+  "devicetype.php": {
+    "type": "search"
+  },
+  "dictionnary.php": {
+    "type": "special"
+  },
+  "display.options.php": {
+    "type": "special"
+  },
+  "displaypreference.form.php": {
+    "type": "item_form"
+  },
+  "document.form.php": {
+    "type": "item_form"
+  },
+  "document.php": {
+    "type": "search"
+  },
+  "document.send.php": {
+    "type": "special"
+  },
+  "document_item.form.php": {
+    "type": "item_form"
+  },
+  "documentcategory.form.php": {
+    "type": "item_form"
+  },
+  "documentcategory.php": {
+    "type": "search"
+  },
+  "documenttype.form.php": {
+    "type": "item_form"
+  },
+  "documenttype.list.php": {
+    "type": "search"
+  },
+  "documenttype.php": {
+    "type": "search"
+  },
+  "domain.form.php": {
+    "type": "item_form"
+  },
+  "domain.php": {
+    "type": "search"
+  },
+  "domainrecord.form.php": {
+    "type": "item_form"
+  },
+  "domainrecord.php": {
+    "type": "search"
+  },
+  "domainrecordtype.form.php": {
+    "type": "item_form"
+  },
+  "domainrecordtype.php": {
+    "type": "search"
+  },
+  "domainrelation.form.php": {
+    "type": "item_form"
+  },
+  "domainrelation.php": {
+    "type": "search"
+  },
+  "domaintype.form.php": {
+    "type": "item_form"
+  },
+  "domaintype.php": {
+    "type": "search"
+  },
+  "dropdown.common.form.php": {
+    "type": "special"
+  },
+  "dropdown.common.php": {
+    "type": "special"
+  },
+  "dropdown.php": {
+    "type": "special"
+  },
+  "dropdowntranslation.form.php": {
+    "type": "item_form"
+  },
+  "enclosure.form.php": {
+    "type": "item_form"
+  },
+  "enclosure.php": {
+    "type": "search"
+  },
+  "enclosuremodel.form.php": {
+    "type": "item_form"
+  },
+  "enclosuremodel.php": {
+    "type": "search"
+  },
+  "entity.form.php": {
+    "type": "item_form"
+  },
+  "entity.php": {
+    "type": "search"
+  },
+  "event.php": {
+    "type": "special"
+  },
+  "fieldblacklist.form.php": {
+    "type": "item_form"
+  },
+  "fieldblacklist.php": {
+    "type": "search"
+  },
+  "fieldunicity.form.php": {
+    "type": "item_form"
+  },
+  "fieldunicity.php": {
+    "type": "search"
+  },
+  "filesystem.form.php": {
+    "type": "item_form"
+  },
+  "filesystem.php": {
+    "type": "search"
+  },
+  "find_num.php": {
+    "type": "special"
+  },
+  "fqdn.form.php": {
+    "type": "item_form"
+  },
+  "fqdn.php": {
+    "type": "search"
+  },
+  "graph.send.php": {
+    "type": "special"
+  },
+  "group.form.php": {
+    "type": "item_form"
+  },
+  "group.php": {
+    "type": "search"
+  },
+  "group_problem.form.php": {
+    "type": "item_form"
+  },
+  "group_ticket.form.php": {
+    "type": "item_form"
+  },
+  "group_user.form.php": {
+    "type": "item_form"
+  },
+  "helpdesk.faq.php": {
+    "type": "special"
+  },
+  "helpdesk.php": {
+    "type": "special"
+  },
+  "helpdesk.public.php": {
+    "type": "special"
+  },
+  "holiday.form.php": {
+    "type": "item_form"
+  },
+  "holiday.php": {
+    "type": "search"
+  },
+  "imageformat.form.php": {
+    "type": "item_form"
+  },
+  "imageformat.php": {
+    "type": "search"
+  },
+  "imageresolution.form.php": {
+    "type": "item_form"
+  },
+  "imageresolution.php": {
+    "type": "search"
+  },
+  "impactcsv.php": {
+    "type": "special"
+  },
+  "impactitem.form.php": {
+    "type": "item_form"
+  },
+  "index.php": {
+    "type": "special"
+  },
+  "infocom.form.php": {
+    "type": "item_form"
+  },
+  "interfacetype.form.php": {
+    "type": "item_form"
+  },
+  "interfacetype.php": {
+    "type": "search"
+  },
+  "inventory.conf.php": {
+    "type": "special"
+  },
+  "inventory.php": {
+    "type": "special"
+  },
+  "ipnetwork.form.php": {
+    "type": "item_form"
+  },
+  "ipnetwork.php": {
+    "type": "search"
+  },
+  "ipnetwork_vlan.form.php": {
+    "type": "item_form"
+  },
+  "item_cluster.form.php": {
+    "type": "item_form"
+  },
+  "item_device.common.form.php": {
+    "type": "item_form"
+  },
+  "item_device.php": {
+    "type": "search"
+  },
+  "item_devicebattery.form.php": {
+    "type": "item_form"
+  },
+  "item_devicecase.form.php": {
+    "type": "item_form"
+  },
+  "item_devicecontrol.form.php": {
+    "type": "item_form"
+  },
+  "item_devicedrive.form.php": {
+    "type": "item_form"
+  },
+  "item_devicefirmware.form.php": {
+    "type": "item_form"
+  },
+  "item_devicegeneric.form.php": {
+    "type": "item_form"
+  },
+  "item_devicegraphiccard.form.php": {
+    "type": "item_form"
+  },
+  "item_deviceharddrive.form.php": {
+    "type": "item_form"
+  },
+  "item_devicememory.form.php": {
+    "type": "item_form"
+  },
+  "item_devicemotherboard.form.php": {
+    "type": "item_form"
+  },
+  "item_devicenetworkcard.form.php": {
+    "type": "item_form"
+  },
+  "item_devicepci.form.php": {
+    "type": "item_form"
+  },
+  "item_devicepowersupply.form.php": {
+    "type": "item_form"
+  },
+  "item_deviceprocessor.form.php": {
+    "type": "item_form"
+  },
+  "item_devices.form.php": {
+    "type": "item_form"
+  },
+  "item_devicesensor.form.php": {
+    "type": "item_form"
+  },
+  "item_devicesimcard.form.php": {
+    "type": "item_form"
+  },
+  "item_devicesoundcard.form.php": {
+    "type": "item_form"
+  },
+  "item_disk.form.php": {
+    "type": "item_form"
+  },
+  "item_enclosure.form.php": {
+    "type": "item_form"
+  },
+  "item_operatingsystem.form.php": {
+    "type": "item_form"
+  },
+  "item_problem.form.php": {
+    "type": "item_form"
+  },
+  "item_project.form.php": {
+    "type": "item_form"
+  },
+  "item_rack.form.php": {
+    "type": "item_form"
+  },
+  "item_remotemanagement.form.php": {
+    "type": "item_form"
+  },
+  "item_softwarelicense.form.php": {
+    "type": "item_form"
+  },
+  "item_softwareversion.form.php": {
+    "type": "item_form"
+  },
+  "item_ticket.form.php": {
+    "type": "item_form"
+  },
+  "itil_project.form.php": {
+    "type": "item_form"
+  },
+  "itilcategory.form.php": {
+    "type": "item_form"
+  },
+  "itilcategory.php": {
+    "type": "search"
+  },
+  "itilfollowup.form.php": {
+    "type": "item_form"
+  },
+  "itilfollowuptemplate.form.php": {
+    "type": "item_form"
+  },
+  "itilfollowuptemplate.php": {
+    "type": "search"
+  },
+  "itilsolution.form.php": {
+    "type": "item_form"
+  },
+  "itiltemplatefield.form.php": {
+    "type": "item_form"
+  },
+  "knowbaseitem.form.php": {
+    "type": "item_form"
+  },
+  "knowbaseitem.php": {
+    "type": "special"
+  },
+  "knowbaseitem_comment.form.php": {
+    "type": "item_form"
+  },
+  "knowbaseitem_item.form.php": {
+    "type": "item_form"
+  },
+  "knowbaseitem_knowbaseitemcategory.form.php": {
+    "type": "item_form"
+  },
+  "knowbaseitemcategory.form.php": {
+    "type": "item_form"
+  },
+  "knowbaseitemcategory.php": {
+    "type": "search"
+  },
+  "knowbaseitemtranslation.form.php": {
+    "type": "item_form"
+  },
+  "ldap.group.import.php": {
+    "type": "special"
+  },
+  "ldap.group.php": {
+    "type": "special"
+  },
+  "ldap.import.php": {
+    "type": "special"
+  },
+  "ldap.php": {
+    "type": "special"
+  },
+  "line.form.php": {
+    "type": "item_form"
+  },
+  "line.php": {
+    "type": "search"
+  },
+  "lineoperator.form.php": {
+    "type": "item_form"
+  },
+  "lineoperator.php": {
+    "type": "search"
+  },
+  "linetype.form.php": {
+    "type": "item_form"
+  },
+  "linetype.php": {
+    "type": "search"
+  },
+  "link.form.php": {
+    "type": "item_form"
+  },
+  "link.php": {
+    "type": "search"
+  },
+  "link.send.php": {
+    "type": "special"
+  },
+  "link_itemtype.form.php": {
+    "type": "item_form"
+  },
+  "locale.php": {
+    "type": "special"
+  },
+  "location.form.php": {
+    "type": "item_form"
+  },
+  "location.php": {
+    "type": "search"
+  },
+  "lock.form.php": {
+    "type": "item_form"
+  },
+  "lockedfield.php": {
+    "type": "search"
+  },
+  "login.php": {
+    "type": "special"
+  },
+  "logout.php": {
+    "type": "special"
+  },
+  "lostpassword.php": {
+    "type": "special"
+  },
+  "mailcollector.form.php": {
+    "type": "item_form"
+  },
+  "mailcollector.php": {
+    "type": "search"
+  },
+  "manuallink.form.php": {
+    "type": "item_form"
+  },
+  "manufacturer.form.php": {
+    "type": "item_form"
+  },
+  "manufacturer.php": {
+    "type": "search"
+  },
+  "marketplace.download.php": {
+    "type": "special"
+  },
+  "marketplace.php": {
+    "type": "special"
+  },
+  "massiveaction.php": {
+    "type": "special"
+  },
+  "migrationcleaner.php": {
+    "type": "special"
+  },
+  "monitor.form.php": {
+    "type": "item_form"
+  },
+  "monitor.php": {
+    "type": "search"
+  },
+  "monitormodel.form.php": {
+    "type": "item_form"
+  },
+  "monitormodel.php": {
+    "type": "search"
+  },
+  "monitortype.form.php": {
+    "type": "item_form"
+  },
+  "monitortype.php": {
+    "type": "search"
+  },
+  "network.form.php": {
+    "type": "item_form"
+  },
+  "network.php": {
+    "type": "search"
+  },
+  "networkalias.form.php": {
+    "type": "item_form"
+  },
+  "networkequipment.form.php": {
+    "type": "item_form"
+  },
+  "networkequipment.php": {
+    "type": "search"
+  },
+  "networkequipmentmodel.form.php": {
+    "type": "item_form"
+  },
+  "networkequipmentmodel.php": {
+    "type": "search"
+  },
+  "networkequipmenttype.form.php": {
+    "type": "item_form"
+  },
+  "networkequipmenttype.php": {
+    "type": "search"
+  },
+  "networkinterface.form.php": {
+    "type": "item_form"
+  },
+  "networkinterface.php": {
+    "type": "search"
+  },
+  "networkname.form.php": {
+    "type": "item_form"
+  },
+  "networkname.php": {
+    "type": "search"
+  },
+  "networkport.form.php": {
+    "type": "item_form"
+  },
+  "networkport_vlan.form.php": {
+    "type": "item_form"
+  },
+  "networkportfiberchanneltype.form.php": {
+    "type": "item_form"
+  },
+  "networkportfiberchanneltype.php": {
+    "type": "search"
+  },
+  "networkportmigration.form.php": {
+    "type": "item_form"
+  },
+  "networkportmigration.php": {
+    "type": "search"
+  },
+  "networkporttype.form.php": {
+    "type": "item_form"
+  },
+  "networkporttype.php": {
+    "type": "search"
+  },
+  "notepad.form.php": {
+    "type": "item_form"
+  },
+  "notification.form.php": {
+    "type": "item_form"
+  },
+  "notification.php": {
+    "type": "search"
+  },
+  "notification.tags.php": {
+    "type": "special"
+  },
+  "notification_notificationtemplate.form.php": {
+    "type": "item_form"
+  },
+  "notificationajaxsetting.form.php": {
+    "type": "item_form"
+  },
+  "notificationmailingsetting.form.php": {
+    "type": "item_form"
+  },
+  "notificationtarget.form.php": {
+    "type": "item_form"
+  },
+  "notificationtemplate.form.php": {
+    "type": "item_form"
+  },
+  "notificationtemplate.php": {
+    "type": "search"
+  },
+  "notificationtemplatetranslation.form.php": {
+    "type": "item_form"
+  },
+  "notimportedemail.php": {
+    "type": "search"
+  },
+  "ola.form.php": {
+    "type": "item_form"
+  },
+  "ola.php": {
+    "type": "search"
+  },
+  "olalevel.form.php": {
+    "type": "item_form"
+  },
+  "olalevel.php": {
+    "type": "search"
+  },
+  "olalevelaction.form.php": {
+    "type": "item_form"
+  },
+  "olalevelcriteria.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystem.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystem.php": {
+    "type": "search"
+  },
+  "operatingsystemarchitecture.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystemarchitecture.php": {
+    "type": "search"
+  },
+  "operatingsystemedition.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystemedition.php": {
+    "type": "search"
+  },
+  "operatingsystemkernel.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystemkernel.php": {
+    "type": "search"
+  },
+  "operatingsystemkernelversion.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystemkernelversion.php": {
+    "type": "search"
+  },
+  "operatingsystemservicepack.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystemservicepack.php": {
+    "type": "search"
+  },
+  "operatingsystemversion.form.php": {
+    "type": "item_form"
+  },
+  "operatingsystemversion.php": {
+    "type": "search"
+  },
+  "passivedcequipment.form.php": {
+    "type": "item_form"
+  },
+  "passivedcequipment.php": {
+    "type": "search"
+  },
+  "passivedcequipmentmodel.form.php": {
+    "type": "item_form"
+  },
+  "passivedcequipmentmodel.php": {
+    "type": "search"
+  },
+  "passivedcequipmenttype.form.php": {
+    "type": "item_form"
+  },
+  "passivedcequipmenttype.php": {
+    "type": "search"
+  },
+  "pcivendor.form.php": {
+    "type": "item_form"
+  },
+  "pcivendor.php": {
+    "type": "search"
+  },
+  "pdu.form.php": {
+    "type": "item_form"
+  },
+  "pdu.php": {
+    "type": "search"
+  },
+  "pdu_plug.form.php": {
+    "type": "item_form"
+  },
+  "pdu_rack.form.php": {
+    "type": "item_form"
+  },
+  "pdumodel.form.php": {
+    "type": "item_form"
+  },
+  "pdumodel.php": {
+    "type": "search"
+  },
+  "pdutype.form.php": {
+    "type": "item_form"
+  },
+  "pdutype.php": {
+    "type": "search"
+  },
+  "pendingreason.form.php": {
+    "type": "item_form"
+  },
+  "pendingreason.php": {
+    "type": "search"
+  },
+  "peripheral.form.php": {
+    "type": "item_form"
+  },
+  "peripheral.php": {
+    "type": "search"
+  },
+  "peripheralmodel.form.php": {
+    "type": "item_form"
+  },
+  "peripheralmodel.php": {
+    "type": "search"
+  },
+  "peripheraltype.form.php": {
+    "type": "item_form"
+  },
+  "peripheraltype.php": {
+    "type": "search"
+  },
+  "phone.form.php": {
+    "type": "item_form"
+  },
+  "phone.php": {
+    "type": "search"
+  },
+  "phonemodel.form.php": {
+    "type": "item_form"
+  },
+  "phonemodel.php": {
+    "type": "search"
+  },
+  "phonepowersupply.form.php": {
+    "type": "item_form"
+  },
+  "phonepowersupply.php": {
+    "type": "search"
+  },
+  "phonetype.form.php": {
+    "type": "item_form"
+  },
+  "phonetype.php": {
+    "type": "search"
+  },
+  "planning.form.php": {
+    "type": "item_form"
+  },
+  "planning.php": {
+    "type": "special"
+  },
+  "planningcsv.php": {
+    "type": "special"
+  },
+  "planningeventcategory.form.php": {
+    "type": "item_form"
+  },
+  "planningeventcategory.php": {
+    "type": "search"
+  },
+  "planningexternalevent.form.php": {
+    "type": "item_form"
+  },
+  "planningexternalevent.php": {
+    "type": "search"
+  },
+  "planningexternaleventtemplate.form.php": {
+    "type": "item_form"
+  },
+  "planningexternaleventtemplate.php": {
+    "type": "search"
+  },
+  "planningrecall.form.php": {
+    "type": "item_form"
+  },
+  "plug.form.php": {
+    "type": "item_form"
+  },
+  "plug.php": {
+    "type": "search"
+  },
+  "plugin.form.php": {
+    "type": "item_form"
+  },
+  "plugin.php": {
+    "type": "search"
+  },
+  "pluginimage.send.php": {
+    "type": "special"
+  },
+  "preference.php": {
+    "type": "special"
+  },
+  "printer.form.php": {
+    "type": "item_form"
+  },
+  "printer.php": {
+    "type": "search"
+  },
+  "printermodel.form.php": {
+    "type": "item_form"
+  },
+  "printermodel.php": {
+    "type": "search"
+  },
+  "printertype.form.php": {
+    "type": "item_form"
+  },
+  "printertype.php": {
+    "type": "search"
+  },
+  "problem.form.php": {
+    "type": "item_form"
+  },
+  "problem.php": {
+    "type": "search"
+  },
+  "problem_supplier.form.php": {
+    "type": "item_form"
+  },
+  "problem_ticket.form.php": {
+    "type": "item_form"
+  },
+  "problem_user.form.php": {
+    "type": "item_form"
+  },
+  "problemcost.form.php": {
+    "type": "item_form"
+  },
+  "problemtask.form.php": {
+    "type": "item_form"
+  },
+  "problemtemplate.form.php": {
+    "type": "item_form"
+  },
+  "problemtemplate.php": {
+    "type": "search"
+  },
+  "problemtemplatehiddenfield.form.php": {
+    "type": "item_form"
+  },
+  "problemtemplatemandatoryfield.form.php": {
+    "type": "item_form"
+  },
+  "problemtemplatepredefinedfield.form.php": {
+    "type": "item_form"
+  },
+  "profile.form.php": {
+    "type": "item_form"
+  },
+  "profile.php": {
+    "type": "search"
+  },
+  "profile_user.form.php": {
+    "type": "item_form"
+  },
+  "project.form.php": {
+    "type": "item_form"
+  },
+  "project.php": {
+    "type": "search"
+  },
+  "projectcost.form.php": {
+    "type": "item_form"
+  },
+  "projectstate.form.php": {
+    "type": "item_form"
+  },
+  "projectstate.php": {
+    "type": "search"
+  },
+  "projecttask.form.php": {
+    "type": "item_form"
+  },
+  "projecttask.php": {
+    "type": "search"
+  },
+  "projecttask_ticket.form.php": {
+    "type": "item_form"
+  },
+  "projecttaskteam.form.php": {
+    "type": "item_form"
+  },
+  "projecttasktemplate.form.php": {
+    "type": "item_form"
+  },
+  "projecttasktemplate.php": {
+    "type": "search"
+  },
+  "projecttasktype.form.php": {
+    "type": "item_form"
+  },
+  "projecttasktype.php": {
+    "type": "search"
+  },
+  "projectteam.form.php": {
+    "type": "item_form"
+  },
+  "projecttype.form.php": {
+    "type": "item_form"
+  },
+  "projecttype.php": {
+    "type": "search"
+  },
+  "queuednotification.form.php": {
+    "type": "item_form"
+  },
+  "queuednotification.php": {
+    "type": "search"
+  },
+  "rack.form.php": {
+    "type": "item_form"
+  },
+  "rack.php": {
+    "type": "search"
+  },
+  "rackmodel.form.php": {
+    "type": "item_form"
+  },
+  "rackmodel.php": {
+    "type": "search"
+  },
+  "racktype.form.php": {
+    "type": "item_form"
+  },
+  "racktype.php": {
+    "type": "search"
+  },
+  "recurrentchange.form.php": {
+    "type": "item_form"
+  },
+  "recurrentchange.php": {
+    "type": "search"
+  },
+  "refusedequipment.form.php": {
+    "type": "item_form"
+  },
+  "refusedequipment.php": {
+    "type": "search"
+  },
+  "reminder.form.php": {
+    "type": "item_form"
+  },
+  "reminder.php": {
+    "type": "search"
+  },
+  "remindertranslation.form.php": {
+    "type": "item_form"
+  },
+  "report.contract.list.php": {
+    "type": "special"
+  },
+  "report.contract.php": {
+    "type": "special"
+  },
+  "report.default.php": {
+    "type": "special"
+  },
+  "report.dynamic.php": {
+    "type": "search"
+  },
+  "report.infocom.conso.php": {
+    "type": "special"
+  },
+  "report.infocom.php": {
+    "type": "special"
+  },
+  "report.location.list.php": {
+    "type": "special"
+  },
+  "report.networking.php": {
+    "type": "special"
+  },
+  "report.php": {
+    "type": "special"
+  },
+  "report.reservation.php": {
+    "type": "special"
+  },
+  "report.socket.list.php": {
+    "type": "special"
+  },
+  "report.state.php": {
+    "type": "special"
+  },
+  "report.switch.list.php": {
+    "type": "special"
+  },
+  "report.year.list.php": {
+    "type": "special"
+  },
+  "report.year.php": {
+    "type": "special"
+  },
+  "requesttype.form.php": {
+    "type": "item_form"
+  },
+  "requesttype.php": {
+    "type": "search"
+  },
+  "reservation.form.php": {
+    "type": "item_form"
+  },
+  "reservation.php": {
+    "type": "special"
+  },
+  "reservationitem.form.php": {
+    "type": "item_form"
+  },
+  "reservationitem.php": {
+    "type": "special"
+  },
+  "rssfeed.form.php": {
+    "type": "item_form"
+  },
+  "rssfeed.php": {
+    "type": "search"
+  },
+  "rule.backup.php": {
+    "type": "special"
+  },
+  "rule.common.form.php": {
+    "type": "special"
+  },
+  "rule.common.php": {
+    "type": "special"
+  },
+  "rule.generic.form.php": {
+    "type": "special"
+  },
+  "rule.php": {
+    "type": "special"
+  },
+  "rule.test.php": {
+    "type": "special"
+  },
+  "ruleaction.form.php": {
+    "type": "special"
+  },
+  "ruleasset.form.php": {
+    "type": "special"
+  },
+  "ruleasset.php": {
+    "type": "special"
+  },
+  "rulecriteria.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarycomputermodel.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarycomputermodel.php": {
+    "type": "special"
+  },
+  "ruledictionnarycomputertype.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarycomputertype.php": {
+    "type": "special"
+  },
+  "ruledictionnarymanufacturer.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarymanufacturer.php": {
+    "type": "special"
+  },
+  "ruledictionnarymonitormodel.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarymonitormodel.php": {
+    "type": "special"
+  },
+  "ruledictionnarymonitortype.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarymonitortype.php": {
+    "type": "special"
+  },
+  "ruledictionnarynetworkequipmentmodel.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarynetworkequipmentmodel.php": {
+    "type": "special"
+  },
+  "ruledictionnarynetworkequipmenttype.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarynetworkequipmenttype.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystem.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystem.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystemarchitecture.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystemarchitecture.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystemservicepack.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystemservicepack.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystemversion.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryoperatingsystemversion.php": {
+    "type": "special"
+  },
+  "ruledictionnaryperipheralmodel.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryperipheralmodel.php": {
+    "type": "special"
+  },
+  "ruledictionnaryperipheraltype.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryperipheraltype.php": {
+    "type": "special"
+  },
+  "ruledictionnaryphonemodel.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryphonemodel.php": {
+    "type": "special"
+  },
+  "ruledictionnaryphonetype.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryphonetype.php": {
+    "type": "special"
+  },
+  "ruledictionnaryprinter.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryprinter.php": {
+    "type": "special"
+  },
+  "ruledictionnaryprintermodel.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryprintermodel.php": {
+    "type": "special"
+  },
+  "ruledictionnaryprintertype.form.php": {
+    "type": "special"
+  },
+  "ruledictionnaryprintertype.php": {
+    "type": "special"
+  },
+  "ruledictionnarysoftware.form.php": {
+    "type": "special"
+  },
+  "ruledictionnarysoftware.php": {
+    "type": "special"
+  },
+  "ruleimportasset.form.php": {
+    "type": "special"
+  },
+  "ruleimportasset.php": {
+    "type": "special"
+  },
+  "ruleimportcomputer.form.php": {
+    "type": "special"
+  },
+  "ruleimportcomputer.php": {
+    "type": "special"
+  },
+  "ruleimportentity.form.php": {
+    "type": "special"
+  },
+  "ruleimportentity.php": {
+    "type": "special"
+  },
+  "rulemailcollector.form.php": {
+    "type": "special"
+  },
+  "rulemailcollector.php": {
+    "type": "special"
+  },
+  "ruleright.form.php": {
+    "type": "special"
+  },
+  "ruleright.php": {
+    "type": "special"
+  },
+  "rulerightparameter.form.php": {
+    "type": "special"
+  },
+  "rulerightparameter.php": {
+    "type": "special"
+  },
+  "rulesengine.test.php": {
+    "type": "special"
+  },
+  "rulesoftwarecategory.form.php": {
+    "type": "special"
+  },
+  "rulesoftwarecategory.php": {
+    "type": "special"
+  },
+  "ruleticket.form.php": {
+    "type": "special"
+  },
+  "ruleticket.php": {
+    "type": "special"
+  },
+  "savedsearch.form.php": {
+    "type": "item_form"
+  },
+  "savedsearch.php": {
+    "type": "search"
+  },
+  "savedsearch_alert.form.php": {
+    "type": "item_form"
+  },
+  "search.php": {
+    "type": "search"
+  },
+  "setup.auth.php": {
+    "type": "special"
+  },
+  "setup.notification.php": {
+    "type": "special"
+  },
+  "setup.templates.php": {
+    "type": "special"
+  },
+  "sla.form.php": {
+    "type": "item_form"
+  },
+  "sla.php": {
+    "type": "search"
+  },
+  "slalevel.form.php": {
+    "type": "item_form"
+  },
+  "slalevel.php": {
+    "type": "search"
+  },
+  "slalevelaction.form.php": {
+    "type": "item_form"
+  },
+  "slalevelcriteria.form.php": {
+    "type": "item_form"
+  },
+  "slm.form.php": {
+    "type": "item_form"
+  },
+  "slm.php": {
+    "type": "search"
+  },
+  "snmpcredential.form.php": {
+    "type": "item_form"
+  },
+  "snmpcredential.php": {
+    "type": "search"
+  },
+  "socket.form.php": {
+    "type": "item_form"
+  },
+  "socket.php": {
+    "type": "search"
+  },
+  "socketmodel.form.php": {
+    "type": "item_form"
+  },
+  "socketmodel.php": {
+    "type": "search"
+  },
+  "software.form.php": {
+    "type": "item_form"
+  },
+  "software.php": {
+    "type": "search"
+  },
+  "softwarecategory.form.php": {
+    "type": "item_form"
+  },
+  "softwarecategory.php": {
+    "type": "search"
+  },
+  "softwarelicense.form.php": {
+    "type": "item_form"
+  },
+  "softwarelicense.php": {
+    "type": "search"
+  },
+  "softwarelicensetype.form.php": {
+    "type": "item_form"
+  },
+  "softwarelicensetype.php": {
+    "type": "search"
+  },
+  "softwareversion.form.php": {
+    "type": "item_form"
+  },
+  "solutiontemplate.form.php": {
+    "type": "item_form"
+  },
+  "solutiontemplate.php": {
+    "type": "search"
+  },
+  "solutiontype.form.php": {
+    "type": "item_form"
+  },
+  "solutiontype.php": {
+    "type": "search"
+  },
+  "ssovariable.form.php": {
+    "type": "item_form"
+  },
+  "ssovariable.php": {
+    "type": "search"
+  },
+  "stat.global.php": {
+    "type": "special"
+  },
+  "stat.graph.php": {
+    "type": "special"
+  },
+  "stat.item.php": {
+    "type": "special"
+  },
+  "stat.location.php": {
+    "type": "special"
+  },
+  "stat.php": {
+    "type": "special"
+  },
+  "stat.tracking.php": {
+    "type": "special"
+  },
+  "state.form.php": {
+    "type": "item_form"
+  },
+  "state.php": {
+    "type": "search"
+  },
+  "supplier.form.php": {
+    "type": "item_form"
+  },
+  "supplier.php": {
+    "type": "search"
+  },
+  "supplier_ticket.form.php": {
+    "type": "item_form"
+  },
+  "suppliertype.form.php": {
+    "type": "item_form"
+  },
+  "suppliertype.php": {
+    "type": "search"
+  },
+  "taskcategory.form.php": {
+    "type": "item_form"
+  },
+  "taskcategory.php": {
+    "type": "search"
+  },
+  "tasktemplate.form.php": {
+    "type": "item_form"
+  },
+  "tasktemplate.php": {
+    "type": "search"
+  },
+  "ticket.form.php": {
+    "type": "item_form"
+  },
+  "ticket.php": {
+    "type": "search"
+  },
+  "ticket_contract.form.php": {
+    "type": "item_form"
+  },
+  "ticket_ticket.form.php": {
+    "type": "item_form"
+  },
+  "ticket_user.form.php": {
+    "type": "item_form"
+  },
+  "ticketcost.form.php": {
+    "type": "item_form"
+  },
+  "ticketrecurrent.form.php": {
+    "type": "item_form"
+  },
+  "ticketrecurrent.php": {
+    "type": "search"
+  },
+  "ticketsatisfaction.form.php": {
+    "type": "item_form"
+  },
+  "tickettask.form.php": {
+    "type": "item_form"
+  },
+  "tickettemplate.form.php": {
+    "type": "item_form"
+  },
+  "tickettemplate.php": {
+    "type": "search"
+  },
+  "tickettemplatehiddenfield.form.php": {
+    "type": "item_form"
+  },
+  "tickettemplatemandatoryfield.form.php": {
+    "type": "item_form"
+  },
+  "tickettemplatepredefinedfield.form.php": {
+    "type": "item_form"
+  },
+  "ticketvalidation.form.php": {
+    "type": "item_form"
+  },
+  "tracking.injector.php": {
+    "type": "special"
+  },
+  "transfer.action.php": {
+    "type": "special"
+  },
+  "transfer.form.php": {
+    "type": "item_form"
+  },
+  "transfer.php": {
+    "type": "search"
+  },
+  "unmanaged.form.php": {
+    "type": "item_form"
+  },
+  "unmanaged.php": {
+    "type": "search"
+  },
+  "updatepassword.php": {
+    "type": "special"
+  },
+  "usbvendor.form.php": {
+    "type": "item_form"
+  },
+  "usbvendor.php": {
+    "type": "search"
+  },
+  "user.form.php": {
+    "type": "item_form"
+  },
+  "user.php": {
+    "type": "search"
+  },
+  "usercategory.form.php": {
+    "type": "item_form"
+  },
+  "usercategory.php": {
+    "type": "search"
+  },
+  "usertitle.form.php": {
+    "type": "item_form"
+  },
+  "usertitle.php": {
+    "type": "search"
+  },
+  "virtualmachinestate.form.php": {
+    "type": "item_form"
+  },
+  "virtualmachinestate.php": {
+    "type": "search"
+  },
+  "virtualmachinesystem.form.php": {
+    "type": "item_form"
+  },
+  "virtualmachinesystem.php": {
+    "type": "search"
+  },
+  "virtualmachinetype.form.php": {
+    "type": "item_form"
+  },
+  "virtualmachinetype.php": {
+    "type": "search"
+  },
+  "vlan.form.php": {
+    "type": "item_form"
+  },
+  "vlan.php": {
+    "type": "search"
+  },
+  "wifinetwork.form.php": {
+    "type": "item_form"
+  },
+  "wifinetwork.php": {
+    "type": "search"
+  }
+}
