@@ -69,7 +69,8 @@
     "scripts": {
         "build:pack": "webpack --config webpack.config.js",
         "build": "npm run build:pack",
-        "test": "jest --colors --config tests/js/jest.config.js ./tests/js/**"
+        "test": "jest --colors --config tests/js/jest.config.js ./tests/js/**",
+        "test:e2e": "cypress open --project tests"
     },
     "devDependencies": {
         "@babel/core": "^7.15.0",
@@ -82,6 +83,7 @@
         "copy-webpack-plugin": "^10.0.0",
         "css-loader": "^6.2.0",
         "csso-cli": "^3.0.0",
+        "cypress": "^9.2.0",
         "eslint": "^8.1.0",
         "exports-loader": "^3.1.0",
         "glob": "^7.1.6",

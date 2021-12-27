@@ -1,0 +1,25 @@
+{
+  "Assets": [
+    "Dashboard", "Computers", "Monitors", "Software", "Network devices", "Devices", "Printers",
+    "Cartridges", "Consumables", "Phones", "Racks", "Enclosures", "PDUs", "Passive devices", "Unmanaged devices",
+    "Cables", "Simcards", "Global"
+  ],
+  "Assistance": [
+    "Dashboard", "Tickets", "Create ticket", "Problems", "Changes", "Planning", "Statistics",
+    "Recurrent tickets", "Recurrent changes"
+  ],
+  "Management": [
+    "Licenses", "Budgets", "Suppliers", "Contacts", "Contract", "Documents", "Lines", "Certificates",
+    "Data centers", "Clusters", "Domains", "Appliances", "Databases"
+  ],
+  "Tools": [
+    "Projects", "Reminders", "RSS feed", "Knowledge base", "Reservations", "Reports", "Saved searches"
+  ],
+  "Administration": [
+    "Users", "Groups", "Entities", "Rules", "Dictionaries", "Profiles", "Notification queue", "Logs", "Inventory"
+  ],
+  "Setup": [
+    "Dropdowns", "Components", "Notifications", "Service levels", "General", "Fields unicity", "Automatic actions",
+    "Authentication", "Receivers", "External links", "Plugins"
+  ]
+}

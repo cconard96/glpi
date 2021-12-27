@@ -84,11 +84,15 @@
             }
         },
         {
-            "files": ["tests/js/**"],
+            "files": ["tests/js/**", "tests/cypress/**"],
             "env": {
                 "node": true,
                 "jest": true,
                 "es2021": true
+            },
+            "globals": {
+                "cy": true,
+                "Cypress": true
             },
             "parserOptions": {
                 "ecmaVersion": 12,
