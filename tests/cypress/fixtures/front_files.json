@@ -1,1844 +1,2414 @@
 {
   "agent.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "inventory"
   },
   "agent.php": {
-    "type": "search"
+    "type": "search",
+    "category": "inventory"
   },
   "allassets.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "apiclient.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "appliance.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "appliance.php": {
-    "type": "search"
-  },
-  "appliance_item.form.php": {
-    "type": "item_form"
-  },
-  "appliance_item_relation.form.php": {
-    "type": "item_form"
+    "type": "search",
+    "category": "assets"
   },
   "applianceenvironment.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "applianceenvironment.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "appliancetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "appliancetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "auth.others.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "auth.settings.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "authldap.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "authldap.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "authmail.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "authmail.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "autoupdatesystem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "autoupdatesystem.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "blacklist.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "blacklist.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "blacklistedmailcontent.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "blacklistedmailcontent.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "budget.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "budget.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "budgettype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "budgettype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "businesscriticity.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "businesscriticity.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "cable.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cable.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "cablestrand.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cablestrand.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "cabletype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cabletype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "calendar.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "calendar.php": {
-    "type": "search"
-  },
-  "calendar_holiday.form.php": {
-    "type": "item_form"
-  },
-  "calendarsegment.form.php": {
-    "type": "item_form"
+    "type": "search",
+    "category": "setup"
   },
   "cartridge.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cartridgeitem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cartridgeitem.php": {
-    "type": "search"
-  },
-  "cartridgeitem_printermodel.form.php": {
-    "type": "item_form"
+    "type": "search",
+    "category": "assets"
   },
   "cartridgeitemtype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cartridgeitemtype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "central.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "certificate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "certificate.php": {
-    "type": "search"
-  },
-  "certificate_item.form.php": {
-    "type": "item_form"
+    "type": "search",
+    "category": "management"
   },
   "certificatetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "certificatetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "change.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "change.php": {
-    "type": "search"
-  },
-  "change_group.form.php": {
-    "type": "item_form"
-  },
-  "change_item.form.php": {
-    "type": "item_form"
-  },
-  "change_problem.form.php": {
-    "type": "item_form"
-  },
-  "change_supplier.form.php": {
-    "type": "item_form"
-  },
-  "change_ticket.form.php": {
-    "type": "item_form"
+    "type": "search",
+    "category": "assistance"
   },
   "change_user.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "changecost.form.php": {
-    "type": "item_form"
+    "type": "subitem_form",
+    "category": "management"
   },
   "changetask.form.php": {
-    "type": "item_form"
+    "type": "subitem_form",
+    "category": "assistance"
   },
   "changetemplate.form.php": {
-    "type": "item_form"
+    "type": "subitem_form",
+    "category": "assistance"
   },
   "changetemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "changetemplatehiddenfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "changetemplatemandatoryfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "changetemplatepredefinedfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "changevalidation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "cluster.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "cluster.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "clustertype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "clustertype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "commonitilcost.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "commonitiltask.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "commonitilvalidation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "computer.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "computer.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "computer_item.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "computerantivirus.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "computermodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "computermodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "computertype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "computertype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "computervirtualmachine.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "config.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "consumable.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "consumableitem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "consumableitem.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "consumableitemtype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "consumableitemtype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "contact.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "contact.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "contact_supplier.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "contacttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "contacttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "contract.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "contract.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "contract_item.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "contract_supplier.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "contractcost.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "contracttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "contracttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "cron.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "crontask.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "crontask.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "css.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "dashboard_assets.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "dashboard_helpdesk.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "database.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "database.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "databaseinstance.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "databaseinstance.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "databaseinstancecategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "databaseinstancecategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "databaseinstancetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "databaseinstancetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "datacenter.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "datacenter.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "dcroom.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "dcroom.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "device.form.php": {
-    "type": "item_form"
+    "type": "special",
+    "category": "components"
   },
   "device.php": {
-    "type": "search"
+    "type": "special",
+    "category": "components"
   },
   "devicemodel.form.php": {
-    "type": "item_form"
+    "type": "special",
+    "category": "components"
   },
   "devicemodel.php": {
-    "type": "search"
+    "type": "special",
+    "category": "components"
   },
   "devices.php": {
-    "type": "special"
+    "type": "special",
+    "category": "components"
   },
   "devicetype.form.php": {
-    "type": "item_form"
+    "type": "special",
+    "category": "components"
   },
   "devicetype.php": {
-    "type": "search"
+    "type": "special",
+    "category": "components"
   },
   "dictionnary.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "display.options.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "displaypreference.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "general"
   },
   "document.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "document.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "document.send.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "document_item.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "documentcategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "documentcategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "documenttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "documenttype.list.php": {
-    "type": "search"
+    "type": "special",
+    "category": "management"
   },
   "documenttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "domain.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "domain.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "domainrecord.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "domainrecord.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "domainrecordtype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "domainrecordtype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "domainrelation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "domainrelation.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "domaintype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "domaintype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "dropdown.common.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "dropdown.common.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "dropdown.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "dropdowntranslation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "general"
   },
   "enclosure.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "enclosure.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "enclosuremodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "enclosuremodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "entity.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "entity.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "event.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "fieldblacklist.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "fieldblacklist.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "fieldunicity.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "fieldunicity.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "filesystem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "filesystem.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "find_num.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "fqdn.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "fqdn.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "graph.send.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "group.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "group.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "group_problem.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "setup"
   },
   "group_ticket.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "setup"
   },
   "group_user.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "setup"
   },
   "helpdesk.faq.php": {
-    "type": "special"
+    "type": "special",
+    "category": "helpdesk"
   },
   "helpdesk.php": {
-    "type": "special"
+    "type": "special",
+    "category": "helpdesk"
   },
   "helpdesk.public.php": {
-    "type": "special"
+    "type": "special",
+    "category": "helpdesk"
   },
   "holiday.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "holiday.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "imageformat.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "imageformat.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "imageresolution.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "imageresolution.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "impactcsv.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "impactitem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "general"
   },
   "index.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "infocom.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "interfacetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "interfacetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "inventory.conf.php": {
-    "type": "special"
+    "type": "special",
+    "category": "inventory"
   },
   "inventory.php": {
-    "type": "special"
+    "type": "special",
+    "category": "inventory"
   },
   "ipnetwork.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "ipnetwork.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "ipnetwork_vlan.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "setup"
   },
   "item_cluster.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "item_device.common.form.php": {
-    "type": "item_form"
+    "type": "special",
+    "category": "components"
   },
   "item_device.php": {
-    "type": "search"
+    "type": "special",
+    "category": "components"
   },
   "item_devicebattery.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicecase.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicecontrol.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicedrive.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicefirmware.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicegeneric.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicegraphiccard.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_deviceharddrive.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicememory.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicemotherboard.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicenetworkcard.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicepci.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicepowersupply.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_deviceprocessor.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devices.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicesensor.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicesimcard.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_devicesoundcard.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_disk.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "components"
   },
   "item_enclosure.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "item_operatingsystem.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "item_problem.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "item_project.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "item_rack.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "item_remotemanagement.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "item_softwarelicense.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "item_softwareversion.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "item_ticket.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "itil_project.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "itilcategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "itilcategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "itilfollowup.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "itilfollowuptemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "itilfollowuptemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "itilsolution.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "itiltemplatefield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "knowbaseitem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "knowledgebase"
   },
   "knowbaseitem.php": {
-    "type": "special"
+    "type": "special",
+    "category": "knowledgebase"
   },
   "knowbaseitem_comment.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "knowledgebase"
   },
   "knowbaseitem_item.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "knowledgebase"
   },
   "knowbaseitem_knowbaseitemcategory.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "knowledgebase"
   },
   "knowbaseitemcategory.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "knowledgebase"
   },
   "knowbaseitemcategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "knowledgebase"
   },
   "knowbaseitemtranslation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "knowledgebase"
   },
   "ldap.group.import.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "ldap.group.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "ldap.import.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "ldap.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "line.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "line.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "lineoperator.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "lineoperator.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "linetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "linetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "link.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "link.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "link.send.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "link_itemtype.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "setup"
   },
   "locale.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "location.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "location.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "lock.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "lockedfield.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "login.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "logout.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "lostpassword.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "mailcollector.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "mailcollector.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "manuallink.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "manufacturer.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "manufacturer.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "marketplace.download.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "marketplace.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "massiveaction.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "migrationcleaner.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "monitor.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "monitor.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "monitormodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "monitormodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "monitortype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "monitortype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "network.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "network.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkalias.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkequipment.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkequipment.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkequipmentmodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkequipmentmodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkequipmenttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkequipmenttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkinterface.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkinterface.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkname.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkname.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkport.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkport_vlan.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "network"
   },
   "networkportfiberchanneltype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkportfiberchanneltype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "networkportmigration.form.php": {
-    "type": "item_form"
+    "type": "special",
+    "category": "network"
   },
   "networkportmigration.php": {
-    "type": "search"
+    "type": "special",
+    "category": "network"
   },
   "networkporttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "networkporttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "notepad.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "general"
   },
   "notification.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "notification.php": {
-    "type": "search"
+    "type": "search",
+    "category": "notifications"
   },
   "notification.tags.php": {
-    "type": "special"
+    "type": "special",
+    "category": "notifications"
   },
   "notification_notificationtemplate.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "notifications"
   },
   "notificationajaxsetting.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "notificationmailingsetting.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "notificationtarget.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "notificationtemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "notificationtemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "notifications"
   },
   "notificationtemplatetranslation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "notimportedemail.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "ola.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "ola.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "olalevel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "olalevel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "olalevelaction.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "olalevelcriteria.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "operatingsystem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystem.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "operatingsystemarchitecture.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystemarchitecture.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "operatingsystemedition.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystemedition.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "operatingsystemkernel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystemkernel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "operatingsystemkernelversion.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystemkernelversion.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "operatingsystemservicepack.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystemservicepack.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "operatingsystemversion.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "operatingsystemversion.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "passivedcequipment.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "passivedcequipment.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "passivedcequipmentmodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "passivedcequipmentmodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "passivedcequipmenttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "passivedcequipmenttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "pcivendor.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "pcivendor.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "pdu.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "pdu.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "pdu_plug.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "pdu_rack.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assets"
   },
   "pdumodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "pdumodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "pdutype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "pdutype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "pendingreason.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "pendingreason.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "peripheral.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "peripheral.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "peripheralmodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "peripheralmodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "peripheraltype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "peripheraltype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "phone.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "phone.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "phonemodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "phonemodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "phonepowersupply.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "phonepowersupply.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "phonetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "phonetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "planning.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "planning.php": {
-    "type": "special"
+    "type": "special",
+    "category": "assistance"
   },
   "planningcsv.php": {
-    "type": "special"
+    "type": "special",
+    "category": "assistance"
   },
   "planningeventcategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "planningeventcategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "planningexternalevent.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "planningexternalevent.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "planningexternaleventtemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "planningexternaleventtemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "planningrecall.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "plug.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "plug.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "plugin.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "plugin.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "pluginimage.send.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "preference.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "printer.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "printer.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "printermodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "printermodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "printertype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "printertype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "problem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "problem.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "problem_supplier.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "problem_ticket.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "problem_user.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "problemcost.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "problemtask.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "problemtemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "problemtemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "problemtemplatehiddenfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "problemtemplatemandatoryfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "problemtemplatepredefinedfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "profile.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "profile.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "profile_user.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "setup"
   },
   "project.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "project.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "projectcost.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projectstate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projectstate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "projecttask.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projecttask.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "projecttask_ticket.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "projecttaskteam.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projecttasktemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projecttasktemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "projecttasktype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projecttasktype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "projectteam.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projecttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "projecttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "queuednotification.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "notifications"
   },
   "queuednotification.php": {
-    "type": "search"
+    "type": "search",
+    "category": "notifications"
   },
   "rack.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "rack.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "rackmodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "rackmodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "racktype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "racktype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "recurrentchange.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "recurrentchange.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "refusedequipment.form.php": {
-    "type": "item_form"
+    "type": "special",
+    "category": "inventory",
   },
   "refusedequipment.php": {
-    "type": "search"
+    "type": "search",
+    "category": "inventory"
   },
   "reminder.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "tools"
   },
   "reminder.php": {
-    "type": "search"
+    "type": "search",
+    "category": "tools"
   },
   "remindertranslation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "tools"
   },
   "report.contract.list.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.contract.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.default.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.dynamic.php": {
-    "type": "search"
+    "type": "search",
+    "category": "reports"
   },
   "report.infocom.conso.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.infocom.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.location.list.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.networking.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.reservation.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.socket.list.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.state.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.switch.list.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.year.list.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "report.year.php": {
-    "type": "special"
+    "type": "special",
+    "category": "reports"
   },
   "requesttype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "requesttype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "reservation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "tools"
   },
   "reservation.php": {
-    "type": "special"
+    "type": "special",
+    "category": "tools"
   },
   "reservationitem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "tools"
   },
   "reservationitem.php": {
-    "type": "special"
+    "type": "special",
+    "category": "tools"
   },
   "rssfeed.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "tools"
   },
   "rssfeed.php": {
-    "type": "search"
+    "type": "search",
+    "category": "tools"
   },
   "rule.backup.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rule.common.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rule.common.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rule.generic.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rule.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rule.test.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleaction.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleasset.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleasset.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulecriteria.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarycomputermodel.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarycomputermodel.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarycomputertype.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarycomputertype.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarymanufacturer.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarymanufacturer.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarymonitormodel.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarymonitormodel.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarymonitortype.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarymonitortype.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarynetworkequipmentmodel.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarynetworkequipmentmodel.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarynetworkequipmenttype.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarynetworkequipmenttype.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystem.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystem.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystemarchitecture.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystemarchitecture.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystemservicepack.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystemservicepack.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystemversion.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryoperatingsystemversion.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryperipheralmodel.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryperipheralmodel.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryperipheraltype.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryperipheraltype.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryphonemodel.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryphonemodel.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryphonetype.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryphonetype.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryprinter.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryprinter.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryprintermodel.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryprintermodel.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryprintertype.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnaryprintertype.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarysoftware.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruledictionnarysoftware.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleimportasset.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleimportasset.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleimportcomputer.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleimportcomputer.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleimportentity.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleimportentity.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulemailcollector.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulemailcollector.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleright.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleright.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulerightparameter.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulerightparameter.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulesengine.test.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulesoftwarecategory.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "rulesoftwarecategory.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleticket.form.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "ruleticket.php": {
-    "type": "special"
+    "type": "special",
+    "category": "rules"
   },
   "savedsearch.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "general"
   },
   "savedsearch.php": {
-    "type": "search"
+    "type": "search",
+    "category": "general"
   },
   "savedsearch_alert.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "general"
   },
   "search.php": {
-    "type": "search"
+    "type": "search",
+    "category": "general"
   },
   "setup.auth.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "setup.notification.php": {
-    "type": "special"
+    "type": "special",
+    "category": "notifications"
   },
   "setup.templates.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "sla.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "sla.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "slalevel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "slalevel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "slalevelaction.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "slalevelcriteria.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "slm.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "slm.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "snmpcredential.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "inventory"
   },
   "snmpcredential.php": {
-    "type": "search"
+    "type": "search",
+    "category": "inventory"
   },
   "socket.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "socket.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "socketmodel.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "socketmodel.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "software.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "software.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "softwarecategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "softwarecategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "softwarelicense.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "softwarelicense.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "softwarelicensetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "softwarelicensetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "softwareversion.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "solutiontemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "solutiontemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "solutiontype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "solutiontype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "ssovariable.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "ssovariable.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "stat.global.php": {
-    "type": "special"
+    "type": "special",
+    "category": "stats"
   },
   "stat.graph.php": {
-    "type": "special"
+    "type": "special",
+    "category": "stats"
   },
   "stat.item.php": {
-    "type": "special"
+    "type": "special",
+    "category": "stats"
   },
   "stat.location.php": {
-    "type": "special"
+    "type": "special",
+    "category": "stats"
   },
   "stat.php": {
-    "type": "special"
+    "type": "special",
+    "category": "stats"
   },
   "stat.tracking.php": {
-    "type": "special"
+    "type": "special",
+    "category": "stats"
   },
   "state.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "state.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "supplier.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "supplier.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "supplier_ticket.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "management"
   },
   "suppliertype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "management"
   },
   "suppliertype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "management"
   },
   "taskcategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "taskcategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "tasktemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tasktemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "ticket.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "ticket.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "ticket_contract.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "ticket_ticket.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "ticket_user.form.php": {
-    "type": "item_form"
+    "type": "item_link_form",
+    "category": "assistance"
   },
   "ticketcost.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "ticketrecurrent.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "ticketrecurrent.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "ticketsatisfaction.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tickettask.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tickettemplate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tickettemplate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assistance"
   },
   "tickettemplatehiddenfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tickettemplatemandatoryfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tickettemplatepredefinedfield.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "ticketvalidation.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assistance"
   },
   "tracking.injector.php": {
-    "type": "special"
+    "type": "special",
+    "category": "general"
   },
   "transfer.action.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "transfer.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "transfer.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "unmanaged.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "inventory"
   },
   "unmanaged.php": {
-    "type": "search"
+    "type": "search",
+    "category": "inventory"
   },
   "updatepassword.php": {
-    "type": "special"
+    "type": "special",
+    "category": "setup"
   },
   "usbvendor.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "usbvendor.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "user.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "user.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "usercategory.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "usercategory.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "usertitle.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "setup"
   },
   "usertitle.php": {
-    "type": "search"
+    "type": "search",
+    "category": "setup"
   },
   "virtualmachinestate.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "virtualmachinestate.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "virtualmachinesystem.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "virtualmachinesystem.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "virtualmachinetype.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "assets"
   },
   "virtualmachinetype.php": {
-    "type": "search"
+    "type": "search",
+    "category": "assets"
   },
   "vlan.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "vlan.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   },
   "wifinetwork.form.php": {
-    "type": "item_form"
+    "type": "item_form",
+    "category": "network"
   },
   "wifinetwork.php": {
-    "type": "search"
+    "type": "search",
+    "category": "network"
   }
 }
