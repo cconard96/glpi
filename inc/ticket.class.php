@@ -6624,7 +6624,8 @@ class Ticket extends CommonITILObject {
                $ticket->delete(
                   [
                      'id'           => $tick['id'],
-                     '_auto_update' => true
+                     '_auto_update' => true,
+                     '_disablenotif' => true
                   ],
                   true
                );
