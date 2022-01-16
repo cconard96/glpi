@@ -113,6 +113,10 @@ if (!isset($skip_db_check) && !file_exists(GLPI_CONFIG_DIR . "/config_db.php")) 
             (isset($USEDBREPLICATE) ? $USEDBREPLICATE : 0),
             (isset($DBCONNECTION_REQUIRED) ? $DBCONNECTION_REQUIRED : 0)
         );
+        Glpi\DB\DB::establishDBConnection(
+            (isset($USEDBREPLICATE) ? $USEDBREPLICATE : 0),
+            (isset($DBCONNECTION_REQUIRED) ? $DBCONNECTION_REQUIRED : 0)
+        );
 
        //Options from DB, do not touch this part.
         if (!Config::loadLegacyConfiguration()) {

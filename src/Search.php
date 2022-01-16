@@ -1343,14 +1343,17 @@ class Search
    **/
     public static function constructData(array &$data, $onlycount = false)
     {
+        /** @global Glpi\DB\DB $DB_PDO */
+        global $DB_PDO, $DEBUG_SQL;
+        
         if (!isset($data['sql']) || !isset($data['sql']['search'])) {
             return false;
         }
         $data['data'] = [];
 
        // Use a ReadOnly connection if available and configured to be used
-        $DBread = DBConnection::getReadConnection();
-        $DBread->query("SET SESSION group_concat_max_len = 16384;");
+        $DB_PDO->useReplica();
+        $DB_PDO->query('SET SESSION group_concat_max_len = 8194304');
 
        // directly increase group_concat_max_len to avoid double query
         if (count($data['search']['metacriteria'])) {
@@ -1359,42 +1362,42 @@ class Search
                     $metacriterion['link'] == 'AND NOT'
                     || $metacriterion['link'] == 'OR NOT'
                 ) {
-                    $DBread->query("SET SESSION group_concat_max_len = 4194304;");
+                    //$DBread->query("SET SESSION group_concat_max_len = 4194304;");
                     break;
                 }
             }
         }
 
-        $DBread->execution_time = true;
-        $result = $DBread->query($data['sql']['search']);
+        $result = $DB_PDO->query($data['sql']['search']);
        /// Check group concat limit : if warning : increase limit
-        if ($result2 = $DBread->query('SHOW WARNINGS')) {
-            if ($DBread->numrows($result2) > 0) {
-                $res = $DBread->fetchAssoc($result2);
-                if ($res['Code'] == 1260) {
-                    $DBread->query("SET SESSION group_concat_max_len = 8194304;");
-                    $DBread->execution_time = true;
-                    $result = $DBread->query($data['sql']['search']);
-                }
-
-                if ($res['Code'] == 1116) { // too many tables
-                    echo self::showError(
-                        $data['search']['display_type'],
-                        __("'All' criterion is not usable with this object list, " .
-                                       "sql query fails (too many tables). " .
-                        "Please use 'Items seen' criterion instead")
-                    );
-                    return false;
-                }
-            }
-        }
+//        if ($result2 = $DBread->query('SHOW WARNINGS')) {
+//            if ($DBread->numrows($result2) > 0) {
+//                $res = $DBread->fetchAssoc($result2);
+//                if ($res['Code'] == 1260) {
+//                    //$DBread->query("SET SESSION group_concat_max_len = 8194304;");
+//                    $DBread->execution_time = true;
+//                    $result = $DBread->query($data['sql']['search']);
+//                }
+//
+//                if ($res['Code'] == 1116) { // too many tables
+//                    echo self::showError(
+//                        $data['search']['display_type'],
+//                        __("'All' criterion is not usable with this object list, " .
+//                                       "sql query fails (too many tables). " .
+//                        "Please use 'Items seen' criterion instead")
+//                    );
+//                    return false;
+//                }
+//            }
+//        }
 
         if ($result) {
-            $data['data']['execution_time'] = $DBread->execution_time;
+            $execution_time = end($DEBUG_SQL['times']) ?? 0;
+            $data['data']['execution_time'] = $execution_time;
             if (isset($data['search']['savedsearches_id'])) {
                 SavedSearch::updateExecutionTime(
                     (int)$data['search']['savedsearches_id'],
-                    $DBread->execution_time
+                    $execution_time
                 );
             }
 
@@ -1404,17 +1407,17 @@ class Search
                 !$data['search']['no_search']
                 || $data['search']['export_all']
             ) {
-                $data['data']['totalcount'] = $DBread->numrows($result);
+                $data['data']['totalcount'] = $result->rowCount();
             } else {
                 if (
                     !isset($data['sql']['count'])
                     || (count($data['sql']['count']) == 0)
                 ) {
-                    $data['data']['totalcount'] = $DBread->numrows($result);
+                    $data['data']['totalcount'] = $result->rowCount();
                 } else {
                     foreach ($data['sql']['count'] as $sqlcount) {
-                        $result_num = $DBread->query($sqlcount);
-                        $data['data']['totalcount'] += $DBread->result($result_num, 0, 0);
+                        $result_num = $DB_PDO->query($sqlcount);
+                        $data['data']['totalcount'] += $result_num->fetchOne();
                     }
                 }
             }
@@ -1537,7 +1540,11 @@ class Search
 
            // if real search seek to begin of items to display (because of complete search)
             if (!$data['search']['no_search']) {
-                $DBread->dataSeek($result, $data['search']['start']);
+                //TODO Better seek implementation or use proper pagination?
+                $start = $data['search']['start'];
+                for ($i = 0; $i < $start; $i++) {
+                    $result->fetchAssociative();
+                }
             }
 
             $i = $data['data']['begin'];
@@ -1550,7 +1557,7 @@ class Search
             self::$output_type = $data['display_type'];
 
             while (($i < $data['data']['totalcount']) && ($i <= $data['data']['end'])) {
-                $row = $DBread->fetchAssoc($result);
+                $row = $result->fetchAssociative();
                 $newrow        = [];
                 $newrow['raw'] = $row;
 
@@ -1641,7 +1648,7 @@ class Search
 
             $data['data']['count'] = count($data['data']['rows']);
         } else {
-            echo $DBread->error();
+            //echo $DBread->error();
         }
     }
 
