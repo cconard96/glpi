@@ -1254,7 +1254,7 @@ HTML;
 
             if (in_array('marketplace', $jslibs)) {
                 $tpl_vars['css_files'][] = 'css/standalone/marketplace.scss';
-                Html::requireJs('marketplace');
+                $tpl_vars['js_modules'][] = 'js/modules/Marketplace/Marketplace.js';
             }
 
             if (in_array('rack', $jslibs)) {
@@ -6128,9 +6128,6 @@ JAVASCRIPT
                 break;
             case 'dashboard':
                 $_SESSION['glpi_js_toload'][$name][] = 'js/dashboard.js';
-                break;
-            case 'marketplace':
-                $_SESSION['glpi_js_toload'][$name][] = 'js/marketplace.js';
                 break;
             case 'gridstack':
                 $_SESSION['glpi_js_toload'][$name][] = 'public/lib/gridstack.js';

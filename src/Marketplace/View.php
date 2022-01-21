@@ -431,8 +431,9 @@ HTML;
 
       $js = <<<JS
       $(document).ready(function() {
+         const marketplace = new Marketplace();
          // load button tooltips
-         addTooltips();
+         marketplace.addTooltips();
 
          var displaySortIcon = function(option) {
             if (!option.element) {
