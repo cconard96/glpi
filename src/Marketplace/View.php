@@ -197,44 +197,63 @@ class View extends CommonGLPI {
       string $string_filter = ""
    ) {
 
-      $plugin_inst = new Plugin;
-      $plugin_inst->init(true); // reload plugins
-      $installed   = $plugin_inst->getList();
+      $plugins = self::getInstalledPlugins($force_refresh);
 
-      $apiplugins  = [];
-      if (self::checkRegistrationStatus()) {
-         $api         = self::getAPI();
-         $apiplugins  = $api->getAllPlugins($force_refresh);
-      }
-
-      $plugins = [];
-      foreach ($installed as $plugin) {
-         $key     = $plugin['directory'];
-         $apidata = $apiplugins[$key] ?? [];
-
-         if (strlen($string_filter)
-             && strpos(strtolower(json_encode($plugin)), strtolower($string_filter)) === false) {
-            continue;
-         }
-
-         $clean_plugin = [
-            'key'          => $key,
-            'name'         => $plugin['name'],
-            'logo_url'     => $apidata['logo_url'] ?? "",
-            'description'  => $apidata['descriptions'][0]['short_description'] ?? "",
-            'authors'      => $apidata['authors'] ?? [['id' => 'all', 'name' => $plugin['author'] ?? ""]],
-            'license'      => $apidata['license'] ?? $plugin['license'] ?? "",
-            'note'         => $apidata['note'] ?? -1,
-            'homepage_url' => $apidata['homepage_url'] ?? "",
-            'issues_url'   => $apidata['issues_url'] ?? "",
-            'readme_url'   => $apidata['readme_url'] ?? "",
-            'version'      => $plugin['version'] ?? "",
-         ];
-
-         $plugins[] = $clean_plugin;
+      // Filter plugins by string
+      if (!empty($string_filter)) {
+         $plugins = array_filter(
+            $plugins,
+            static function ($plugin) use ($string_filter) {
+               return stripos($plugin['name'], $string_filter) !== false;
+            }
+         );
       }
 
       self::displayList($plugins, "installed", $only_lis);
+   }
+
+   public static function getAllPlugins(bool $force_refresh = false, bool $installed = false): ?array
+   {
+       if ($installed) {
+           return self::getInstalledPlugins($force_refresh);
+       }
+       return self::getAPI()->getAllPlugins($force_refresh);
+   }
+
+   public static function getInstalledPlugins(bool $force_refresh = false): ?array
+   {
+       $plugin_inst = new Plugin;
+       $plugin_inst->init(true); // reload plugins
+       $installed   = $plugin_inst->getList();
+
+       $apiplugins  = [];
+       if (self::checkRegistrationStatus()) {
+           $apiplugins  = self::getAllPlugins($force_refresh);
+       }
+
+       $plugins = [];
+       foreach ($installed as $plugin) {
+           $key     = $plugin['directory'];
+           $apidata = $apiplugins[$key] ?? [];
+
+           $clean_plugin = [
+               'key'          => $key,
+               'name'         => $plugin['name'],
+               'logo_url'     => $apidata['logo_url'] ?? "",
+               'description'  => $apidata['descriptions'][0]['short_description'] ?? "",
+               'authors'      => $apidata['authors'] ?? [['id' => 'all', 'name' => $plugin['author'] ?? ""]],
+               'license'      => $apidata['license'] ?? $plugin['license'] ?? "",
+               'note'         => $apidata['note'] ?? -1,
+               'homepage_url' => $apidata['homepage_url'] ?? "",
+               'issues_url'   => $apidata['issues_url'] ?? "",
+               'readme_url'   => $apidata['readme_url'] ?? "",
+               'version'      => $plugin['version'] ?? "",
+           ];
+
+           $plugins[$key] = $clean_plugin;
+       }
+
+       return $plugins;
    }
 
    /**

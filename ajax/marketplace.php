@@ -90,6 +90,10 @@ if (isset($_POST['key']) && isset($_POST["action"])) {
     }
 
     echo MarketplaceView::getButtons($_POST['key']);
+} else if (($_GET['action'] ?? null) === 'get_plugins') {
+    header("Content-Type: application/json; charset=UTF-8", true);
+    echo json_encode(MarketplaceView::getAllPlugins($_GET['force'] ?? false, $_GET['installed'] ?? false));
+    return;
 } else if (($_GET["action"] ?? null) == "refresh_plugin_list") {
     switch ($_GET['tab']) {
         default:
