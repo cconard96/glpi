@@ -169,7 +169,7 @@ export default class Marketplace {
          .removeClass('fa-sync-alt')
          .addClass('fa-spinner fa-spin');
 
-      $.when(filterPluginList(page, force)).then(() => {
+      $.when(this.filterPluginList(page, force)).then(() => {
          icon
             .removeClass('fa-spinner fa-spin')
             .addClass('fa-sync-alt');
@@ -236,6 +236,4 @@ export default class Marketplace {
    }
 }
 
-$(document).ready(function() {
-   new Marketplace();
-});
+window.Marketplace = Marketplace;
