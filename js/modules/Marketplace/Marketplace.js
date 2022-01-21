@@ -35,7 +35,26 @@ export default class Marketplace {
       this.ajax_url = CFG_GLPI.root_doc+"/ajax/marketplace.php";
       this.current_page = 1;
       this.ajax_done = false;
-      this.registerListeners();
+      this.plugins = {};
+      this.PAGE_SIZE = 12;
+
+      const icon = $('.marketplace:visible .refresh-plugin-list');
+      icon
+         .removeClass('fa-sync-alt')
+         .addClass('fa-spinner fa-spin');
+      this.getPlugins().done((plugins) => {
+         $('.marketplace ul.plugins').empty();
+         icon
+            .removeClass('fa-spinner fa-spin')
+            .addClass('fa-sync-alt');
+         this.refreshView(plugins);
+         this.addTooltips();
+         this.plugins = plugins;
+         //this.initSearch();
+         this.registerListeners();
+      })
+   }
+
    }
 
    registerListeners() {
@@ -92,7 +111,7 @@ export default class Marketplace {
             return;
          }
 
-         this.refreshPlugins(page);
+         this.gotoPage(page);
       });
 
       // filter by tag
@@ -107,13 +126,21 @@ export default class Marketplace {
       $(document).on('input', '.marketplace .filter-list', () => {
          clearTimeout(chrono);
          chrono = setTimeout(() => {
-            this.filterPluginList();
+            this.filter();
          }, 500);
       });
 
       // force refresh of plugin list
       $(document).on('click', '.marketplace .refresh-plugin-list', () => {
          this.refreshPlugins(this.current_page, true);
+      });
+   }
+
+   getPlugins(force, installed) {
+      return $.get(this.ajax_url, {
+         'action': 'get_plugins',
+         'installed': installed ? 1 : 0,
+         'force':  force ? 1 : 0,
       });
    }
 
@@ -233,6 +260,74 @@ export default class Marketplace {
       }
 
       loop();
+   }
+
+   /**
+    * Refresh view and show the requested plugins
+    *
+    * The displayed plugins will be sorted on the server, but paginated client-side
+    * @param plugins
+    */
+   refreshView(plugins) {
+      const marketplace  = $('.marketplace:visible');
+      let sort         = 'sort-alpha-desc';
+
+      if (marketplace.find(".sort-control").length > 0) {
+         sort = marketplace.find(".sort-control").select2('data')[0].element.value;
+      }
+
+      const icon = $('.marketplace:visible .refresh-plugin-list');
+
+      icon
+         .removeClass('fa-sync-alt')
+         .addClass('fa-spinner fa-spin');
+      $.post({
+         url: this.ajax_url,
+         data: {
+            'action': 'show_list',
+            'plugins': Object.keys(plugins),
+            'sort': sort,
+            'tab': marketplace.data('tab')
+         }
+      }).done((html) => {
+         $('.marketplace ul.plugins').html(html);
+
+         this.addTooltips();
+         this.filter();
+         icon
+            .removeClass('fa-spinner fa-spin')
+            .addClass('fa-sync-alt');
+      });
+   }
+
+   filter() {
+      const search_input = $('.marketplace:visible .filter-list');
+      const plugins_list = $('.marketplace:visible ul.plugins')
+      const search_text = search_input.text();
+
+      if (search_text.length > 0) {
+         plugins_list.find('li').hide();
+         plugins_list.find('li:contains(' + search_text + ')').show();
+      } else {
+         plugins_list.find('li').show();
+      }
+      this.paginate();
+   }
+
+   paginate() {
+      const start = (this.current_page - 1) * this.PAGE_SIZE;
+      const end   = start + this.PAGE_SIZE;
+
+      // get all plugin li that are not filtered out
+      const plugins = $('.marketplace:visible ul.plugins li:not(.filtered-out)');
+      // hide plugins that are not in the current page
+      plugins.slice(0, start).hide();
+      plugins.slice(end).hide();
+   }
+
+   gotoPage(page) {
+      this.current_page = page;
+      this.paginate();
    }
 }
 

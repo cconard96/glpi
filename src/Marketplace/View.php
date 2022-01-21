@@ -448,7 +448,8 @@ HTML;
          echo $messages . $plugins_li;
       }
 
-      $js = <<<JS
+      if (!$only_lis) {
+          $js = <<<JS
       $(document).ready(function() {
          const marketplace = new Marketplace();
          // load button tooltips
@@ -471,7 +472,8 @@ HTML;
          });
       });
 JS;
-      echo Html::scriptBlock($js);
+          echo Html::scriptBlock($js);
+      }
    }
 
    /**

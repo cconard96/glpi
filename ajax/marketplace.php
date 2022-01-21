@@ -94,6 +94,13 @@ if (isset($_POST['key']) && isset($_POST["action"])) {
     header("Content-Type: application/json; charset=UTF-8", true);
     echo json_encode(MarketplaceView::getAllPlugins($_GET['force'] ?? false, $_GET['installed'] ?? false));
     return;
+} else if (($_REQUEST['action'] ?? null) === 'show_list') {
+    $to_view = MarketplaceView::getAllPlugins(false, false);
+    $plugin_keys = $_REQUEST['plugins'] ?? [];
+    $to_view = array_filter($to_view, static function ($k) use ($plugin_keys) {
+        return in_array($k, $plugin_keys);
+    }, ARRAY_FILTER_USE_KEY);
+    MarketplaceView::displayList($to_view, $_REQUEST['tab'], true, count($_REQUEST['plugins']), $_REQUEST['sort'] ?? 'sort-alpha-asc');
 } else if (($_GET["action"] ?? null) == "refresh_plugin_list") {
     switch ($_GET['tab']) {
         default:
