@@ -29,14 +29,20 @@
  * ---------------------------------------------------------------------
  */
 
+import SearchInput from "../SearchTokenizer/SearchInput.js";
+
 export default class Marketplace {
 
    constructor() {
       this.ajax_url = CFG_GLPI.root_doc+"/ajax/marketplace.php";
       this.current_page = 1;
       this.ajax_done = false;
+      this.filter_input = null;
       this.plugins = {};
       this.PAGE_SIZE = 12;
+      this.filters = {
+         _text: ''
+      };
 
       const icon = $('.marketplace:visible .refresh-plugin-list');
       icon
@@ -50,11 +56,70 @@ export default class Marketplace {
          this.refreshView(plugins);
          this.addTooltips();
          this.plugins = plugins;
-         //this.initSearch();
+         this.initSearch();
          this.registerListeners();
       })
    }
 
+   initSearch() {
+      const supported_filters = {
+         name: {
+            description: _x('marketplace_filters', 'The name of the plugin'),
+            supported_prefixes: ['!', '#']
+         },
+         tag: {
+            description: _x('marketplace_filters', 'The tag(s) assigned to the plugin'),
+            supported_prefixes: ['!', '#']
+         },
+         state: {
+            description: _x('marketplace_filters', 'The current state of the plugin'),
+            supported_prefixes: ['!', '#']
+         },
+         compatible: {
+            description: _x('marketplace_filters', 'If plugin is compatible with the current GLPI version'),
+            supported_prefixes: ['!']
+         },
+         subscription: {
+            description: _x('marketplace_filters', 'Subscription'),
+            supported_prefixes: ['!', '#']
+         },
+         author: {
+            description: _x('marketplace_filters', 'Author'),
+            supported_prefixes: ['!', '#']
+         },
+         license: {
+            description: _x('marketplace_filters', 'License'),
+            supported_prefixes: ['!', '#']
+         },
+         rating: {
+            description: _x('marketplace_filters', 'Rating'),
+            supported_prefixes: ['!', '#']
+         }
+      };
+
+      this.filter_input = new SearchInput($('.marketplace .filter-list'), {
+         allowed_tags: supported_filters,
+         on_result_change: (e, result) => {
+            this.filters = {
+               _text: ''
+            };
+            this.filters._text = result.getFullPhrase();
+            result.getTaggedTerms().forEach(t => this.filters[t.tag] = {
+               term: t.term || '',
+               exclusion: t.exclusion || false,
+               prefix: t.prefix
+            });
+            this.filter();
+         },
+         tokenizer_options: {
+            custom_prefixes: {
+               '#': { // Regex prefix
+                  label: __('Regex'),
+                  token_color: '#00800080'
+               }
+            }
+         }
+      });
    }
 
    registerListeners() {
@@ -302,15 +367,129 @@ export default class Marketplace {
 
    filter() {
       const search_input = $('.marketplace:visible .filter-list');
-      const plugins_list = $('.marketplace:visible ul.plugins')
-      const search_text = search_input.text();
+      const plugins_list = $('.marketplace:visible ul.plugins');
+      console.dir(this.filters);
+      const search_text = this.filters._text ?? '';
 
-      if (search_text.length > 0) {
-         plugins_list.find('li').hide();
-         plugins_list.find('li:contains(' + search_text + ')').show();
-      } else {
-         plugins_list.find('li').show();
-      }
+      plugins_list.find('li.plugin').each((i, item) =>{
+         const card = $(item);
+         let shown = true;
+         const content = card.find('.details .title').text() + ' ' + card.find('.details .description').text();
+
+         const filter_text = (filter_data, target, matchers = ['regex', 'includes']) => {
+            if (filter_data.prefix === '#' && matchers.includes('regex')) {
+               return filter_regex_match(filter_data, target);
+            } else {
+               if (matchers.includes('includes')) {
+                  filter_include(filter_data, target);
+               }
+               if (matchers.includes('equals')) {
+                  filter_equal(filter_data, target);
+               }
+            }
+         };
+
+         const filter_include = (filter_data, haystack) => {
+            if ((!haystack.toLowerCase().includes(filter_data.term.toLowerCase())) !== filter_data.exclusion) {
+               shown = false;
+            }
+         };
+
+         const filter_equal = (filter_data, target) => {
+            if ((target != filter_data.term) !== filter_data.exclusion) {
+               shown = false;
+            }
+         };
+
+         const filter_regex_match = (filter_data, target) => {
+            try {
+               if ((!target.trim().match(filter_data.term)) !== filter_data.exclusion) {
+                  shown = false;
+               }
+            } catch (e) {
+               // Invalid regex
+               glpi_toast_error(
+                  __('The regular expression you entered is invalid. Please check it and try again.'),
+                  __('Invalid regular expression')
+               );
+            }
+         };
+
+         if (search_text) {
+            try {
+               if (!content.match(new RegExp(search_text, 'i'))) {
+                  shown = false;
+               }
+            } catch (err) {
+               // Probably not a valid regular expression. Use simple contains matching.
+               if (!content.toLowerCase().includes(search_text.toLowerCase())) {
+                  shown = false;
+               }
+            }
+         }
+
+         if (this.filters.name !== undefined) {
+            filter_text(this.filters.name, card.find('.details .title').text());
+         }
+
+         if (this.filters.tag !== undefined) {
+            filter_text(this.filters.tag, card.find('.details .tags').text());
+         }
+
+         if (this.filters.state !== undefined) {
+            switch (this.filters.state.toLowerCase()) {
+               case 'not downloaded':
+                  filter_text('download_plugin', card.find('buttons .modify_plugin').attr('data-action'));
+                  break;
+               case 'downloaded':
+                  filter_text('install_plugin', card.find('buttons .modify_plugin').attr('data-action'));
+                  break;
+               case 'installed':
+                  filter_text('enable_plugin', card.find('buttons .modify_plugin').attr('data-action'));
+                  break;
+               case 'enabled':
+                  filter_text('disable_plugin', card.find('buttons .modify_plugin').attr('data-action'));
+                  break;
+               case 'disabled':
+                  filter_text('uninstall_plugin', card.find('buttons .modify_plugin').attr('data-action'));
+                  break;
+               case 'uninstalled':
+                  filter_text('clean_plugin', card.find('buttons .modify_plugin').attr('data-action'));
+                  break;
+            }
+         }
+
+         if (this.filters.compatible !== undefined) {
+            this.filters.compatible.term = (this.filters.compatible.term == '0' || this.filters.compatible.term == 'false') ? 0 : 1;
+            filter_equal(this.filters.compatible, card.find('.buttons .plugin-unavailable').length === 0);
+         }
+
+         if (this.filters.subscription !== undefined) {
+            filter_text(this.filters.subscription, card.find('.details .subscription').text());
+         }
+
+         if (this.filters.author !== undefined) {
+            filter_text(this.filters.author, card.find('.details .author').text());
+         }
+
+         if (this.filters.license !== undefined) {
+            filter_text(this.filters.license, card.find('.details .license').text());
+         }
+
+         if (this.filters.rating !== undefined) {
+            filter_text(this.filters.rating, card.find('.details .rating').text());
+         }
+
+         if (!shown) {
+            card.addClass('filtered-out');
+         } else {
+            card.removeClass('filtered-out');
+         }
+      });
+
+      // Hide all ".plugin" that are filtered out
+      plugins_list.find('li.plugin.filtered-out').hide();
+
       this.paginate();
    }
 
