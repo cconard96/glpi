@@ -322,7 +322,70 @@ export default class Marketplace {
       const plugins = $('.marketplace:visible ul.plugins li:not(.filtered-out)');
       // hide plugins that are not in the current page
       plugins.slice(0, start).hide();
+      plugins.slice(start, end).show();
       plugins.slice(end).hide();
+
+      // Update pagination controls
+      const pagination = $('.marketplace .pagination');
+      const buttons = pagination.find('li[data-page]');
+      const is_last_page = end >= plugins.length;
+      const nb_pages = Math.ceil(plugins.length / this.PAGE_SIZE);
+      const prev = Math.max(this.current_page - 1, 1);
+      const next = Math.min(this.current_page + 1, nb_pages);
+
+      pagination.empty();
+      if (this.current_page === 1 && is_last_page) {
+         pagination.hide();
+      } else {
+         pagination.show();
+      }
+
+      // Add previous button
+      pagination.append(`<li data-page="${prev}" ${this.current_page <= 1 ? 'class="nav-disabled"' : ''}><i class="fas fa-angle-left"></i></li>`);
+
+      // Calculate pagination buttons
+      const page_links = (() => {
+         const delta = 1;
+         const left = this.current_page - delta;
+         const right = this.current_page + delta + 1;
+         let range = [];
+         let rangeWithDots = [];
+         let l;
+
+         for (let i = 1; i <= nb_pages; i++) {
+            if (i === 1 || i === nb_pages || i >= left && i < right) {
+               range.push(i);
+            }
+         }
+
+         for (let i of range) {
+            if (l) {
+               if (i - l === 2) {
+                  rangeWithDots.push(l + 1);
+               } else if (i - l !== 1) {
+                  rangeWithDots.push('...');
+               }
+            }
+            rangeWithDots.push(i);
+            l = i;
+         }
+
+         return rangeWithDots;
+      })();
+
+      // Add pagination buttons
+      for (let i of page_links) {
+         if (isNaN(i)) {
+            pagination.append(`<li class="nav-disabled dots">${i}</li>`);
+         } else {
+            pagination.append(`<li data-page="${i}" ${i === this.current_page ? 'class="active"' : ''}><span>${i}</span></li>`);
+         }
+      }
+
+      // Add next button
+      pagination.append(`<li data-page="${next}" ${this.current_page >= nb_pages ? 'class="nav-disabled"' : ''}><i class="fas fa-angle-right"></i></li>`);
+
+      pagination.append(`<li class="nb_plugin">${_n('%s plugin', '%s plugins', plugins.length).replace('%s', plugins.length)}</li>`);
    }
 
    gotoPage(page) {
