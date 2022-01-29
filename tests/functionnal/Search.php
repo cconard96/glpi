@@ -468,6 +468,42 @@ class Search extends DbTestCase
          ->matches("/OR\s*\(CONVERT\(`glpi_computers`\.`date_mod` USING {$default_charset}\)\s*LIKE '%test%'\s*\)\)/");
     }
 
+    public function testNotViewCriterion()
+    {
+        $data = $this->doSearch('Computer', [
+            'reset'      => 'reset',
+            'is_deleted' => 0,
+            'start'      => 0,
+            'search'     => 'Search',
+            'criteria'   => [
+                [
+                    'link'       => 'AND',
+                    'field'      => 'view',
+                    'searchtype' => 'notcontains',
+                    'value'      => 'test',
+                ],
+            ]
+        ]);
+
+        $default_charset = DBConnection::getDefaultCharset();
+
+        $this->string($data['sql']['search'])
+            ->contains("`glpi_computers`.`is_deleted` = 0")
+            ->contains("AND `glpi_computers`.`is_template` = 0")
+            ->contains("`glpi_computers`.`entities_id` IN ('1', '2', '3')")
+            ->contains("OR (`glpi_computers`.`is_recursive`='1'" .
+                " AND `glpi_computers`.`entities_id` IN (0))")
+            ->matches("/`glpi_computers`\.`name`  NOT LIKE '%test%'/")
+            ->matches("/AND\s*\(`glpi_entities`\.`completename`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(`glpi_states`\.`completename`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(`glpi_manufacturers`\.`name`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(`glpi_computers`\.`serial`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(`glpi_computertypes`\.`name`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(`glpi_computermodels`\.`name`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(`glpi_locations`\.`completename`\s*NOT LIKE '%test%'\s*\)/")
+            ->matches("/AND\s*\(CONVERT\(`glpi_computers`\.`date_mod` USING {$default_charset}\)\s*NO TLIKE '%test%'\s*\)\)/");
+    }
+
     public function testSearchOnRelationTable()
     {
         $data = $this->doSearch(\Change_Ticket::class, [
