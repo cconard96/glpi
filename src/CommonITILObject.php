@@ -4721,6 +4721,12 @@ abstract class CommonITILObject extends CommonDBTM
             case Change::CANCELED:
                 $class = 'ban';
                 break;
+            case Change::DESIGN_APPROVAL:
+                $class = 'question-circle';
+                break;
+            case Change::CAB_APPROVAL:
+                $class = 'question-circle';
+                break;
         }
 
         return $class == null

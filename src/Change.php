@@ -65,6 +65,10 @@ class Change extends CommonITILObject
     const REFUSED                       = 13;
     const CANCELED                      = 14;
 
+    // Specific statuses for DXC (start at 100 to avoid future conflicts with core)
+    const DESIGN_APPROVAL               = 100;
+    const CAB_APPROVAL                  = 101;
+
     public static function getTypeName($nb = 0)
     {
         return _n('Change', 'Changes', $nb);
@@ -581,7 +585,9 @@ class Change extends CommonITILObject
         $tab = [self::INCOMING      => _x('status', 'New'),
             self::EVALUATION    => __('Evaluation'),
             self::APPROVAL      => _n('Approval', 'Approvals', 1),
+            self::DESIGN_APPROVAL => __('Design Approval'),
             self::ACCEPTED      => _x('status', 'Accepted'),
+            self::CAB_APPROVAL  => __('CAB Approval'),
             self::WAITING       => __('Pending'),
             self::TEST          => _x('change', 'Testing'),
             self::QUALIFICATION => __('Qualification'),
@@ -646,7 +652,7 @@ class Change extends CommonITILObject
      **/
     public static function getNewStatusArray()
     {
-        return [self::INCOMING, self::ACCEPTED, self::EVALUATION, self::APPROVAL];
+        return [self::INCOMING, self::ACCEPTED, self::EVALUATION, self::APPROVAL, self::DESIGN_APPROVAL];
     }
 
     /**
@@ -661,7 +667,7 @@ class Change extends CommonITILObject
     {
 
        // To be overridden by class
-        $tab = [self::ACCEPTED, self::QUALIFICATION, self::TEST];
+        $tab = [self::ACCEPTED, self::CAB_APPROVAL, self::QUALIFICATION, self::TEST];
         return $tab;
     }
 
@@ -1016,6 +1022,10 @@ class Change extends CommonITILObject
                 return 'refused';
             case self::CANCELED:
                 return 'canceled';
+            case self::DESIGN_APPROVAL:
+                return 'design_approval';
+            case self::CAB_APPROVAL:
+                return 'cab_approval';
             default:
                 return parent::getStatusKey($status);
         }
