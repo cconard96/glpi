@@ -31,7 +31,8 @@
 
 {% import 'components/form/fields_macros.html.twig' as fields %}
 
-{% if canupdate %}
+{% set canupdate_status = canupdate and (item.fields['status'] not in [constant('Change::REFUSED'), constant('Change::APPROVAL')]) %}
+{% if canupdate_status %}
    {% set status_field %}
       {{ item.dropdownStatus({
          'value': item.fields['status'],
