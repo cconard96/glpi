@@ -173,4 +173,11 @@ body .modal-header {
     background-color: lighten($dark, 5%);
 }
 
+.avatar {
+    filter: invert(1);
+    .avatar-initials {
+        filter: invert(1);
+    }
+}
+
 @import "includes";

@@ -46,7 +46,7 @@
 <span class="avatar {{ avatar_size }} rounded"
       style="{% if user_thumbnail is not null %}background-image: url({{ user_thumbnail }}); {% endif %}background-color: {{ user.getUserInitialsBgColor() }}">
    {% if user_thumbnail is null %}
-         {{ user.getUserInitials(enable_anonymization) }}
+      <span class="avatar-initials">{{ user.getUserInitials(enable_anonymization) }}</span>
    {% endif %}
 </span>
 
