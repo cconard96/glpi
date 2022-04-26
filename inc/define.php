@@ -405,6 +405,7 @@ $CFG_GLPI["rulecollections_types"]        = ['RuleImportAssetCollection',
     'RuleRightCollection',
     'RuleSoftwareCategoryCollection',
     'RuleTicketCollection',
+    'RuleChangeCollection',
                                                   //'RuleImportComputerCollection', //deprecated
     'RuleAssetCollection'
 ];
