@@ -92,6 +92,7 @@
         .search-card {
             @include media-breakpoint-up(sm) {
                 min-width: 100%;
+                overflow-x: clip;
 
                 .search-header {
                     border-bottom: 0;
@@ -108,6 +109,31 @@
                 }
             }
 
+            @include media-breakpoint-up(sm) {
+                .search-results-thead {
+                    border-collapse: separate;
+                    border-spacing: 0;
+                    z-index: $zindex-sticky;
+                    position: sticky;
+                    top: 56px;
+                    border: 1px solid $card-border-color;
+                    border-left: 0;
+                    border-right: 0;
+                    background-color: $table_header_bg;
+                    margin-bottom: 0;
+                }
+            }
+
+            .search-results-thead {
+                @media (max-width: 1899.98px) {
+                    font-size: 0.75rem;
+
+                    & > :not(caption) > * > * {
+                        padding: 0.25rem;
+                    }
+                }
+            }
+
             .search-results {
                 border-collapse: separate;
                 border-spacing: 0;
@@ -117,7 +143,6 @@
                         th {
                             z-index: $zindex-sticky;
                             position: sticky;
-                            top: 49px;
                             border: 1px solid $card-border-color;
                             border-left: 0;
                             border-right: 0;
@@ -212,7 +237,7 @@ td.priority_block {
     display: table-cell;
 }
 
-table.search-results {
+table.search-results, table.search-results-thead {
     thead th[data-searchopt-id]:not([data-searchopt-id=""]) {
         cursor: pointer;
 

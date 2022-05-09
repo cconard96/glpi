@@ -185,7 +185,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
                     return;
                 }
                 ajax_container.html(content);
-                this.getElement().trigger('search_refresh', [this.getElement()]);
+                ajax_container.trigger('search_refresh', [this.getElement()]);
                 this.hideLoadingSpinner();
                 this.shiftSelectAllCheckbox();
             }, () => {
@@ -206,14 +206,14 @@ window.GLPI.Search.Table = class Table extends GenericView {
         const ajax_container = this.getResultsView().getAJAXContainer();
         const search_container = ajax_container.closest('.search-container');
 
-        $(ajax_container).on('click', 'table.search-results th[data-searchopt-id]', (e) => {
+        $(ajax_container).on('click', 'table.search-results-thead th[data-searchopt-id]', (e) => {
             e.stopPropagation();
             const target = $(e.target).closest('th').get(0);
             if (e.ctrlKey || e.metaKey) {
-            // Multisort mode
+                // Multisort mode
                 this.onColumnSortClick(target, true);
             } else {
-            // Single sort mode or just changing sort orders
+                // Single sort mode or just changing sort orders
                 this.onColumnSortClick(target, false);
             }
         });
@@ -231,6 +231,49 @@ window.GLPI.Search.Table = class Table extends GenericView {
             e.preventDefault();
             this.onSearch();
         });
+
+        this.createStickyHeader(search_container);
+        $(ajax_container).on('search_refresh', () => {
+            this.createStickyHeader(search_container);
+        });
+    }
+
+    createStickyHeader(search_container) {
+        const thead = search_container.find('table.search-results thead');
+        const responsive_container = search_container.find('div.table-responsive');
+        const new_table = $('<table class="table search-results-thead"></table>').insertBefore(responsive_container);
+        new_table.append(thead.clone(true));
+        const new_thead = new_table.find('thead');
+
+        this.syncStickyHeader(search_container);
+
+        responsive_container.off('scroll');
+        responsive_container.on('scroll', (e) => {
+            // Align left of new thead with the original thead
+            new_thead.css('transform', `translateX(-${e.currentTarget.scrollLeft}px)`);
+        });
+
+        $(window).on('resize', () => {
+            this.syncStickyHeader(search_container);
+        });
+
+        return new_table;
+    }
+
+    syncStickyHeader(search_container) {
+        const thead = search_container.find('table.search-results thead');
+        const new_thead = search_container.find('table.search-results-thead thead');
+
+        const thead_height = thead.outerHeight();
+        thead.css('transform', `translateY(-${thead_height + 22}px)`);
+        search_container.find('table.search-results tbody').css('transform', `translateY(-${thead_height}px)`);
+
+        new_thead.find('tr').css('display', 'inline-flex');
+        new_thead.find('th').each((i, th) => {
+            const orig_th = thead.find('th').get(i);
+            $(th).css('width', $(orig_th).css('width'));
+            $(th).css('height', $(orig_th).css('height'));
+        });
     }
 
     getItemtype() {
@@ -238,7 +281,8 @@ window.GLPI.Search.Table = class Table extends GenericView {
     }
 
     getSortState() {
-        const columns = this.getElement().find('thead th[data-searchopt-id]:not([data-searchopt-id=""])[data-sort-order]:not([data-sort-order=""])');
+        const ajax_container = this.getResultsView().getAJAXContainer();
+        const columns = ajax_container.find('table.search-results-thead th[data-searchopt-id]:not([data-searchopt-id=""])[data-sort-order]:not([data-sort-order=""])');
         if (columns.length === 0) {
             return null;
         }
