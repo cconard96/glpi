@@ -1574,13 +1574,13 @@ abstract class CommonITILValidation extends CommonDBChild
             'groups_id'         => 0,
             'itemtype_target'   => '',
             'items_id_target'   => 0,
-            'applyto'           => 'show_validator_field',
             'display'           => true,
             'disabled'          => false,
             'width'             => '100%',
             'required'          => false,
             'rand'              => mt_rand(),
         ];
+        $params['applyto'] = 'show_validator_field' . $params['rand'];
 
         foreach ($options as $key => $val) {
             $params[$key] = $val;
