@@ -535,7 +535,7 @@ $CFG_GLPI['line_types'] = $CFG_GLPI['itemdevicesimcard_types'];
 
 $dashboard_libs = [
     'dashboard', 'gridstack',
-    'charts', 'clipboard', 'sortable'
+    'charts', 'sortable'
 ];
 
 $reservations_libs = ['fullcalendar', 'reservations'];
@@ -558,7 +558,7 @@ $CFG_GLPI['javascript'] = [
     ],
     'helpdesk'  => [
         'dashboard' => $dashboard_libs,
-        'planning'  => ['clipboard', 'fullcalendar', 'tinymce', 'planning'],
+        'planning'  => ['fullcalendar', 'tinymce', 'planning'],
         'ticket'    => array_merge(['rateit', 'tinymce', 'kanban'], $dashboard_libs),
         'problem'   => ['tinymce', 'kanban', 'sortable'],
         'change'    => ['tinymce', 'kanban', 'sortable'],
@@ -589,11 +589,9 @@ $CFG_GLPI['javascript'] = [
         ],
         'plugin' => [
             'marketplace' => ['marketplace']
-        ],
-        'config' => ['clipboard']
+        ]
     ],
-    'admin'        => ['clipboard', 'sortable'],
-    'preference'   => ['clipboard'],
+    'admin'        => ['sortable'],
     'self-service' => array_merge(['tinymce'], $reservations_libs)
 ];
 

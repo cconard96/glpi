@@ -1301,10 +1301,6 @@ HTML;
                 Html::requireJs('tinymce');
             }
 
-            if (in_array('clipboard', $jslibs)) {
-                Html::requireJs('clipboard');
-            }
-
             if (in_array('charts', $jslibs)) {
                 $tpl_vars['css_files'][] = ['path' => 'public/lib/chartist.css'];
                 $tpl_vars['css_files'][] = ['path' => 'css/standalone/chartist.scss'];
@@ -6207,9 +6203,6 @@ HTML;
         switch ($name) {
             case 'glpi_dialog':
                 $_SESSION['glpi_js_toload'][$name][] = 'js/glpi_dialog.js';
-                break;
-            case 'clipboard':
-                $_SESSION['glpi_js_toload'][$name][] = 'js/clipboard.js';
                 break;
             case 'tinymce':
                 $_SESSION['glpi_js_toload'][$name][] = 'public/lib/tinymce.js';
