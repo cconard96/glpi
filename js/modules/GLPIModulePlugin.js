@@ -31,9 +31,24 @@
  * ---------------------------------------------------------------------
  */
 
-/**
- * This is now globally loaded using the new module system.
- * This file is kept for backward compatibility to avoid errors with loading a non-existant file.
- * The global functions/properties are still available but deprecated (v10.1.0).
- * See "js/modules/GLPI" for the new way to interact with this code (Bound to window.GLPI).
- */
+export default class GLPIModulePlugin {
+
+    /**
+     * Initialize the module.
+     *
+     * This is called after the module is registered.
+     * This is a good place to register event listeners and some other setup.
+     */
+    initialize() {}
+
+    /**
+     * Get all functions/properties that need bound to the global scope for legacy support.
+     *
+     * The returned object should have the target global property name as the key and the module property name as the value.
+     * For example, the property {"example": "myFunction"} would set window.example = this.myFunction.
+     * @returns {Object<string, string>}
+     */
+    getLegacyGlobals() {
+        return {};
+    }
+}

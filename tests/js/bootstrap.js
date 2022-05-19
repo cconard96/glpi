@@ -156,3 +156,6 @@ class AjaxMock {
 window.AjaxMock = new AjaxMock();
 
 require('../../js/common.js');
+
+// Load GLPI core module
+require('../../js/modules/GLPI.js');

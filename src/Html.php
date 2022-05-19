@@ -1203,14 +1203,17 @@ HTML;
         $theme = $_SESSION['glpipalette'] ?? 'auror';
 
         $tpl_vars = [
-            'lang'      => $CFG_GLPI["languages"][$_SESSION['glpilanguage']][3],
-            'title'     => $title,
-            'theme'     => $theme,
-            'css_files' => [],
-            'js_files'  => [],
+            'lang'          => $CFG_GLPI["languages"][$_SESSION['glpilanguage']][3],
+            'title'         => $title,
+            'theme'         => $theme,
+            'css_files'     => [],
+            'js_files'      => [],
+            'js_modules'    => [],
         ];
 
         $tpl_vars['css_files'][] = ['path' => 'public/lib/base.css'];
+        // Load core GLPI JS module
+        $tpl_vars['js_modules'][] = ['path' => 'js/modules/GLPI.js'];
 
         if (isset($CFG_GLPI['notifications_ajax']) && $CFG_GLPI['notifications_ajax']) {
             Html::requireJs('notifications_ajax');
