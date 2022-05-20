@@ -52,7 +52,77 @@ window.GLPI = new class GLPI {
     }
 
     initialize() {
+        this.redefineAlert();
+        this.redefineConfirm();
+
         this.registerCoreModules();
+    }
+
+    redefineAlert() {
+        window.old_alert = window.alert;
+        /**
+         * @param {string} message
+         * @param {string} caption
+         */
+        window.alert = (message, caption) => {
+            // Don't apply methods on undefined objects... ;-) #3866
+            if (typeof message == 'string') {
+                message = message.replace('\\n', '<br>');
+            }
+            caption = caption || _n('Information', 'Information', 1);
+
+            glpi_alert({
+                title: caption,
+                message: message,
+            });
+        };
+    }
+
+    redefineConfirm() {
+        let confirmed = false;
+        let lastClickedElement;
+
+        // store last clicked element on dom
+        $(document).click(function(event) {
+            lastClickedElement = $(event.target);
+        });
+
+        // asynchronous confirm dialog with jquery ui
+        const newConfirm = function(message, caption) {
+            message = message.replace('\\n', '<br>');
+            caption = caption || '';
+
+            glpi_confirm({
+                title: caption,
+                message: message,
+                confirm_callback: function() {
+                    confirmed = true;
+
+                    //trigger click on the same element (to return true value)
+                    lastClickedElement.click();
+
+                    // re-init confirmed (to permit usage of 'confirm' function again in the page)
+                    // maybe timeout is not essential ...
+                    setTimeout(function() {
+                        confirmed = false;
+                    }, 100);
+                }
+            });
+        };
+
+        window.nativeConfirm = window.confirm;
+
+        // redefine native 'confirm' function
+        window.confirm = function (message, caption) {
+            // if watched var isn't true, we can display dialog
+            if(!confirmed) {
+                // call asynchronous dialog
+                newConfirm(message, caption);
+            }
+
+            // return early
+            return confirmed;
+        };
     }
 
     registerCoreModules() {

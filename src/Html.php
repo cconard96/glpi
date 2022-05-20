@@ -5966,24 +5966,11 @@ HTML;
      * by a prettier dialog.
      *
      * @since 9.1
+     * @deprecated 10.1.0
      **/
     public static function redefineAlert()
     {
-
-        echo self::scriptBlock("
-      window.old_alert = window.alert;
-      window.alert = function(message, caption) {
-         // Don't apply methods on undefined objects... ;-) #3866
-         if(typeof message == 'string') {
-            message = message.replace('\\n', '<br>');
-         }
-         caption = caption || '" . _sn('Information', 'Information', 1) . "';
-
-         glpi_alert({
-            title: caption,
-            message: message,
-         });
-      };");
+        Toolbox::deprecated('Alert and Confirm dialogs are now redefined in js/GLPI.js');
     }
 
 
@@ -6027,55 +6014,11 @@ HTML;
      * In this case, we trigger a new click on element to return the value (and without display dialog)
      *
      * @since 9.1
+     * @deprecated 10.1.0
      */
     public static function redefineConfirm()
     {
-
-        echo self::scriptBlock("
-      var confirmed = false;
-      var lastClickedElement;
-
-      // store last clicked element on dom
-      $(document).click(function(event) {
-          lastClickedElement = $(event.target);
-      });
-
-      // asynchronous confirm dialog with jquery ui
-      var newConfirm = function(message, caption) {
-         message = message.replace('\\n', '<br>');
-         caption = caption || '';
-
-         glpi_confirm({
-            title: caption,
-            message: message,
-            confirm_callback: function() {
-               confirmed = true;
-
-               //trigger click on the same element (to return true value)
-               lastClickedElement.click();
-
-               // re-init confirmed (to permit usage of 'confirm' function again in the page)
-               // maybe timeout is not essential ...
-               setTimeout(function() {
-                  confirmed = false;
-               }, 100);
-            }
-         });
-      };
-
-      window.nativeConfirm = window.confirm;
-
-      // redefine native 'confirm' function
-      window.confirm = function (message, caption) {
-         // if watched var isn't true, we can display dialog
-         if(!confirmed) {
-            // call asynchronous dialog
-            newConfirm(message, caption);
-         }
-
-         // return early
-         return confirmed;
-      };");
+        Toolbox::deprecated('Alert and Confirm dialogs are now redefined in js/GLPI.js');
     }
 
 
@@ -6349,8 +6292,6 @@ HTML;
 
        // Some Javascript-Functions which we may need later
         echo Html::script('js/common.js');
-        self::redefineAlert();
-        self::redefineConfirm();
 
         if (isset($CFG_GLPI['notifications_ajax']) && $CFG_GLPI['notifications_ajax'] && !Session::isImpersonateActive()) {
             $options = [
