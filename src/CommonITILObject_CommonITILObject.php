@@ -48,7 +48,7 @@ abstract class CommonITILObject_CommonITILObject extends CommonDBRelation
 
     public static function getTypeName($nb = 0)
     {
-        return _n('Linked ITIL Object', 'Linked ITIL Objects', $nb);
+        return _n('Linked assistance object', 'Linked assistance objects', $nb);
     }
 
     public function prepareInputForAdd($input)
