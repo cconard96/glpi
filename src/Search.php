@@ -2588,9 +2588,6 @@ JAVASCRIPT;
 
         if ($p['mainform']) {
             $JS .= <<<JAVASCRIPT
-         var toggle_fold_search = function(show_search) {
-            $('#searchcriteria{$rand_criteria}').closest('.search-form').toggle(show_search);
-         };
 
          // Init search_criteria state
          var search_criteria_visibility = window.localStorage.getItem('show_full_searchcriteria');

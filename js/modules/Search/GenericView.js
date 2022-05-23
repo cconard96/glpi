@@ -108,6 +108,14 @@ window.GLPI.Search.GenericView = class GenericView {
         });
     }
 
+    /**
+     *
+     * @param {0|1} state
+     */
+    toggleFoldSearch(state) {
+        this.getResultsView().getAJAXContainer().closest('.search-container .search-form').toggle(state);
+    }
+
     onSearch() {
         this.refreshResults();
     }

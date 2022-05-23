@@ -1367,8 +1367,7 @@ HTML;
         $tpl_vars['js_files'][] = ['path' => 'public/lib/base.js'];
 
        // Search
-        $tpl_vars['js_modules'][] = ['path' => 'js/modules/Search/ResultsView.js'];
-        $tpl_vars['js_modules'][] = ['path' => 'js/modules/Search/Table.js'];
+        $tpl_vars['js_modules'][] = ['path' => 'js/modules/Search/Search.js'];
 
         TemplateRenderer::getInstance()->display('layout/parts/head.html.twig', $tpl_vars);
 

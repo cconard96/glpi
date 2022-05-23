@@ -80,16 +80,9 @@
 
    {% if data['search']['as_map'] == 0 %}
       <script>
-          if (typeof initFluidSearch !== "function") {
-             window.initFluidSearch = () => {
-                 new GLPI.Search.ResultsView("massform{{ normalized_itemtype }}", GLPI.Search.Table);
-             };
-          }
-          if (document.readyState === 'complete') {
-              initFluidSearch();
-          } else {
-              $(document).on('ready', initFluidSearch);
-          }
+         $(function() {
+             window.GLPI.getModule('search').initFluidSearch(new GLPI.Search.ResultsView("massform{{ normalized_itemtype }}", GLPI.Search.Table));
+         });
       </script>
    {% endif %}
 {% endif %}
