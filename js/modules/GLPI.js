@@ -156,7 +156,14 @@ window.GLPI = new class GLPI {
             if (window[key] !== undefined) {
                 throw new Error(`Legacy global "${key}" already exists.`);
             }
-            window[key] = module[value];
+            if (typeof value === 'string') {
+                // Simple global
+                window[key] = module[value];
+            } else {
+                // Advanced global (Allow binding a different context)
+                const bind_target = value.bind_target || window;
+                window[key] = module[value.module_property].bind(bind_target);
+            }
         });
     }
 

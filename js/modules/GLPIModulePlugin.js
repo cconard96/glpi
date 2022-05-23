@@ -44,9 +44,15 @@ export default class GLPIModulePlugin {
     /**
      * Get all functions/properties that need bound to the global scope for legacy support.
      *
-     * The returned object should have the target global property name as the key and the module property name as the value.
+     * The returned object should have the target global property name as the key and typically havethe module property name as the value.
      * For example, the property {"example": "myFunction"} would set window.example = this.myFunction.
-     * @returns {Object<string, string>}
+     *
+     * Alternatively, you can use an advanced binding syntax to bind to a specific context.
+     * This advanced syntax is required if your bound global function references other properties or methods of the module.
+     * By specifying the "bind_target" property, you can ensure that the "this" keyword refers to the correct object/scope.
+     * For example, {"example": {module_property: "myFunction", bind_target: this}} would set window.example = this.myFunction
+     * but also bind the context to the module.
+     * @returns {Object<string, string>|Object<string, {module_property: string, bind_target: {}}>}
      */
     getLegacyGlobals() {
         return {};
