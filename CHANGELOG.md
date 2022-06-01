@@ -7,9 +7,27 @@ The present file will list all changes made to the project; according to the
 
 ### Added
 - Configurable toast notification location
+- Pictures field for Appliances
+- Permission for assigning/changing service levels in Tickets, Changes and Problems.
+  This does not take priority over the standard update right which still allows this.
+- Template management for Cable item type
+- Ability to detach a planning event from a series
+- Permission for user impersonation.
+  This does not take priority over the "General Setup" update permission which was previously used for this.
+- Direct links for lines and assets
+- Configurable datacenter room cell size
+- Display location in the breadcrumbs of datacenter item types
+- Support for specifying a plugin version with the `glpi:marketplace:download` CLI command (Example: example:1.0.0).
+- Max rate, default rate and mandatory comment for scores less than specified value entity configurations for surveys
+- Entity notes optionally shown in the Ticket information panel
+- Approval reminder notification
 
 ### Changed
 - Logs are now shown using the Search Engine
+- Improved plugin marketplace experience when the GLPI Network API cannot be reached
+- Prevent empty followups when the separator in email responses gets removed by a user
+- Knowledgebase browse view now uses the Search Engine
+- Knowledgebase manage tab replaced by a toggle to display unpublished articles
 
 ### Deprecated
 
@@ -18,6 +36,7 @@ The present file will list all changes made to the project; according to the
 ### API changes
 
 #### Added
+- `pre_item_list` and `post_item_list` hooks for plugins to show content on search results
 
 #### Changes
 
