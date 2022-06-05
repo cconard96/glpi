@@ -79,14 +79,6 @@
     "type": "search",
     "category": "setup"
   },
-  "blacklistedmailcontent.form.php": {
-    "type": "item_form",
-    "category": "setup"
-  },
-  "blacklistedmailcontent.php": {
-    "type": "search",
-    "category": "setup"
-  },
   "budget.form.php": {
     "type": "item_form",
     "category": "management"
@@ -143,10 +135,6 @@
     "type": "search",
     "category": "setup"
   },
-  "cartridge.form.php": {
-    "type": "item_form",
-    "category": "assets"
-  },
   "cartridgeitem.form.php": {
     "type": "item_form",
     "category": "assets"
@@ -195,36 +183,12 @@
     "type": "item_link_form",
     "category": "assistance"
   },
-  "changecost.form.php": {
-    "type": "subitem_form",
-    "category": "management"
-  },
-  "changetask.form.php": {
-    "type": "subitem_form",
-    "category": "assistance"
-  },
   "changetemplate.form.php": {
     "type": "subitem_form",
     "category": "assistance"
   },
   "changetemplate.php": {
     "type": "search",
-    "category": "assistance"
-  },
-  "changetemplatehiddenfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "changetemplatemandatoryfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "changetemplatepredefinedfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "changevalidation.form.php": {
-    "type": "item_form",
     "category": "assistance"
   },
   "cluster.form.php": {
@@ -243,18 +207,6 @@
     "type": "search",
     "category": "assets"
   },
-  "commonitilcost.form.php": {
-    "type": "item_form",
-    "category": "management"
-  },
-  "commonitiltask.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "commonitilvalidation.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
   "computer.form.php": {
     "type": "item_form",
     "category": "assets"
@@ -265,10 +217,6 @@
   },
   "computer_item.form.php": {
     "type": "item_link_form",
-    "category": "assets"
-  },
-  "computerantivirus.form.php": {
-    "type": "item_form",
     "category": "assets"
   },
   "computermodel.form.php": {
@@ -287,17 +235,10 @@
     "type": "search",
     "category": "assets"
   },
-  "computervirtualmachine.form.php": {
-    "type": "item_form",
-    "category": "assets"
-  },
   "config.form.php": {
     "type": "item_form",
-    "category": "setup"
-  },
-  "consumable.form.php": {
-    "type": "item_form",
-    "category": "assets"
+    "category": "setup",
+    "singleton": true
   },
   "consumableitem.form.php": {
     "type": "item_form",
@@ -351,10 +292,6 @@
     "type": "item_link_form",
     "category": "management"
   },
-  "contractcost.form.php": {
-    "type": "item_form",
-    "category": "management"
-  },
   "contracttype.form.php": {
     "type": "item_form",
     "category": "management"
@@ -365,10 +302,6 @@
   },
   "cron.php": {
     "type": "special",
-    "category": "setup"
-  },
-  "crontask.form.php": {
-    "type": "item_form",
     "category": "setup"
   },
   "crontask.php": {
@@ -563,10 +496,6 @@
     "type": "special",
     "category": "general"
   },
-  "dropdowntranslation.form.php": {
-    "type": "item_form",
-    "category": "general"
-  },
   "enclosure.form.php": {
     "type": "item_form",
     "category": "assets"
@@ -703,10 +632,6 @@
     "type": "special",
     "category": "general"
   },
-  "infocom.form.php": {
-    "type": "item_form",
-    "category": "management"
-  },
   "interfacetype.form.php": {
     "type": "item_form",
     "category": "setup"
@@ -714,14 +639,6 @@
   "interfacetype.php": {
     "type": "search",
     "category": "setup"
-  },
-  "inventory.conf.php": {
-    "type": "special",
-    "category": "inventory"
-  },
-  "inventory.php": {
-    "type": "special",
-    "category": "inventory"
   },
   "ipnetwork.form.php": {
     "type": "item_form",
@@ -859,36 +776,12 @@
     "type": "item_link_form",
     "category": "assistance"
   },
-  "itil_project.form.php": {
-    "type": "item_link_form",
-    "category": "management"
-  },
   "itilcategory.form.php": {
     "type": "item_form",
     "category": "assistance"
   },
   "itilcategory.php": {
     "type": "search",
-    "category": "assistance"
-  },
-  "itilfollowup.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "itilfollowuptemplate.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "itilfollowuptemplate.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "itilsolution.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "itiltemplatefield.form.php": {
-    "type": "item_form",
     "category": "assistance"
   },
   "knowbaseitem.form.php": {
@@ -917,10 +810,6 @@
   },
   "knowbaseitemcategory.php": {
     "type": "search",
-    "category": "knowledgebase"
-  },
-  "knowbaseitemtranslation.form.php": {
-    "type": "item_form",
     "category": "knowledgebase"
   },
   "ldap.group.import.php": {
@@ -989,10 +878,6 @@
   },
   "location.php": {
     "type": "search",
-    "category": "setup"
-  },
-  "lock.form.php": {
-    "type": "item_form",
     "category": "setup"
   },
   "lockedfield.php": {
@@ -1079,10 +964,6 @@
     "type": "search",
     "category": "network"
   },
-  "networkalias.form.php": {
-    "type": "item_form",
-    "category": "network"
-  },
   "networkequipment.form.php": {
     "type": "item_form",
     "category": "network"
@@ -1121,10 +1002,6 @@
   },
   "networkname.php": {
     "type": "search",
-    "category": "network"
-  },
-  "networkport.form.php": {
-    "type": "item_form",
     "category": "network"
   },
   "networkport_vlan.form.php": {
@@ -1166,66 +1043,6 @@
   "notification.php": {
     "type": "search",
     "category": "notifications"
-  },
-  "notification.tags.php": {
-    "type": "special",
-    "category": "notifications"
-  },
-  "notification_notificationtemplate.form.php": {
-    "type": "item_link_form",
-    "category": "notifications"
-  },
-  "notificationajaxsetting.form.php": {
-    "type": "item_form",
-    "category": "notifications"
-  },
-  "notificationmailingsetting.form.php": {
-    "type": "item_form",
-    "category": "notifications"
-  },
-  "notificationtarget.form.php": {
-    "type": "item_form",
-    "category": "notifications"
-  },
-  "notificationtemplate.form.php": {
-    "type": "item_form",
-    "category": "notifications"
-  },
-  "notificationtemplate.php": {
-    "type": "search",
-    "category": "notifications"
-  },
-  "notificationtemplatetranslation.form.php": {
-    "type": "item_form",
-    "category": "notifications"
-  },
-  "notimportedemail.php": {
-    "type": "search",
-    "category": "setup"
-  },
-  "ola.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "ola.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "olalevel.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "olalevel.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "olalevelaction.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "olalevelcriteria.form.php": {
-    "type": "item_form",
-    "category": "assistance"
   },
   "operatingsystem.form.php": {
     "type": "item_form",
@@ -1411,46 +1228,6 @@
     "type": "search",
     "category": "assets"
   },
-  "planning.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "planning.php": {
-    "type": "special",
-    "category": "assistance"
-  },
-  "planningcsv.php": {
-    "type": "special",
-    "category": "assistance"
-  },
-  "planningeventcategory.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "planningeventcategory.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "planningexternalevent.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "planningexternalevent.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "planningexternaleventtemplate.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "planningexternaleventtemplate.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "planningrecall.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
   "plug.form.php": {
     "type": "item_form",
     "category": "assets"
@@ -1519,32 +1296,12 @@
     "type": "item_link_form",
     "category": "assistance"
   },
-  "problemcost.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "problemtask.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
   "problemtemplate.form.php": {
     "type": "item_form",
     "category": "assistance"
   },
   "problemtemplate.php": {
     "type": "search",
-    "category": "assistance"
-  },
-  "problemtemplatehiddenfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "problemtemplatemandatoryfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "problemtemplatepredefinedfield.form.php": {
-    "type": "item_form",
     "category": "assistance"
   },
   "profile.form.php": {
@@ -1567,10 +1324,6 @@
     "type": "search",
     "category": "management"
   },
-  "projectcost.form.php": {
-    "type": "item_form",
-    "category": "management"
-  },
   "projectstate.form.php": {
     "type": "item_form",
     "category": "management"
@@ -1579,20 +1332,8 @@
     "type": "search",
     "category": "management"
   },
-  "projecttask.form.php": {
-    "type": "item_form",
-    "category": "management"
-  },
-  "projecttask.php": {
-    "type": "search",
-    "category": "management"
-  },
   "projecttask_ticket.form.php": {
     "type": "item_link_form",
-    "category": "management"
-  },
-  "projecttaskteam.form.php": {
-    "type": "item_form",
     "category": "management"
   },
   "projecttasktemplate.form.php": {
@@ -1609,10 +1350,6 @@
   },
   "projecttasktype.php": {
     "type": "search",
-    "category": "management"
-  },
-  "projectteam.form.php": {
-    "type": "item_form",
     "category": "management"
   },
   "projecttype.form.php": {
@@ -1665,7 +1402,7 @@
   },
   "refusedequipment.form.php": {
     "type": "special",
-    "category": "inventory",
+    "category": "inventory"
   },
   "refusedequipment.php": {
     "type": "search",
@@ -1677,10 +1414,6 @@
   },
   "reminder.php": {
     "type": "search",
-    "category": "tools"
-  },
-  "remindertranslation.form.php": {
-    "type": "item_form",
     "category": "tools"
   },
   "report.contract.list.php": {
@@ -1750,22 +1483,6 @@
   "requesttype.php": {
     "type": "search",
     "category": "assistance"
-  },
-  "reservation.form.php": {
-    "type": "item_form",
-    "category": "tools"
-  },
-  "reservation.php": {
-    "type": "special",
-    "category": "tools"
-  },
-  "reservationitem.form.php": {
-    "type": "item_form",
-    "category": "tools"
-  },
-  "reservationitem.php": {
-    "type": "special",
-    "category": "tools"
   },
   "rssfeed.form.php": {
     "type": "item_form",
@@ -2063,38 +1780,6 @@
     "type": "special",
     "category": "setup"
   },
-  "sla.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "sla.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "slalevel.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "slalevel.php": {
-    "type": "search",
-    "category": "assistance"
-  },
-  "slalevelaction.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "slalevelcriteria.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "slm.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "slm.php": {
-    "type": "search",
-    "category": "assistance"
-  },
   "snmpcredential.form.php": {
     "type": "item_form",
     "category": "inventory"
@@ -2149,10 +1834,6 @@
   },
   "softwarelicensetype.php": {
     "type": "search",
-    "category": "assets"
-  },
-  "softwareversion.form.php": {
-    "type": "item_form",
     "category": "assets"
   },
   "solutiontemplate.form.php": {
@@ -2267,24 +1948,12 @@
     "type": "item_link_form",
     "category": "assistance"
   },
-  "ticketcost.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
   "ticketrecurrent.form.php": {
     "type": "item_form",
     "category": "assistance"
   },
   "ticketrecurrent.php": {
     "type": "search",
-    "category": "assistance"
-  },
-  "ticketsatisfaction.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "tickettask.form.php": {
-    "type": "item_form",
     "category": "assistance"
   },
   "tickettemplate.form.php": {
@@ -2295,41 +1964,9 @@
     "type": "search",
     "category": "assistance"
   },
-  "tickettemplatehiddenfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "tickettemplatemandatoryfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "tickettemplatepredefinedfield.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "ticketvalidation.form.php": {
-    "type": "item_form",
-    "category": "assistance"
-  },
-  "tracking.injector.php": {
-    "type": "special",
-    "category": "general"
-  },
-  "transfer.action.php": {
-    "type": "special",
-    "category": "setup"
-  },
-  "transfer.form.php": {
-    "type": "item_form",
-    "category": "setup"
-  },
   "transfer.php": {
     "type": "search",
     "category": "setup"
-  },
-  "unmanaged.form.php": {
-    "type": "item_form",
-    "category": "inventory"
   },
   "unmanaged.php": {
     "type": "search",
