@@ -3,5 +3,6 @@
   "viewportWidth": 1920,
   "viewportHeight": 1080,
   "numTestsKeptInMemory": 0,
-  "video": false
+  "video": false,
+  "integrationFolder": "cypress/integration"
 }

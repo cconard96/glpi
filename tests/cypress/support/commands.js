@@ -1,3 +1,32 @@
+/**
+ * Log in to GLPI as a specific user based on a user id (key in user fixtures)
+ *
+ * @function cy.loginByID
+ * @param {string} user_id User ID from the users fixture
+ */
+
+/**
+ * Log in to GLPI as a specific user based on a username and password
+ *
+ * @function cy.login
+ * @param {string} username
+ * @param {string} password
+ */
+
+/**
+ * Expect no GLPI debug mode alerts to be showing on the page
+ *
+ * @function cy.expectNoDebugErrors
+ */
+
+/**
+ * Fill the specified form with the specified data, then submit the form.
+ *
+ * @function cy.fillAndSubmitForm
+ * @param {string} form_id
+ * @param {{}} data
+ */
+
 Cypress.Commands.add('loginByID', (user_id) => {
     cy.fixture('users').then((users) => {
         const user = users[user_id];
