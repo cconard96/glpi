@@ -5,23 +5,31 @@ describe('Global Project Kanban', () => {
             cy.visit('front/project.form.php?showglobalkanban=1');
         });
     });
-    describe('Loads', () => {
-        it('Loads switcher', () => {
-            cy.get('#kanban select[name="kanban-board-switcher"]').should('exist');
-            cy.get('#kanban select[name="kanban-board-switcher"] option:first-of-type')
-                .should('have.attr', 'value', -1)
-                .and('have.text', 'Global');
-        });
-        it('Loads search/filter box', () => {
-            cy.get('#kanban div.search-input').should('exist');
-            cy.get('#kanban div.search-input span.search-input-tag-input')
-                .should('exist')
-                .and('have.attr', 'contenteditable', 'true');
-            // The original filter input should be hidden
-            cy.get('#kanban input[name="filter"]').should('be.hidden');
-        });
-        it('Loads column picker', () => {
-            cy.get('#kanban button.kanban-add-column').should('exist');
-        });
+    it('Loads Switcher', () => {
+        cy.get('#kanban select[name="kanban-board-switcher"]').should('exist');
+        cy.get('#kanban select[name="kanban-board-switcher"] option:first-of-type')
+            .should('have.attr', 'value', -1)
+            .and('have.text', 'Global');
+    });
+    it('Loads Search/Filter', () => {
+        cy.get('#kanban div.search-input').should('exist');
+        cy.get('#kanban div.search-input span.search-input-tag-input')
+            .should('exist')
+            .and('have.attr', 'contenteditable', 'true');
+        // The original filter input should be hidden
+        cy.get('#kanban input[name="filter"]').should('be.hidden');
+    });
+    it('Loads Column Picker', () => {
+        cy.get('#kanban button.kanban-add-column').should('exist');
+    });
+    it('Loads Container', () => {
+        const container_el = cy.get('#kanban .kanban-container');
+        container_el.should('exist');
+        container_el.children('.kanban-columns').should('exist');
+
+        // Dropdowns created
+        container_el.children('#kanban-add-dropdown').should('exist');
+        container_el.children('#kanban-overflow-dropdown').should('exist');
+        container_el.children('#kanban-item-overflow-dropdown').should('exist');
     });
 });
