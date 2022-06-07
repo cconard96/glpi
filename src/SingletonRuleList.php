@@ -35,19 +35,26 @@
 
 class SingletonRuleList
 {
-   /// Items list
+    /**
+     * Items list
+     * @var array
+     */
     public $list = [];
-   /// Items loaded ?
+
+    /**
+     * Items loaded ?
+     * @var int
+     */
     public $load = 0;
 
 
     /**
      * get a unique instance of a SingletonRuleList for a type of RuleCollection
      *
-     * @param $type   type of the Rule listed
-     * @param $entity entity where the rule Rule is processed
+     * @param string  $type   type of the Rule listed
+     * @param integer $entity entity where the rule is processed
      *
-     * @return unique instance of an object
+     * @return SingletonRuleList unique instance of an object
      **/
     public static function &getInstance($type, $entity)
     {
