@@ -40,7 +40,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
 {
     /**
      * DBmysql object
-     * @var DBmysql
+     * @var ?DBmysql
      */
     private $conn;
    // Current SQL query
@@ -86,7 +86,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
     /**
      * Constructor
      *
-     * @param DBmysql $dbconnexion Database Connnexion (must be a CommonDBTM object)
+     * @param ?DBmysql $dbconnexion Database Connnexion (must be a CommonDBTM object)
      *
      * @return void
      */
@@ -582,6 +582,14 @@ class DBmysqlIterator implements SeekableIterator, Countable
                     $comparison = $value[0];
                     $criterion_value = $value[1];
                 } else {
+                    if (count($value) === 2 && isset($value[0], $value[1]) && is_array($value[1])) {
+                        if ($value[0] === 'IN') {
+                            return "IN (" . $this->analyseCriterionValue($value[1]) . ")";
+                        }
+                        if ($value[0] === 'NOT IN') {
+                            return "NOT IN (" . $this->analyseCriterionValue($value[1]) . ")";
+                        }
+                    }
                     if (!count($value)) {
                         throw new \RuntimeException('Empty IN are not allowed');
                     }

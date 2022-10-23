@@ -526,7 +526,16 @@ class Search
      **/
     public static function addDefaultSelect($itemtype)
     {
-        return SQLProvider::addDefaultSelect($itemtype);
+        $select_criteria = SQLProvider::getDefaultSelectCriteria($itemtype);
+        $select_string = '';
+        foreach ($select_criteria as $criteria) {
+            if (is_a($criteria, QueryExpression::class)) {
+                $select_string .= $criteria->getValue() . ', ';
+            } else {
+                $select_string .= $criteria . ', ';
+            }
+        }
+        return $select_string;
     }
 
 
@@ -544,7 +553,19 @@ class Search
      **/
     public static function addSelect($itemtype, $ID, $meta = 0, $meta_type = 0)
     {
-        return SQLProvider::addSelect($itemtype, $ID, $meta, $meta_type);
+        if ($meta_type === 0) {
+            $meta_type = '';
+        }
+        $select_criteria = SQLProvider::getSelectCriteria((string) $itemtype, (int) $ID, (bool) $meta, (string) $meta_type);
+        $select_string = '';
+        foreach ($select_criteria as $criteria) {
+            if (is_a($criteria, QueryExpression::class)) {
+                $select_string .= $criteria->getValue() . ', ';
+            } else {
+                $select_string .= $criteria . ', ';
+            }
+        }
+        return $select_string;
     }
 
 
@@ -557,7 +578,19 @@ class Search
      **/
     public static function addDefaultWhere($itemtype)
     {
-        return SQLProvider::addDefaultWhere($itemtype);
+        global $DB;
+        $criteria = SQLProvider::getDefaultWhereCriteria($itemtype);
+        if (count($criteria) === 0) {
+            return '';
+        }
+        $iterator = new DBmysqlIterator($DB);
+        $iterator->buildQuery([
+            'FROM' => 'table',
+            'WHERE' => $criteria,
+        ]);
+        $sql = $iterator->getSql();
+        // Remove WHERE and everything before it
+        return substr($sql, strpos($sql, 'WHERE ') + 6);
     }
 
     /**
@@ -565,7 +598,7 @@ class Search
      *
      * @param string  $link         Link string
      * @param boolean $nott         Is it a negative search ?
-     * @param string  $itemtype     Item type
+     * @param class-string<CommonDBTM>  $itemtype     Item type
      * @param integer $ID           ID of the item to search
      * @param string  $searchtype   Searchtype used (equals or contains)
      * @param string  $val          Item num in the request
@@ -575,7 +608,21 @@ class Search
      **/
     public static function addWhere($link, $nott, $itemtype, $ID, $searchtype, $val, $meta = 0)
     {
-        return SQLProvider::addWhere($link, $nott, $itemtype, $ID, $searchtype, $val, $meta);
+        global $DB;
+        $criteria = SQLProvider::getWhereCriteria($nott, $itemtype, $ID, $searchtype, $val, $meta);
+        if (count($criteria) === 0) {
+            return '';
+        }
+        $iterator = new DBmysqlIterator($DB);
+        $iterator->buildQuery([
+            'FROM' => 'table',
+            'WHERE' => $criteria,
+        ]);
+        $sql = $iterator->getSql();
+        // Remove WHERE and everything before it
+        $sql = substr($sql, strpos($sql, 'WHERE ') + 6);
+
+        return $link . $sql;
     }
 
     /**
@@ -589,7 +636,10 @@ class Search
      **/
     public static function addDefaultJoin($itemtype, $ref_table, array &$already_link_tables)
     {
-        return SQLProvider::addDefaultJoin($itemtype, $ref_table, $already_link_tables);
+        global $DB;
+        $criteria = SQLProvider::getDefaultJoinCriteria($itemtype, $ref_table, $already_link_tables);
+        //TODO
+        return '';
     }
 
 
@@ -619,17 +669,28 @@ class Search
         $joinparams = [],
         $field = ''
     ) {
-        return SQLProvider::addLeftJoin(
+        global $DB;
+        $criteria = SQLProvider::getLeftJoinCriteria(
             $itemtype,
             $ref_table,
             $already_link_tables,
             $new_table,
             $linkfield,
-            $meta,
-            $meta_type,
+            (bool) $meta,
+            $meta_type ?? '',
             $joinparams,
             $field
         );
+        $iterator = new DBmysqlIterator($DB);
+        $iterator->buildQuery([
+            'FROM' => 'table',
+        ] + $criteria);
+        $sql = $iterator->getSql();
+        // Remove FROM $table clause and everything before it
+        $prefix = 'SELECT * FROM `table` ';
+        $sql = substr($sql, strlen($prefix));
+        //TODO
+        return $sql . ' ';
     }
 
 
