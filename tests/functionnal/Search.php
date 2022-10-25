@@ -334,8 +334,8 @@ class Search extends DbTestCase
 
         $this->string($data['sql']['search'])
          ->contains("LEFT JOIN  `glpi_users`")
-         ->contains("LEFT JOIN `glpi_profiles`  AS `glpi_profiles_")
-         ->contains("LEFT JOIN `glpi_entities`  AS `glpi_entities_");
+         ->contains("LEFT JOIN `glpi_profiles` AS `glpi_profiles_")
+         ->contains("LEFT JOIN `glpi_entities` AS `glpi_entities_");
     }
 
     public function testNestedAndMetaComputer()
@@ -427,9 +427,9 @@ class Search extends DbTestCase
          ->contains("`glpi_computers`.`entities_id` IN ('1', '2', '3')")
          ->contains("OR (`glpi_computers`.`is_recursive`='1'" .
                     " AND `glpi_computers`.`entities_id` IN (0))")
-         ->contains("`glpi_computers`.`name`  LIKE '%test%'")
-         ->contains("AND (`glpi_softwares`.`id` = '10784')")
-         ->contains("OR (`glpi_computers`.`id`  LIKE '%test2%'")
+         ->contains("`glpi_computers`.`name` LIKE '%test%'")
+         ->contains("AND `glpi_softwares`.`id` = '10784'")
+         ->contains("OR (`glpi_computers`.`id` LIKE '%test2%'")
          ->contains("AND (`glpi_locations`.`id` = '11')")
          ->contains("(`glpi_users`.`id` = '2')")
          ->contains("OR (`glpi_users`.`id` = '3')")
@@ -462,7 +462,7 @@ class Search extends DbTestCase
          ->contains("`glpi_computers`.`entities_id` IN ('1', '2', '3')")
          ->contains("OR (`glpi_computers`.`is_recursive`='1'" .
                     " AND `glpi_computers`.`entities_id` IN (0))")
-         ->matches("/`glpi_computers`\.`name`  LIKE '%test%'/")
+         ->matches("/`glpi_computers`\.`name` LIKE '%test%'/")
          ->matches("/OR\s*\(`glpi_entities`\.`completename`\s*LIKE '%test%'\s*\)/")
          ->matches("/OR\s*\(`glpi_states`\.`completename`\s*LIKE '%test%'\s*\)/")
          ->matches("/OR\s*\(`glpi_manufacturers`\.`name`\s*LIKE '%test%'\s*\)/")
@@ -1171,12 +1171,10 @@ class Search extends DbTestCase
                     ]
                 ],
                 'sql' => "LEFT JOIN `glpi_projectteams`
-                        ON (`glpi_projects`.`id` = `glpi_projectteams`.`projects_id`
-                            )
+                        ON (`glpi_projects`.`id` = `glpi_projectteams`.`projects_id`)
                       LEFT JOIN `glpi_contacts`  AS `glpi_contacts_id_d36f89b191ea44cf6f7c8414b12e1e50`
                         ON (`glpi_contacts_id_d36f89b191ea44cf6f7c8414b12e1e50`.`id` = `glpi_projectteams`.`items_id`
-                        AND `glpi_projectteams`.`itemtype` = 'Contact'
-                         )"
+                        AND `glpi_projectteams`.`itemtype` = 'Contact')"
             ]
             ],
             'special_fk' => [[
@@ -1187,7 +1185,7 @@ class Search extends DbTestCase
                 'meta'               => false,
                 'meta_type'          => null,
                 'joinparams'         => [],
-                'sql' => "LEFT JOIN `glpi_users` AS `glpi_users_users_id_tech` ON (`glpi_computers`.`users_id_tech` = `glpi_users_users_id_tech`.`id` )"
+                'sql' => "LEFT JOIN `glpi_users` AS `glpi_users_users_id_tech` ON (`glpi_computers`.`users_id_tech` = `glpi_users_users_id_tech`.`id`)"
             ]
             ],
             'regular_fk' => [[
@@ -1198,7 +1196,7 @@ class Search extends DbTestCase
                 'meta'               => false,
                 'meta_type'          => null,
                 'joinparams'         => [],
-                'sql' => "LEFT JOIN `glpi_users` ON (`glpi_computers`.`users_id` = `glpi_users`.`id` )"
+                'sql' => "LEFT JOIN `glpi_users` ON (`glpi_computers`.`users_id` = `glpi_users`.`id`)"
             ]
             ],
 
@@ -1231,13 +1229,13 @@ class Search extends DbTestCase
                 ],
                 // This is a real use case. Ensure the LEFT JOIN chain uses consistent table names (see glpi_users_users_id_validate)
                 'sql' => "LEFT JOIN `glpi_ticketvalidations` "
-                . "ON (`glpi_tickets`.`id` = `glpi_ticketvalidations`.`tickets_id` )"
+                . "ON (`glpi_tickets`.`id` = `glpi_ticketvalidations`.`tickets_id`) "
                 . "LEFT JOIN `glpi_users` AS `glpi_users_users_id_validate_57751ba960bd8511d2ad8a01bd8487f4` "
-                . "ON (`glpi_ticketvalidations`.`users_id_validate` = `glpi_users_users_id_validate_57751ba960bd8511d2ad8a01bd8487f4`.`id` ) "
+                . "ON (`glpi_ticketvalidations`.`users_id_validate` = `glpi_users_users_id_validate_57751ba960bd8511d2ad8a01bd8487f4`.`id`) "
                 . "LEFT JOIN `glpi_validatorsubstitutes` AS `glpi_validatorsubstitutes_f1e9cbef8429d6d41e308371824d1632` "
-                . "ON (`glpi_users_users_id_validate_57751ba960bd8511d2ad8a01bd8487f4`.`id` = `glpi_validatorsubstitutes_f1e9cbef8429d6d41e308371824d1632`.`users_id` )"
+                . "ON (`glpi_users_users_id_validate_57751ba960bd8511d2ad8a01bd8487f4`.`id` = `glpi_validatorsubstitutes_f1e9cbef8429d6d41e308371824d1632`.`users_id`) "
                 . "LEFT JOIN `glpi_validatorsubstitutes` AS `glpi_validatorsubstitutes_c9b716cdcdcfe62bc267613fce4d1f48` "
-                . "ON (`glpi_validatorsubstitutes_f1e9cbef8429d6d41e308371824d1632`.`validatorsubstitutes_id` = `glpi_validatorsubstitutes_c9b716cdcdcfe62bc267613fce4d1f48`.`id` )"
+                . "ON (`glpi_validatorsubstitutes_f1e9cbef8429d6d41e308371824d1632`.`validatorsubstitutes_id` = `glpi_validatorsubstitutes_c9b716cdcdcfe62bc267613fce4d1f48`.`id`)"
             ]
             ],
         ];
@@ -1828,7 +1826,7 @@ class Search extends DbTestCase
                 'searchtype' => 'equals',
                 'val' => '5',
                 'meta' => false,
-                'expected' => "   (`glpi_users_users_id_supervisor`.`id` = '5')",
+                'expected' => " (`glpi_users_users_id_supervisor`.`id` = '5')",
             ],
             [
                 'link' => ' AND ',
@@ -1838,7 +1836,7 @@ class Search extends DbTestCase
                 'searchtype' => 'equals',
                 'val' => '2',
                 'meta' => false,
-                'expected' => "  AND  (`glpi_users_users_id_tech`.`id` = '2') ",
+                'expected' => " AND (`glpi_users_users_id_tech`.`id` = '2')",
             ],
             [
                 'link' => ' AND ',
@@ -1848,7 +1846,7 @@ class Search extends DbTestCase
                 'searchtype' => 'contains',
                 'val' => '70',
                 'meta' => false,
-                'expected' => "  AND  (`glpi_monitors`.`size`  LIKE '%70.%'  )",
+                'expected' => " AND (`glpi_monitors`.`size` LIKE '%70.%' )",
             ],
             [
                 'link' => ' AND ',
@@ -1858,7 +1856,7 @@ class Search extends DbTestCase
                 'searchtype' => 'contains',
                 'val' => '70.5',
                 'meta' => false,
-                'expected' => "  AND  (`glpi_monitors`.`size`  LIKE '%70.5%'  )",
+                'expected' => " AND (`glpi_monitors`.`size` LIKE '%70.5%' )",
             ],
             [
                 'link' => ' AND ',
@@ -1868,7 +1866,7 @@ class Search extends DbTestCase
                 'searchtype' => 'contains',
                 'val' => '70.5%',
                 'meta' => false,
-                'expected' => "  AND  (`glpi_monitors`.`size`  LIKE '%70.5%'  )",
+                'expected' => " AND (`glpi_monitors`.`size` LIKE '%70.5%' )",
             ]
         ];
     }
@@ -1966,8 +1964,8 @@ class Search extends DbTestCase
 
         $this->string($data['sql']['search'])
          // Check that we have two different joins
-         ->contains("LEFT JOIN `glpi_users`  AS `glpi_users_users_id_lastupdater`")
-         ->contains("LEFT JOIN `glpi_users`  AS `glpi_users_users_id_recipient`")
+         ->contains("LEFT JOIN `glpi_users` AS `glpi_users_users_id_lastupdater`")
+         ->contains("LEFT JOIN `glpi_users` AS `glpi_users_users_id_recipient`")
 
          // Check that SELECT criteria applies on corresponding table alias
          ->contains("`glpi_users_users_id_lastupdater`.`realname` AS `ITEM_Ticket_64_realname`")
@@ -2018,7 +2016,7 @@ class Search extends DbTestCase
             ->contains("`$type`.`entities_id` IN ('1', '2', '3')")
             ->contains("OR (`$type`.`is_recursive`='1'" .
                         " AND `$type`.`entities_id` IN (0))")
-             ->matches("/`$type`\.`name`  LIKE '%test%'/");
+             ->matches("/`$type`\.`name` LIKE '%test%'/");
         }
     }
 

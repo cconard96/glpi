@@ -622,7 +622,11 @@ class Search
         // Remove WHERE and everything before it
         $sql = substr($sql, strpos($sql, 'WHERE ') + 6);
 
-        return $link . $sql;
+        $link = trim($link);
+        if (empty($link)) {
+            return " $sql";
+        }
+        return " $link $sql";
     }
 
     /**
@@ -638,8 +642,15 @@ class Search
     {
         global $DB;
         $criteria = SQLProvider::getDefaultJoinCriteria($itemtype, $ref_table, $already_link_tables);
-        //TODO
-        return '';
+        $iterator = new DBmysqlIterator($DB);
+        $iterator->buildQuery([
+            'FROM' => 'table',
+        ] + $criteria);
+        $sql = $iterator->getSql();
+        // Remove FROM $table clause and everything before it
+        $prefix = 'SELECT * FROM `table` ';
+        $sql = substr($sql, strlen($prefix));
+        return $sql . ' ';
     }
 
 
@@ -689,7 +700,6 @@ class Search
         // Remove FROM $table clause and everything before it
         $prefix = 'SELECT * FROM `table` ';
         $sql = substr($sql, strlen($prefix));
-        //TODO
         return $sql . ' ';
     }
 

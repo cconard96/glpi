@@ -711,9 +711,9 @@ class DBmysqlIterator implements SeekableIterator, Countable
                 $f1 = $values[$t1];
                 $t2 = $keys[1];
                 $f2 = $values[$t2];
-                if ($f2 instanceof QuerySubQuery) {
+                if ($f2 instanceof QuerySubQuery || $f2 instanceof QueryExpression) {
                     return (is_numeric($t1) ? DBmysql::quoteName($f1) : DBmysql::quoteName($t1) . '.' . DBmysql::quoteName($f1)) . ' = ' .
-                    $f2->getQuery();
+                    $f2;
                 } else {
                     return (is_numeric($t1) ? DBmysql::quoteName($f1) : DBmysql::quoteName($t1) . '.' . DBmysql::quoteName($f1)) . ' = ' .
                     (is_numeric($t2) ? DBmysql::quoteName($f2) : DBmysql::quoteName($t2) . '.' . DBmysql::quoteName($f2));
