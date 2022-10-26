@@ -117,7 +117,7 @@ class Search extends DbTestCase
          . "LEFT\s*JOIN\s*`glpi_items_operatingsystems`\s*AS\s*`glpi_items_operatingsystems_OperatingSystem`\s*"
          . "ON\s*\(`glpi_items_operatingsystems_OperatingSystem`\.`items_id`\s*=\s*`glpi_computers`\.`id`\s*"
          . "AND `glpi_items_operatingsystems_OperatingSystem`\.`itemtype`\s*=\s*'Computer'\s*"
-         . "AND `glpi_items_operatingsystems_OperatingSystem`\.`is_deleted`\s*=\s*0\s*\)\s*"
+         . "AND `glpi_items_operatingsystems_OperatingSystem`\.`is_deleted`\s*=\s*'0'\s*\)\s*"
          . "LEFT\s*JOIN\s*`glpi_operatingsystems`\s*"
          . "ON\s*\(`glpi_items_operatingsystems_OperatingSystem`\.`operatingsystems_id`\s*=\s*`glpi_operatingsystems`\.`id`\s*\)"
          . "/im");
@@ -159,7 +159,7 @@ class Search extends DbTestCase
             . 'LEFT JOIN\s*`glpi_items_softwareversions`\s*AS\s*`glpi_items_softwareversions_[^`]+_Software`\s*ON\s*\('
             . '`glpi_items_softwareversions_[^`]+_Software`\.`items_id`\s*=\s*`glpi_computers`.`id`'
             . '\s*AND\s*`glpi_items_softwareversions_[^`]+_Software`\.`itemtype`\s*=\s*\'Computer\''
-            . '\s*AND\s*`glpi_items_softwareversions_[^`]+_Software`\.`is_deleted`\s*=\s*0'
+            . '\s*AND\s*`glpi_items_softwareversions_[^`]+_Software`\.`is_deleted`\s*=\s*\'0\''
             . '\)/im');
     }
 
@@ -333,7 +333,7 @@ class Search extends DbTestCase
         $data = $this->doSearch('Computer', $search_params);
 
         $this->string($data['sql']['search'])
-         ->contains("LEFT JOIN  `glpi_users`")
+         ->contains("LEFT JOIN `glpi_users`")
          ->contains("LEFT JOIN `glpi_profiles` AS `glpi_profiles_")
          ->contains("LEFT JOIN `glpi_entities` AS `glpi_entities_");
     }
@@ -419,7 +419,7 @@ class Search extends DbTestCase
          ->matches('/LEFT JOIN\s*`glpi_softwares`\s*ON\s*\(`glpi_softwareversions_Software`\.`softwares_id`\s*=\s*`glpi_softwares`\.`id`\)/im')
          ->matches('/LEFT JOIN\s*`glpi_infocoms`\s*AS\s*`glpi_infocoms_Budget`\s*ON\s*\(`glpi_computers`\.`id`\s*=\s*`glpi_infocoms_Budget`\.`items_id`\s*AND\s*`glpi_infocoms_Budget`.`itemtype`\s*=\s*\'Computer\'\)/im')
          ->matches('/LEFT JOIN\s*`glpi_budgets`\s*ON\s*\(`glpi_infocoms_Budget`\.`budgets_id`\s*=\s*`glpi_budgets`\.`id`/im')
-         ->matches('/LEFT JOIN\s*`glpi_computers_items`\s*AS `glpi_computers_items_Printer`\s*ON\s*\(`glpi_computers_items_Printer`\.`computers_id`\s*=\s*`glpi_computers`\.`id`\s*AND\s*`glpi_computers_items_Printer`.`itemtype`\s*=\s*\'Printer\'\s*AND\s*`glpi_computers_items_Printer`.`is_deleted`\s*=\s*0\)/im')
+         ->matches('/LEFT JOIN\s*`glpi_computers_items`\s*AS `glpi_computers_items_Printer`\s*ON\s*\(`glpi_computers_items_Printer`\.`computers_id`\s*=\s*`glpi_computers`\.`id`\s*AND\s*`glpi_computers_items_Printer`.`itemtype`\s*=\s*\'Printer\'\s*AND\s*`glpi_computers_items_Printer`.`is_deleted`\s*=\s*\'0\'\)/im')
          ->matches('/LEFT JOIN\s*`glpi_printers`\s*ON\s*\(`glpi_computers_items_Printer`\.`items_id`\s*=\s*`glpi_printers`\.`id`/im')
          // match where parts
          ->contains("`glpi_computers`.`is_deleted` = 0")

@@ -719,7 +719,10 @@ class Search
         array &$already_link_tables2,
         $joinparams = []
     ) {
-        return SQLProvider::addMetaLeftJoin($from_type, $to_type, $already_link_tables2, $joinparams);
+        global $DB;
+        $joins = SQLProvider::getMetaLeftJoinCriteria($from_type, $to_type, $already_link_tables2, $joinparams);
+        $iterator = new DBmysqlIterator($DB);
+        return $iterator->analyseJoins($joins) . ' ';
     }
 
 

@@ -721,7 +721,11 @@ class DBmysqlIterator implements SeekableIterator, Countable
             } else if (count($values) == 3) {
                 $condition = array_pop($values);
                 $fkey = $this->analyseFkey($values);
-                return $fkey . ' ' . key($condition) . ' ' . $this->analyseCrit(current($condition));
+                $condition_value = $this->analyseCrit(current($condition));
+                if (!empty(trim($condition_value))) {
+                    return $fkey . ' ' . key($condition) . ' ' . $condition_value;
+                }
+                return $fkey;
             }
         }
         trigger_error("BAD FOREIGN KEY, should be [ table1 => key1, table2 => key2 ] or [ table1 => key1, table2 => key2, [criteria]]", E_USER_ERROR);

@@ -2539,23 +2539,16 @@ final class SQLProvider implements SearchProviderInterface
     /**
      * Generic Function to add left join for meta items
      *
-     * @param string $from_type             Reference item type ID
-     * @param string $to_type               Item type to add
-     * @param array  $already_link_tables2  Array of tables already joined
-     *showGenericSearch
-     * @return string Meta Left join string
+     * @param class-string<CommonDBTM> $from_type  Reference item type ID
+     * @param class-string<CommonDBTM> $to_type    Item type to add
+     * @param array  $already_link_tables2         Array of tables already joined
+     *
+     * @return array Meta Left join criteria
      **/
-    public static function addMetaLeftJoin(
-        $from_type,
-        $to_type,
-        array &$already_link_tables2,
-        $joinparams = []
-    ) {
+    public static function getMetaLeftJoinCriteria(string $from_type, string $to_type, array &$already_link_tables2, array $joinparams = []): array {
         global $CFG_GLPI;
 
         $from_referencetype = SearchEngine::getMetaReferenceItemtype($from_type);
-
-        $LINK = " LEFT JOIN ";
 
         $from_table = $from_type::getTable();
         $from_fk    = getForeignKeyFieldForTable($from_table);
@@ -2563,141 +2556,234 @@ final class SQLProvider implements SearchProviderInterface
         $to_fk      = getForeignKeyFieldForTable($to_table);
 
         $to_obj        = getItemForItemtype($to_type);
-        $to_entity_restrict = $to_obj->isField('entities_id') ? getEntitiesRestrictRequest('AND', $to_table) : '';
+        $to_entity_restrict_criteria = $to_obj->isField('entities_id') ? getEntitiesRestrictCriteria($to_table) : [];
 
         $complexjoin = \Search::computeComplexJoinID($joinparams);
-        $alias_suffix = ($complexjoin != '' ? '_' . $complexjoin : '') . '_' . $to_type;
+        $alias_suffix = ($complexjoin !== '' ? '_' . $complexjoin : '') . '_' . $to_type;
 
-        $JOIN = "";
+        $joins = [
+            'LEFT JOIN' => []
+        ];
 
         // Specific JOIN
-        if ($from_referencetype === 'Software' && in_array($to_type, $CFG_GLPI['software_types'])) {
+        if ($from_referencetype === 'Software' && in_array($to_type, $CFG_GLPI['software_types'], true)) {
             // From Software to software_types
             $softwareversions_table = "glpi_softwareversions{$alias_suffix}";
-            if (!in_array($softwareversions_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $softwareversions_table);
-                $JOIN .= "$LINK `glpi_softwareversions` AS `$softwareversions_table`
-                         ON (`$softwareversions_table`.`softwares_id` = `$from_table`.`id`) ";
+            if (!in_array($softwareversions_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $softwareversions_table;
+                $joins['LEFT JOIN']["`glpi_softwareversions` AS `$softwareversions_table`"] = [
+                    'ON' => [
+                        $softwareversions_table => 'softwares_id',
+                        $from_table => 'id'
+                    ]
+                ];
             }
             $items_softwareversions_table = "glpi_items_softwareversions_{$alias_suffix}";
-            if (!in_array($items_softwareversions_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $items_softwareversions_table);
-                $JOIN .= "$LINK `glpi_items_softwareversions` AS `$items_softwareversions_table`
-                         ON (`$items_softwareversions_table`.`softwareversions_id` = `$softwareversions_table`.`id`
-                             AND `$items_softwareversions_table`.`itemtype` = '$to_type'
-                             AND `$items_softwareversions_table`.`is_deleted` = 0) ";
+            if (!in_array($items_softwareversions_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $items_softwareversions_table;
+                $joins['LEFT JOIN']["`glpi_items_softwareversions` AS `$items_softwareversions_table`"] = [
+                    'ON' => [
+                        $items_softwareversions_table => 'softwareversions_id',
+                        $softwareversions_table => 'id',
+                        [
+                            'AND' => [
+                                "$items_softwareversions_table.itemtype" => $to_type,
+                                "$items_softwareversions_table.is_deleted" => 0
+                            ]
+                        ]
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$items_softwareversions_table`.`items_id` = `$to_table`.`id`
-                             AND `$items_softwareversions_table`.`itemtype` = '$to_type'
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $items_softwareversions_table => 'items_id',
+                        $to_table => 'id',
+                        [
+                            'AND' => [
+                                "$items_softwareversions_table.itemtype" => $to_type,
+                            ] + $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
-            return $JOIN;
+            return $joins;
         }
 
-        if ($to_type === 'Software' && in_array($from_referencetype, $CFG_GLPI['software_types'])) {
+        if ($to_type === 'Software' && in_array($from_referencetype, $CFG_GLPI['software_types'], true)) {
             // From software_types to Software
             $items_softwareversions_table = "glpi_items_softwareversions{$alias_suffix}";
-            if (!in_array($items_softwareversions_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $items_softwareversions_table);
-                $JOIN .= "$LINK `glpi_items_softwareversions` AS `$items_softwareversions_table`
-                         ON (`$items_softwareversions_table`.`items_id` = `$from_table`.`id`
-                             AND `$items_softwareversions_table`.`itemtype` = '$from_type'
-                             AND `$items_softwareversions_table`.`is_deleted` = 0) ";
+            if (!in_array($items_softwareversions_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $items_softwareversions_table;
+                $joins['LEFT JOIN']["`glpi_items_softwareversions` AS `$items_softwareversions_table`"] = [
+                    'ON' => [
+                        $items_softwareversions_table => 'items_id',
+                        $from_table => 'id',
+                        [
+                            'AND' => [
+                                "$items_softwareversions_table.itemtype" => $from_type,
+                                "$items_softwareversions_table.is_deleted" => 0
+                            ]
+                        ]
+                    ]
+                ];
             }
             $softwareversions_table = "glpi_softwareversions{$alias_suffix}";
-            if (!in_array($softwareversions_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $softwareversions_table);
-                $JOIN .= "$LINK `glpi_softwareversions` AS `$softwareversions_table`
-                         ON (`$items_softwareversions_table`.`softwareversions_id` = `$softwareversions_table`.`id`) ";
+            if (!in_array($softwareversions_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $softwareversions_table;
+                $joins['LEFT JOIN']["`glpi_softwareversions` AS `$softwareversions_table`"] = [
+                    'ON' => [
+                        $items_softwareversions_table => 'softwareversions_id',
+                        $softwareversions_table => 'id'
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$softwareversions_table`.`softwares_id` = `$to_table`.`id`) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $softwareversions_table => 'softwares_id',
+                        $to_table => 'id',
+                    ]
+                ];
             }
             $softwarelicenses_table = "glpi_softwarelicenses{$alias_suffix}";
-            if (!in_array($softwarelicenses_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $softwarelicenses_table);
-                $JOIN .= "$LINK `glpi_softwarelicenses` AS `$softwarelicenses_table`
-                        ON ($to_table.`id` = `$softwarelicenses_table`.`softwares_id`"
-                    . getEntitiesRestrictRequest(' AND', $softwarelicenses_table, '', '', true) . ") ";
+            if (!in_array($softwarelicenses_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $softwarelicenses_table;
+                $joins['LEFT JOIN']["`glpi_softwarelicenses` AS `$softwarelicenses_table`"] = [
+                    'ON' => [
+                        $to_table => 'id',
+                        $softwarelicenses_table => 'softwares_id',
+                        [
+                            'AND' => getEntitiesRestrictCriteria($softwarelicenses_table, '', '', true)
+                        ]
+                    ]
+                ];
             }
-            return $JOIN;
+            return $joins;
         }
 
-        if ($from_referencetype === 'Budget' && in_array($to_type, $CFG_GLPI['infocom_types'])) {
+        if ($from_referencetype === 'Budget' && in_array($to_type, $CFG_GLPI['infocom_types'], true)) {
             // From Budget to infocom_types
             $infocom_alias = "glpi_infocoms{$alias_suffix}";
-            if (!in_array($infocom_alias, $already_link_tables2)) {
-                array_push($already_link_tables2, $infocom_alias);
-                $JOIN .= "$LINK `glpi_infocoms` AS `$infocom_alias`
-                         ON (`$from_table`.`id` = `$infocom_alias`.`budgets_id`) ";
+            if (!in_array($infocom_alias, $already_link_tables2, true)) {
+                $already_link_tables2[] = $infocom_alias;
+                $joins['LEFT JOIN']["`glpi_infocoms` AS `$infocom_alias`"] = [
+                    'ON' => [
+                        $from_table => 'id',
+                        $infocom_alias => 'budgets_id'
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$to_table`.`id` = `$infocom_alias`.`items_id`
-                             AND `$infocom_alias`.`itemtype` = '$to_type'
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $infocom_alias => 'items_id',
+                        $to_table => 'id',
+                        [
+                            'AND' => [
+                                "$infocom_alias.itemtype" => $to_type,
+                            ] + $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
-            return $JOIN;
+            return $joins;
         }
 
-        if ($to_type === 'Budget' && in_array($from_referencetype, $CFG_GLPI['infocom_types'])) {
+        if ($to_type === 'Budget' && in_array($from_referencetype, $CFG_GLPI['infocom_types'], true)) {
             // From infocom_types to Budget
             $infocom_alias = "glpi_infocoms{$alias_suffix}";
-            if (!in_array($infocom_alias, $already_link_tables2)) {
-                array_push($already_link_tables2, $infocom_alias);
-                $JOIN .= "$LINK `glpi_infocoms` AS `$infocom_alias`
-                         ON (`$from_table`.`id` = `$infocom_alias`.`items_id`
-                             AND `$infocom_alias`.`itemtype` = '$from_type') ";
+            if (!in_array($infocom_alias, $already_link_tables2, true)) {
+                $already_link_tables2[] = $infocom_alias;
+                $joins['LEFT JOIN']["`glpi_infocoms` AS `$infocom_alias`"] = [
+                    'ON' => [
+                        $from_table => 'id',
+                        $infocom_alias => 'items_id',
+                        [
+                            'AND' => [
+                                "$infocom_alias.itemtype" => $from_type,
+                            ]
+                        ]
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$infocom_alias`.`$to_fk` = `$to_table`.`id`
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $infocom_alias => $to_fk,
+                        $to_table => 'id',
+                        [
+                            'AND' => $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
-            return $JOIN;
+            return $joins;
         }
 
-        if ($from_referencetype === 'Reservation' && in_array($to_type, $CFG_GLPI['reservation_types'])) {
+        if ($from_referencetype === 'Reservation' && in_array($to_type, $CFG_GLPI['reservation_types'], true)) {
             // From Reservation to reservation_types
             $reservationitems_alias = "glpi_reservationitems{$alias_suffix}";
-            if (!in_array($reservationitems_alias, $already_link_tables2)) {
-                array_push($already_link_tables2, $reservationitems_alias);
-                $JOIN .= "$LINK `glpi_reservationitems` AS `$reservationitems_alias`
-                         ON (`$from_table`.`reservationitems_id` = `$reservationitems_alias`.`id`) ";
+            if (!in_array($reservationitems_alias, $already_link_tables2, true)) {
+                $already_link_tables2[] = $reservationitems_alias;
+                $joins['LEFT JOIN']["`glpi_reservationitems` AS `$reservationitems_alias`"] = [
+                    'ON' => [
+                        $from_table => 'reservationitems_id',
+                        $reservationitems_alias => 'id'
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$to_table`.`id` = `$reservationitems_alias`.`items_id`
-                             AND `$reservationitems_alias`.`itemtype` = '$to_type'
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $reservationitems_alias => 'items_id',
+                        $to_table => 'id',
+                        [
+                            'AND' => [
+                                "$reservationitems_alias.itemtype" => $to_type,
+                            ] + $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
-            return $JOIN;
+            return $joins;
         }
 
-        if ($to_type === 'Reservation' && in_array($from_referencetype, $CFG_GLPI['reservation_types'])) {
+        if ($to_type === 'Reservation' && in_array($from_referencetype, $CFG_GLPI['reservation_types'], true)) {
             // From reservation_types to Reservation
             $reservationitems_alias = "glpi_reservationitems{$alias_suffix}";
-            if (!in_array($reservationitems_alias, $already_link_tables2)) {
-                array_push($already_link_tables2, $reservationitems_alias);
-                $JOIN .= "$LINK `glpi_reservationitems` AS `$reservationitems_alias`
-                         ON (`$from_table`.`id` = `$reservationitems_alias`.`items_id`
-                             AND `$reservationitems_alias`.`itemtype` = '$from_type') ";
+            if (!in_array($reservationitems_alias, $already_link_tables2, true)) {
+                $already_link_tables2[] = $reservationitems_alias;
+                $joins['LEFT JOIN']["`glpi_reservationitems` AS `$reservationitems_alias`"] = [
+                    'ON' => [
+                        $from_table => 'id',
+                        $reservationitems_alias => 'items_id',
+                        [
+                            'AND' => [
+                                "$reservationitems_alias.itemtype" => $from_type,
+                            ]
+                        ]
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$reservationitems_alias`.`id` = `$to_table`.`reservationitems_id`
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $reservationitems_alias => 'id',
+                        $to_table => 'reservationitems_id',
+                        [
+                            'AND' => $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
-            return $JOIN;
+            return $joins;
         }
 
         // Generic JOIN
@@ -2720,77 +2806,129 @@ final class SQLProvider implements SearchProviderInterface
 
         if ($from_obj && $from_obj->isField($to_fk)) {
             // $from_table has a foreign key corresponding to $to_table
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$from_table`.`$to_fk` = `$to_table`.`id`
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $from_table => $to_fk,
+                        $to_table => 'id',
+                        [
+                            'AND' => $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
         } else if ($to_obj && $to_obj->isField($from_fk)) {
             // $to_table has a foreign key corresponding to $from_table
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$from_table`.`id` = `$to_table`.`$from_fk`
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $from_table => 'id',
+                        $to_table => $from_fk,
+                        [
+                            'AND' => $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
         } else if ($from_obj && $from_obj->isField('itemtype') && $from_obj->isField('items_id')) {
             // $from_table has items_id/itemtype fields
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$from_table`.`items_id` = `$to_table`.`id`
-                             AND `$from_table`.`itemtype` = '$to_type'
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $from_table => 'items_id',
+                        $to_table => 'id',
+                        [
+                            'AND' => [
+                                "$from_table.itemtype" => $to_type,
+                            ] + $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
         } else if ($to_obj && $to_obj->isField('itemtype') && $to_obj->isField('items_id')) {
             // $to_table has items_id/itemtype fields
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$from_table`.`id` = `$to_table`.`items_id`
-                             AND `$to_table`.`itemtype` = '$from_type'
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $from_table => 'id',
+                        $to_table => 'items_id',
+                        [
+                            'AND' => [
+                                "$to_table.itemtype" => $from_type,
+                            ] + $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
         } else if ($from_item_obj && $from_item_obj->isField($from_fk)) {
             // glpi_$from_items table exists and has a foreign key corresponding to $to_table
             $items_table = $from_item_obj::getTable();
             $items_table_alias = $items_table . $alias_suffix;
-            if (!in_array($items_table_alias, $already_link_tables2)) {
-                array_push($already_link_tables2, $items_table_alias);
-                $deleted = $from_item_obj->isField('is_deleted') ? "AND `$items_table_alias`.`is_deleted` = 0" : "";
-                $JOIN .= "$LINK `$items_table` AS `$items_table_alias`
-                         ON (`$items_table_alias`.`$from_fk` = `$from_table`.`id`
-                             AND `$items_table_alias`.`itemtype` = '$to_type'
-                             $deleted)";
+            if (!in_array($items_table_alias, $already_link_tables2, true)) {
+                $already_link_tables2[] = $items_table_alias;
+                $deleted_criteria = $from_item_obj->isField('is_deleted') ? ["`$items_table_alias`.`is_deleted`" => 0] : [];
+                $joins['LEFT JOIN']["`$items_table` AS `$items_table_alias`"] = [
+                    'ON' => [
+                        $items_table_alias => $from_fk,
+                        $from_table => 'id',
+                        [
+                            'AND' => [
+                                "$items_table_alias.itemtype" => $to_type,
+                            ] + $deleted_criteria
+                        ]
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$items_table_alias`.`items_id` = `$to_table`.`id`
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $items_table_alias => 'items_id',
+                        $to_table => 'id',
+                        [
+                            'AND' => $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
         } else if ($to_item_obj && $to_item_obj->isField($to_fk)) {
             // glpi_$to_items table exists and has a foreign key corresponding to $from_table
             $items_table = $to_item_obj::getTable();
             $items_table_alias = $items_table . $alias_suffix;
-            if (!in_array($items_table_alias, $already_link_tables2)) {
-                array_push($already_link_tables2, $items_table_alias);
-                $deleted = $to_item_obj->isField('is_deleted') ? "AND `$items_table_alias`.`is_deleted` = 0" : "";
-                $JOIN .= "$LINK `$items_table` AS `$items_table_alias`
-                         ON (`$items_table_alias`.`items_id` = `$from_table`.`id`
-                             AND `$items_table_alias`.`itemtype` = '$from_type'
-                             $deleted)";
+            if (!in_array($items_table_alias, $already_link_tables2, true)) {
+                $already_link_tables2[] = $items_table_alias;
+                $deleted_criteria = $to_item_obj->isField('is_deleted') ? ["`$items_table_alias`.`is_deleted`" => 0] : [];
+                $joins['LEFT JOIN']["`$items_table` AS `$items_table_alias`"] = [
+                    'ON' => [
+                        $items_table_alias => 'items_id',
+                        $from_table => 'id',
+                        [
+                            'AND' => [
+                                "$items_table_alias.itemtype" => $from_type,
+                            ] + $deleted_criteria
+                        ]
+                    ]
+                ];
             }
-            if (!in_array($to_table, $already_link_tables2)) {
-                array_push($already_link_tables2, $to_table);
-                $JOIN .= "$LINK `$to_table`
-                         ON (`$items_table_alias`.`$to_fk` = `$to_table`.`id`
-                             $to_entity_restrict) ";
+            if (!in_array($to_table, $already_link_tables2, true)) {
+                $already_link_tables2[] = $to_table;
+                $joins['LEFT JOIN'][$to_table] = [
+                    'ON' => [
+                        $items_table_alias => $to_fk,
+                        $to_table => 'id',
+                        [
+                            'AND' => $to_entity_restrict_criteria
+                        ]
+                    ]
+                ];
             }
         }
 
-        return $JOIN;
+        return $joins;
     }
 
     /**
@@ -3935,7 +4073,7 @@ final class SQLProvider implements SearchProviderInterface
                 $m_itemtype
             );
 
-            $FROM .= self::addMetaLeftJoin(
+            $FROM .= \Search::addMetaLeftJoin(
                 $data['itemtype'],
                 $m_itemtype,
                 $already_link_tables,
