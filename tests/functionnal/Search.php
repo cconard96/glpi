@@ -1270,32 +1270,32 @@ class Search extends DbTestCase
          // Generic examples
             [
                 'Computer', 5, 'ASC',
-                ' ORDER BY `ITEM_Computer_5` ASC '
+                ' ORDER BY `ITEM_Computer_5` ASC'
             ],
             [
                 'Computer', 5, 'DESC',
-                ' ORDER BY `ITEM_Computer_5` DESC '
+                ' ORDER BY `ITEM_Computer_5` DESC'
             ],
             [
                 'Computer', 5, 'INVALID',
-                ' ORDER BY `ITEM_Computer_5` DESC '
+                ' ORDER BY `ITEM_Computer_5` DESC'
             ],
          // Simple Hard-coded cases
             [
                 'IPAddress', 1, 'ASC',
-                ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) ASC '
+                ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) ASC'
             ],
             [
                 'IPAddress', 1, 'DESC',
-                ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) DESC '
+                ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) DESC'
             ],
             [
                 'User', 1, 'ASC',
-                ' ORDER BY `glpi_users`.`name` ASC '
+                ' ORDER BY `glpi_users`.`name` ASC'
             ],
             [
                 'User', 1, 'DESC',
-                ' ORDER BY `glpi_users`.`name` DESC '
+                ' ORDER BY `glpi_users`.`name` DESC'
             ],
         ];
     }
@@ -1311,7 +1311,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 5,
                         'order'        => 'ASC'
                     ]
-                ], ' ORDER BY `ITEM_Computer_5` ASC '
+                ], ' ORDER BY `ITEM_Computer_5` ASC'
             ],
             [
                 'Computer',
@@ -1320,7 +1320,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 5,
                         'order'        => 'DESC'
                     ]
-                ], ' ORDER BY `ITEM_Computer_5` DESC '
+                ], ' ORDER BY `ITEM_Computer_5` DESC'
             ],
             [
                 'Computer',
@@ -1329,7 +1329,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 5,
                         'order'        => 'INVALID'
                     ]
-                ], ' ORDER BY `ITEM_Computer_5` DESC '
+                ], ' ORDER BY `ITEM_Computer_5` DESC'
             ],
             [
                 'Computer',
@@ -1337,7 +1337,7 @@ class Search extends DbTestCase
                     [
                         'searchopt_id' => 5,
                     ]
-                ], ' ORDER BY `ITEM_Computer_5` ASC '
+                ], ' ORDER BY `ITEM_Computer_5` ASC'
             ],
          // Simple Hard-coded cases
             [
@@ -1347,7 +1347,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 1,
                         'order'        => 'ASC'
                     ]
-                ], ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) ASC '
+                ], ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) ASC'
             ],
             [
                 'IPAddress',
@@ -1356,7 +1356,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 1,
                         'order'        => 'DESC'
                     ]
-                ], ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) DESC '
+                ], ' ORDER BY INET6_ATON(`glpi_ipaddresses`.`name`) DESC'
             ],
             [
                 'User',
@@ -1365,7 +1365,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 1,
                         'order'        => 'ASC'
                     ]
-                ], ' ORDER BY `glpi_users`.`name` ASC '
+                ], ' ORDER BY `glpi_users`.`name` ASC'
             ],
             [
                 'User',
@@ -1374,7 +1374,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 1,
                         'order'        => 'DESC'
                     ]
-                ], ' ORDER BY `glpi_users`.`name` DESC '
+                ], ' ORDER BY `glpi_users`.`name` DESC'
             ],
          // Multiple sort cases
             [
@@ -1388,7 +1388,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 6,
                         'order'        => 'ASC'
                     ],
-                ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Computer_6` ASC '
+                ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Computer_6` ASC'
             ],
             [
                 'Computer',
@@ -1401,7 +1401,7 @@ class Search extends DbTestCase
                         'searchopt_id' => 6,
                         'order'        => 'DESC'
                     ],
-                ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Computer_6` DESC '
+                ], ' ORDER BY `ITEM_Computer_5` ASC, `ITEM_Computer_6` DESC'
             ],
         ];
     }
@@ -1437,7 +1437,7 @@ class Search extends DbTestCase
             ->exists();
         $this->string($user_order_1)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` ASC,
                                  `$table_addtable`.`realname` ASC,
-                                 `$table_addtable`.`name` ASC ");
+                                 `$table_addtable`.`name` ASC");
 
         $user_order_2 = null;
         $this->when(
@@ -1450,7 +1450,7 @@ class Search extends DbTestCase
             ->exists();
         $this->string($user_order_2)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` DESC,
                                  `$table_addtable`.`realname` DESC,
-                                 `$table_addtable`.`name` DESC ");
+                                 `$table_addtable`.`name` DESC");
 
         $_SESSION['glpinames_format'] = \User::REALNAME_BEFORE;
         $user_order_3 = null;
@@ -1464,7 +1464,7 @@ class Search extends DbTestCase
             ->exists();
         $this->string($user_order_3)->isEqualTo(" ORDER BY `$table_addtable`.`realname` ASC,
                                  `$table_addtable`.`firstname` ASC,
-                                 `$table_addtable`.`name` ASC ");
+                                 `$table_addtable`.`name` ASC");
         $user_order_4 = null;
         $this->when(
             function () use (&$user_order_4) {
@@ -1476,7 +1476,7 @@ class Search extends DbTestCase
             ->exists();
         $this->string($user_order_4)->isEqualTo(" ORDER BY `$table_addtable`.`realname` DESC,
                                  `$table_addtable`.`firstname` DESC,
-                                 `$table_addtable`.`name` DESC ");
+                                 `$table_addtable`.`name` DESC");
     }
 
     /**
@@ -1499,7 +1499,7 @@ class Search extends DbTestCase
         ]);
         $this->string($user_order_1)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` ASC,
                                  `$table_addtable`.`realname` ASC,
-                                 `$table_addtable`.`name` ASC ");
+                                 `$table_addtable`.`name` ASC");
         $user_order_2 = \Search::addOrderBy('Ticket', [
             [
                 'searchopt_id' => 4,
@@ -1508,7 +1508,7 @@ class Search extends DbTestCase
         ]);
         $this->string($user_order_2)->isEqualTo(" ORDER BY `$table_addtable`.`firstname` DESC,
                                  `$table_addtable`.`realname` DESC,
-                                 `$table_addtable`.`name` DESC ");
+                                 `$table_addtable`.`name` DESC");
 
         $_SESSION['glpinames_format'] = \User::REALNAME_BEFORE;
         $user_order_3 = \Search::addOrderBy('Ticket', [
@@ -1519,7 +1519,7 @@ class Search extends DbTestCase
         ]);
         $this->string($user_order_3)->isEqualTo(" ORDER BY `$table_addtable`.`realname` ASC,
                                  `$table_addtable`.`firstname` ASC,
-                                 `$table_addtable`.`name` ASC ");
+                                 `$table_addtable`.`name` ASC");
         $user_order_4 = \Search::addOrderBy('Ticket', [
             [
                 'searchopt_id' => 4,
@@ -1528,7 +1528,7 @@ class Search extends DbTestCase
         ]);
         $this->string($user_order_4)->isEqualTo(" ORDER BY `$table_addtable`.`realname` DESC,
                                  `$table_addtable`.`firstname` DESC,
-                                 `$table_addtable`.`name` DESC ");
+                                 `$table_addtable`.`name` DESC");
     }
 
     private function cleanSQL($sql)

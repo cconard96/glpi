@@ -3203,30 +3203,17 @@ final class SQLProvider implements SearchProviderInterface
      *    Old functionality maintained by checking the type of the first parameter.
      *    This backwards compatibility will be removed in a later version.
      *
-     * @param string $itemtype The itemtype
+     * @param class-string<CommonDBTM> $itemtype The itemtype
      * @param array  $sort_fields The search options to order on. This array should contain one or more associative arrays containing:
      *    - id: The search option ID
      *    - order: The sort direction (Default: ASC). Invalid sort directions will be replaced with the default option
-     * @param ?integer $_id    field to add (Deprecated)
      *
-     * @return string ORDER BY query string
+     * @return array ORDER BY criteria
      *
      **/
-    public static function addOrderBy($itemtype, $sort_fields, $_id = 'ASC')
+    public static function getOrderByCriteria(string $itemtype, array $sort_fields): array
     {
         global $CFG_GLPI;
-
-        // BC parameter conversion
-        if (!is_array($sort_fields)) {
-            // < 10.0.0 parameters
-            \Toolbox::deprecated('The parameters for Search::addOrderBy have changed to allow sorting by multiple fields. Please update your calling code.');
-            $sort_fields = [
-                [
-                    'searchopt_id' => $sort_fields,
-                    'order'        => $_id
-                ]
-            ];
-        }
 
         $orderby_criteria = [];
         $searchopt = &SearchOption::getOptionsForItemtype($itemtype);
@@ -3368,13 +3355,10 @@ final class SQLProvider implements SearchProviderInterface
                 }
             }
 
-            $orderby_criteria[] = $criterion ?? "`ITEM_{$itemtype}_{$ID}` $order";
+            $orderby_criteria[] = new QueryExpression($criterion ?? "`ITEM_{$itemtype}_{$ID}` $order");
         }
 
-        if (count($orderby_criteria) === 0) {
-            return '';
-        }
-        return ' ORDER BY ' . implode(', ', $orderby_criteria) . ' ';
+        return $orderby_criteria;
     }
 
     /**
@@ -3552,7 +3536,7 @@ final class SQLProvider implements SearchProviderInterface
             }
         }
         if (count($sort_fields)) {
-            $ORDER = self::addOrderBy($data['itemtype'], $sort_fields);
+            $ORDER = \Search::addOrderBy($data['itemtype'], $sort_fields);
         }
 
         $SELECT = rtrim(trim($SELECT), ',');
