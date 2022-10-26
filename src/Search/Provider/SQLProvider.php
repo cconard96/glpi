@@ -321,8 +321,7 @@ final class SQLProvider implements SearchProviderInterface
                                     `$table$addtable2`.`$field`, '" . \Search::SHORTSEP . "',
                                     `$table$addtable2`.`id`
                                 ) SEPARATOR '" . \Search::LONGSEP . "'
-                            ) AS `{$NAME}`"
-                        )
+                            ) AS `{$NAME}`")
                     ];
                     return array_merge($SELECT, $ADDITONALFIELDS);
                 }
@@ -341,8 +340,7 @@ final class SQLProvider implements SearchProviderInterface
                                 '" . \Search::SHORTSEP . "',
                                 `$_table_add_table`.`id`
                             ) SEPARATOR '" . \Search::LONGSEP . "'
-                        ) AS `{$NAME}`"
-                    ),
+                        ) AS `{$NAME}`"),
                 ];
                 return array_merge($SELECT, $ADDITONALFIELDS);
 
@@ -357,8 +355,7 @@ final class SQLProvider implements SearchProviderInterface
                                     `$table$addtable2`.`$field`, '" . \Search::SHORTSEP . "',
                                     `$table$addtable2`.`id`
                                 ) SEPARATOR '" . \Search::LONGSEP . "'
-                            ) AS `{$NAME}`"
-                        )
+                            ) AS `{$NAME}`")
                     ];
                     return array_merge($SELECT, $ADDITONALFIELDS);
                 } else if ($meta_type === Software::class) {
@@ -370,8 +367,7 @@ final class SQLProvider implements SearchProviderInterface
                                     `$table$addtable`.`$field`,'" . \Search::SHORTSEP . "',
                                     `$table$addtable`.`id`
                                 ) SEPARATOR '" . \Search::LONGSEP . "'
-                            ) AS `{$NAME}`"
-                        )
+                            ) AS `{$NAME}`")
                     ];
                     return array_merge($SELECT, $ADDITONALFIELDS);
                 }
@@ -390,8 +386,7 @@ final class SQLProvider implements SearchProviderInterface
                                     '" . \Search::SHORTSEP . "',
                                     $tocomputeid
                                 ) ORDER BY `$table$addtable`.`date` DESC SEPARATOR '" . \Search::LONGSEP . "'
-                            ) AS `{$NAME}`"
-                        )
+                            ) AS `{$NAME}`")
                     ];
                     return array_merge($SELECT, $ADDITONALFIELDS);
                 }
@@ -440,8 +435,7 @@ final class SQLProvider implements SearchProviderInterface
                                         `$table$addtable`.`" .  $opt["datafields"][1] . "`,
                                         INTERVAL (`$table$addtable`.`" . $opt["datafields"][2] . "` $add_minus) $interval
                                     ) SEPARATOR '" . \Search::LONGSEP . "'
-                                ) AS `{$NAME}`"
-                            )
+                                ) AS `{$NAME}`")
                         ], $ADDITONALFIELDS);
                     }
                     return array_merge([
@@ -449,8 +443,7 @@ final class SQLProvider implements SearchProviderInterface
                             ADDDATE(
                                 `$table$addtable`.`" .  $opt["datafields"][1] . "`,
                                 INTERVAL (`$table$addtable`.`" . $opt["datafields"][2] . "` $add_minus) $interval
-                            ) AS `{$NAME}`"
-                        )
+                            ) AS `{$NAME}`")
                     ], $ADDITONALFIELDS);
 
                 case "itemlink":
@@ -1050,7 +1043,7 @@ final class SQLProvider implements SearchProviderInterface
          * @param string|QueryFunction $value
          * @return void
          */
-        $append_criterion_with_search = static function(array &$criteria, $value) use ($SEARCH, $RAW_SEARCH, $DB): void {
+        $append_criterion_with_search = static function (array &$criteria, $value) use ($SEARCH, $RAW_SEARCH, $DB): void {
             if ($RAW_SEARCH !== null) {
                 $criteria[] = new QueryExpression(sprintf($RAW_SEARCH, $value));
             }
@@ -1517,7 +1510,7 @@ final class SQLProvider implements SearchProviderInterface
                         }
                         $date_computation = QueryFunction::build('ADDDATE', [
                             "$table." . $opt["datafields"][1],
-                            'INTERVAL '. "$table." . $opt["datafields"][2] . " $add_minus $delay_unit",
+                            'INTERVAL ' . "$table." . $opt["datafields"][2] . " $add_minus $delay_unit",
                         ]);
                     }
                     if (in_array($searchtype, ['equals', 'notequals', 'empty'])) {
@@ -1532,8 +1525,9 @@ final class SQLProvider implements SearchProviderInterface
                     $val     = preg_replace($search, $replace, $val);
                     if (preg_match("/^\s*([<>=]+)(.*)/", $val, $regs)) {
                         if (is_numeric($regs[2])) {
-                            return [new QueryExpression("$date_computation " . $regs[1] . "
-                            ADDDATE(NOW(), INTERVAL " . $regs[2] . " $search_unit)")];
+                            return [
+                                new QueryExpression("$date_computation " . $regs[1] . "ADDDATE(NOW(), INTERVAL " . $regs[2] . " $search_unit)")
+                            ];
                         }
                         // ELSE Reformat date if needed
                         $regs[2] = preg_replace(
@@ -1550,7 +1544,9 @@ final class SQLProvider implements SearchProviderInterface
                             if ($nott) {
                                 $ret .= ")";
                             }
-                            return [new QueryExpression($ret)];
+                            return [
+                                new QueryExpression($ret)
+                            ];
                         }
                         return [];
                     }
@@ -1558,7 +1554,9 @@ final class SQLProvider implements SearchProviderInterface
                     // Date format modification if needed
                     $val = preg_replace('@(\d{1,2})(-|/)(\d{1,2})(-|/)(\d{4})@', '\5-\3-\1', $val);
                     if ($date_computation) {
-                        return [new QueryExpression(self::makeTextCriteria($date_computation, $val, $nott, ''))];
+                        return [
+                            new QueryExpression(self::makeTextCriteria($date_computation, $val, $nott, ''))
+                        ];
                     }
                     return [];
 
@@ -1646,11 +1644,13 @@ final class SQLProvider implements SearchProviderInterface
                     if ($searchtype === 'empty') {
                         $l = $nott ? 'AND' : 'OR';
                         $operator = $nott ? '<>' : '=';
-                        $criteria = [$l => [
-                            [
-                                new QueryExpression("$tocompute $operator 0"),
+                        $criteria = [
+                            $l => [
+                                [
+                                    new QueryExpression("$tocompute $operator 0"),
+                                ]
                             ]
-                        ]];
+                        ];
                         $append_criterion_with_search($criteria[$l], $tocompute);
                         return $criteria;
                     }
@@ -1659,9 +1659,13 @@ final class SQLProvider implements SearchProviderInterface
                 case 'text':
                     if ($searchtype === 'empty') {
                         $l = $nott ? 'AND' : 'OR';
-                        $criteria = [$l => [
-                            [$tocompute => [$nott ? '<>' : '=', '']]
-                        ]];
+                        $criteria = [
+                            $l => [
+                                [
+                                    $tocompute => [$nott ? '<>' : '=', '']
+                                ]
+                            ]
+                        ];
                         $append_criterion_with_search($criteria[$l], $tocompute);
                     }
                     break;
@@ -2258,7 +2262,7 @@ final class SQLProvider implements SearchProviderInterface
                     $add_criteria = [new QueryExpression($add_criteria)];
                 }
             }
-            $append_join_criteria = static function(&$join_fkey, $additional_criteria) {
+            $append_join_criteria = static function (&$join_fkey, $additional_criteria) {
                 if (empty($additional_criteria)) {
                     return;
                 }
@@ -2545,7 +2549,8 @@ final class SQLProvider implements SearchProviderInterface
      *
      * @return array Meta Left join criteria
      **/
-    public static function getMetaLeftJoinCriteria(string $from_type, string $to_type, array &$already_link_tables2, array $joinparams = []): array {
+    public static function getMetaLeftJoinCriteria(string $from_type, string $to_type, array &$already_link_tables2, array $joinparams = []): array
+    {
         global $CFG_GLPI;
 
         $from_referencetype = SearchEngine::getMetaReferenceItemtype($from_type);
@@ -3061,7 +3066,7 @@ final class SQLProvider implements SearchProviderInterface
 
         // Plugin can override core definition for its type
         if ($plug = isPluginItemType($itemtype)) {
-            $out = [new QueryExpression(\Plugin::doOneHook(
+            $out = \Plugin::doOneHook(
                 $plug['plugin'],
                 'addHaving',
                 $LINK,
@@ -3069,10 +3074,11 @@ final class SQLProvider implements SearchProviderInterface
                 $itemtype,
                 $ID,
                 $val,
-                "{$itemtype}_{$ID}"
-            ))];
+                "{$itemtype}_{$ID}");
             if (!empty($out)) {
-                return $out;
+                return [
+                    new QueryExpression($out)
+                ];
             }
         }
 
@@ -3081,7 +3087,7 @@ final class SQLProvider implements SearchProviderInterface
         if (preg_match("/^glpi_plugin_([a-z0-9]+)/", $table, $matches)) {
             if (count($matches) === 2) {
                 $plug     = $matches[1];
-                $out = [new QueryExpression(\Plugin::doOneHook(
+                $out = \Plugin::doOneHook(
                     $plug,
                     'addHaving',
                     $LINK,
@@ -3089,10 +3095,11 @@ final class SQLProvider implements SearchProviderInterface
                     $itemtype,
                     $ID,
                     $val,
-                    "{$itemtype}_{$ID}"
-                ))];
+                    "{$itemtype}_{$ID}");
                 if (!empty($out)) {
-                    return $out;
+                    return [
+                        new QueryExpression($out)
+                    ];
                 }
             }
         }
