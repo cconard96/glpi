@@ -3074,7 +3074,8 @@ final class SQLProvider implements SearchProviderInterface
                 $itemtype,
                 $ID,
                 $val,
-                "{$itemtype}_{$ID}");
+                "{$itemtype}_{$ID}"
+            );
             if (!empty($out)) {
                 return [
                     new QueryExpression($out)
@@ -3095,7 +3096,8 @@ final class SQLProvider implements SearchProviderInterface
                     $itemtype,
                     $ID,
                     $val,
-                    "{$itemtype}_{$ID}");
+                    "{$itemtype}_{$ID}"
+                );
                 if (!empty($out)) {
                     return [
                         new QueryExpression($out)
