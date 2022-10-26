@@ -476,7 +476,25 @@ class Search
      **/
     public static function addHaving($LINK, $NOT, $itemtype, $ID, $searchtype, $val)
     {
-        return SQLProvider::addHaving($LINK, $NOT, $itemtype, $ID, $searchtype, $val);
+        global $DB;
+        $criteria = SQLProvider::getHavingCriteria($LINK, $NOT, $itemtype, $ID, $searchtype, $val);
+        if (count($criteria) === 0) {
+            return '';
+        }
+        $iterator = new DBmysqlIterator($DB);
+        $iterator->buildQuery([
+            'FROM' => 'table',
+            'HAVING' => $criteria,
+        ]);
+        $sql = $iterator->getSql();
+        // Remove HAVING and everything before it
+        $sql = substr($sql, strpos($sql, 'HAVING ') + 6);
+
+        $link = trim($LINK);
+        if (empty($link)) {
+            return " $sql";
+        }
+        return " $link $sql";
     }
 
 

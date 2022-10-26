@@ -3041,16 +3041,15 @@ final class SQLProvider implements SearchProviderInterface
      *
      * @param string  $LINK           link to use
      * @param string  $NOT            is is a negative search ?
-     * @param string  $itemtype       item type
+     * @param class-string<CommonDBTM>  $itemtype       item type
      * @param integer $ID             ID of the item to search
      * @param string  $searchtype     search type ('contains' or 'equals')
      * @param string  $val            value search
      *
      * @return string HAVING string
      **/
-    public static function addHaving($LINK, $NOT, $itemtype, $ID, $searchtype, $val)
+    public static function getHavingCriteria(string $LINK, bool $NOT, string $itemtype, int $ID, string $searchtype, string $val): array
     {
-
         global $DB;
 
         $searchopt  = &SearchOption::getOptionsForItemtype($itemtype);
@@ -3062,7 +3061,7 @@ final class SQLProvider implements SearchProviderInterface
 
         // Plugin can override core definition for its type
         if ($plug = isPluginItemType($itemtype)) {
-            $out = \Plugin::doOneHook(
+            $out = [new QueryExpression(\Plugin::doOneHook(
                 $plug['plugin'],
                 'addHaving',
                 $LINK,
@@ -3071,7 +3070,7 @@ final class SQLProvider implements SearchProviderInterface
                 $ID,
                 $val,
                 "{$itemtype}_{$ID}"
-            );
+            ))];
             if (!empty($out)) {
                 return $out;
             }
@@ -3080,9 +3079,9 @@ final class SQLProvider implements SearchProviderInterface
         //// Default cases
         // Link with plugin tables
         if (preg_match("/^glpi_plugin_([a-z0-9]+)/", $table, $matches)) {
-            if (count($matches) == 2) {
+            if (count($matches) === 2) {
                 $plug     = $matches[1];
-                $out = \Plugin::doOneHook(
+                $out = [new QueryExpression(\Plugin::doOneHook(
                     $plug,
                     'addHaving',
                     $LINK,
@@ -3091,7 +3090,7 @@ final class SQLProvider implements SearchProviderInterface
                     $ID,
                     $val,
                     "{$itemtype}_{$ID}"
-                );
+                ))];
                 if (!empty($out)) {
                     return $out;
                 }
@@ -3104,9 +3103,9 @@ final class SQLProvider implements SearchProviderInterface
 
         // Preformat items
         if (isset($searchopt[$ID]["datatype"])) {
-            if ($searchopt[$ID]["datatype"] == "mio") {
+            if ($searchopt[$ID]["datatype"] === "mio") {
                 // Parse value as it may contain a few different formats
-                $val = \Toolbox::getMioSizeFromString($val);
+                $val = (string) \Toolbox::getMioSizeFromString($val);
             }
 
             switch ($searchopt[$ID]["datatype"]) {
@@ -3138,7 +3137,9 @@ final class SQLProvider implements SearchProviderInterface
                             break;
                     }
 
-                    return " {$LINK} ({$DB->quoteName($NAME)} $operator {$DB->quoteValue($val)}) ";
+                    return [
+                        $NAME => [$operator, $val]
+                    ];
                     break;
                 case "count":
                 case "mio":
@@ -3150,38 +3151,47 @@ final class SQLProvider implements SearchProviderInterface
                     $val     = preg_replace($search, $replace, $val);
                     if (preg_match("/([<>])([=]*)[[:space:]]*([0-9]+)/", $val, $regs)) {
                         if ($NOT) {
-                            if ($regs[1] == '<') {
+                            if ($regs[1] === '<') {
                                 $regs[1] = '>';
                             } else {
                                 $regs[1] = '<';
                             }
                         }
                         $regs[1] .= $regs[2];
-                        return " $LINK (`$NAME` " . $regs[1] . " " . $regs[3] . " ) ";
+                        return [
+                            $NAME => [$regs[1], $regs[3]]
+                        ];
                     }
 
                     if (is_numeric($val)) {
+                        $num_val = (int) $val;
                         if (isset($searchopt[$ID]["width"])) {
                             if (!$NOT) {
-                                return " $LINK (`$NAME` < " . (intval($val) + $searchopt[$ID]["width"]) . "
-                                        AND `$NAME` > " .
-                                    (intval($val) - $searchopt[$ID]["width"]) . ") ";
+                                return [
+                                    [$NAME => ['<', $num_val + $searchopt[$ID]["width"]]],
+                                    [$NAME => ['>', $num_val - $searchopt[$ID]["width"]]]
+                                ];
                             }
-                            return " $LINK (`$NAME` > " . (intval($val) + $searchopt[$ID]["width"]) . "
-                                     OR `$NAME` < " .
-                                (intval($val) - $searchopt[$ID]["width"]) . " ) ";
+                            return [
+                                [$NAME => ['>', $num_val + $searchopt[$ID]["width"]]],
+                                [$NAME => ['<', $num_val - $searchopt[$ID]["width"]]]
+                            ];
                         }
                         // Exact search
                         if (!$NOT) {
-                            return " $LINK (`$NAME` = " . (intval($val)) . ") ";
+                            return [
+                                $NAME => $num_val
+                            ];
                         }
-                        return " $LINK (`$NAME` <> " . (intval($val)) . ") ";
+                        return [
+                            $NAME => ['<>', $num_val]
+                        ];
                     }
                     break;
             }
         }
 
-        return self::makeTextCriteria("`$NAME`", $val, $NOT, $LINK);
+        return [new QueryExpression(self::makeTextCriteria("`$NAME`", $val, $NOT, ''))];
     }
 
 
@@ -3904,7 +3914,7 @@ final class SQLProvider implements SearchProviderInterface
                         continue;
                     }
 
-                    $new_having = self::addHaving(
+                    $new_having = \Search::addHaving(
                         $LINK,
                         $NOT,
                         $itemtype,
