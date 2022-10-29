@@ -23,6 +23,7 @@
         "ext-simplexml": "*",
         "ext-zlib": "*",
         "blueimp/jquery-file-upload": "^10.32",
+        "doctrine/dbal": "^3.5",
         "donatj/phpuseragentparser": "^1.7",
         "egulias/email-validator": "^3.2",
         "elvanto/litemoji": "^4.1",

@@ -33,6 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
+use Doctrine\DBAL\Connection;
 use Glpi\Console\Application;
 use Glpi\Event;
 use Glpi\Mail\Protocol\ProtocolInterface;
@@ -2297,28 +2298,24 @@ class Toolbox
      * Create the GLPI default schema
      *
      * @param string  $lang Language to install
-     * @param DBmysql $db   Database instance to use, will fallback to a new instance of DB if null
+     * @param \Glpi\DB\DB $db   Database connection to use, will fallback to a new instance of DB if null
      *
      * @return void
      *
      * @since 9.1
      * @since 9.4.7 Added $db parameter
      **/
-    public static function createSchema($lang = 'en_GB', DBmysql $database = null)
+    public static function createSchema($lang = 'en_GB')
     {
-        global $DB;
+        /** @global \Glpi\DB\DB $DB_PDO */
+        global $DB_PDO;
 
-        if (null === $database) {
-           // Use configured DB if no $db is defined in parameters
-            include_once(GLPI_CONFIG_DIR . "/config_db.php");
-            $database = new DB();
+        if (null === $DB_PDO) {
+           \Glpi\DB\DB::establishDBConnection();
         }
 
-       // Set global $DB as it is used in "Config::setConfigurationValues()" just after schema creation
-        $DB = $database;
-
         $normalized_nersion = VersionParser::getNormalizedVersion(GLPI_VERSION, false);
-        if (!$DB->runFile(sprintf('%s/install/mysql/glpi-%s-empty.sql', GLPI_ROOT, $normalized_nersion))) {
+        if (!$DB_PDO->runFile(sprintf('%s/install/mysql/glpi-%s-empty.sql', GLPI_ROOT, $normalized_nersion))) {
             echo "Errors occurred inserting default database";
         } else {
            //dataset
@@ -2335,34 +2332,21 @@ class Toolbox
                     )
                 );
 
-                $stmt = $DB->prepare($DB->buildInsert($table, $reference));
-                if (false === $stmt) {
-                     $msg = "Error preparing statement in table $table";
-                     throw new \RuntimeException($msg);
-                }
-
-                $types = str_repeat('s', count($data[0]));
-                foreach ($data as $row) {
-                    $res = $stmt->bind_param($types, ...array_values($row));
-                    if (false === $res) {
-                        $msg = "Error binding params in table $table\n";
-                        $msg .= print_r($row, true);
-                        throw new \RuntimeException($msg);
+                try {
+                    $stmt = $DB_PDO->prepareInsert($table, $reference);
+                    foreach ($data as $row) {
+                        $stmt->executeStatement($row);
+                        if (!isCommandLine()) {
+                            // Flush will prevent proxy to timeout as it will receive data.
+                            // Flush requires a content to be sent, so we sent spaces as multiple spaces
+                            // will be shown as a single one on browser.
+                            echo ' ';
+                            Html::glpi_flush();
+                        }
                     }
-                    $res = $stmt->execute();
-                    if (false === $res) {
-                        $msg = $stmt->error;
-                        $msg .= "\nError execution statement in table $table\n";
-                        $msg .= print_r($row, true);
-                        throw new \RuntimeException($msg);
-                    }
-                    if (!isCommandLine()) {
-                         // Flush will prevent proxy to timeout as it will receive data.
-                         // Flush requires a content to be sent, so we sent spaces as multiple spaces
-                         // will be shown as a single one on browser.
-                         echo ' ';
-                         Html::glpi_flush();
-                    }
+                } catch (\Exception $e) {
+                    echo "Errors occurred inserting default data in table $table\n";
+                    echo $e->getMessage() . "\n";
                 }
             }
 
@@ -2381,7 +2365,7 @@ class Toolbox
 
             if (defined('GLPI_SYSTEM_CRON')) {
                // Downstream packages may provide a good system cron
-                $DB->updateOrDie(
+                $DB_PDO->updateOrDie(
                     'glpi_crontasks',
                     [
                         'mode'   => 2

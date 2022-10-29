@@ -35,11 +35,11 @@
 
 <h3>{{ __('Test of the connection at the database') }}</h3>
 
-{% if host|length == 0 or user|length == 0 or link.connect_error %}
+{% if host|length == 0 or user|length == 0 or connect_error is not null %}
 
    {{ alerts.alert_danger(
       __("Can't connect to the database"),
-      __('The server answered: %s')|format(link.connect_error)
+      __('The server answered: %s')|format(connect_error)
    ) }}
 
    <form action="install.php" method="post" class="d-inline" data-submit-once>
@@ -57,21 +57,21 @@
       __('Database connection successful'),
    ) }}
 
-   {% if not engine_requirement.isValidated() %}
+   {% if engine_requirement is not null and not engine_requirement.isValidated() %}
       {{ alerts.alert_danger(
          __('Database engine is not supported.'),
          engine_requirement.getValidationMessages()
       ) }}
    {% endif %}
 
-   {% if not config_requirement.isValidated() %}
+   {% if config_requirement is not null and not config_requirement.isValidated() %}
       {{ alerts.alert_danger(
          __('Database configuration is not supported.'),
          config_requirement.getValidationMessages()
       ) }}
    {% endif %}
 
-   {% if engine_requirement.isValidated() and config_requirement.isValidated() %}
+   {% if (engine_requirement is null or engine_requirement.isValidated()) and (config_requirement is null or config_requirement.isValidated()) %}
       <div class="container mt-4">
          <form action='install.php' method='post'>
             <div class="mb-3">

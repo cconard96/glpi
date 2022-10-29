@@ -144,75 +144,76 @@ function step1($update)
 //step 2 import mysql settings.
 function step2($update)
 {
+    $supported_db_drivers = \Glpi\DB\DB::getSupportedDrivers();
+    $db_drivers = array_map(static function ($driver) {
+        return $driver['name'];
+    }, $supported_db_drivers);
     TemplateRenderer::getInstance()->display('install/step2.html.twig', [
         'update' => $update,
+        'db_drivers' => $db_drivers,
     ]);
 }
 
 
 //step 3 test mysql settings and select database.
-function step3($host, $user, $password, $update)
+function step3($driver, $host, $user, $password, $update)
 {
 
     error_reporting(16);
     mysqli_report(MYSQLI_REPORT_OFF);
 
    //Check if the port is in url
-    $hostport = explode(":", $host);
-    if (count($hostport) < 2) {
-        $link = new mysqli($hostport[0], $user, $password);
-    } else {
-        $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
-    }
-
-    $engine_requirement = null;
-    $config_requirement = null;
+//    $hostport = explode(":", $host);
+//    if (count($hostport) < 2) {
+//        $link = new mysqli($hostport[0], $user, $password);
+//    } else {
+//        $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
+//    }
+    $db_config = [
+        'driver'   => $driver,
+        'host'     => $host,
+        'user'     => $user,
+        'password' => $password,
+    ];
     $databases = [];
+    $connect_error = null;
+    try {
+        $connection = \Doctrine\DBAL\DriverManager::getConnection($db_config);
 
-    if (!$link->connect_error) {
-        $_SESSION['db_access'] = [
-            'host'     => $host,
-            'user'     => $user,
-            'password' => $password
-        ];
+        $engine_requirement = null;
+        $config_requirement = null;
 
-        $db = new class ($link) extends DBmysql {
-            public function __construct($dbh)
-            {
-                  $this->dbh = $dbh;
-            }
-        };
+        $_SESSION['db_access'] = $db_config;
+//
+//        $db = new class ($link) extends DBmysql {
+//            public function __construct($dbh)
+//            {
+//                $this->dbh = $dbh;
+//            }
+//        };
+//
+//        $engine_requirement = new DbEngine($db);
+//        $config_requirement = new DbConfiguration($db);
+//        $requirements_met = $engine_requirement->isValidated() && $config_requirement->isValidated();
 
-        $engine_requirement = new DbEngine($db);
-        $config_requirement = new DbConfiguration($db);
-
-       // get databases
-        if (
-            $engine_requirement->isValidated() && $config_requirement->isValidated()
-            && $DB_list = $link->query("SHOW DATABASES")
-        ) {
-            while ($row = $DB_list->fetch_array()) {
-                if (
-                    !in_array($row['Database'], [
-                        "information_schema",
-                        "mysql",
-                        "performance_schema"
-                    ])
-                ) {
-                    $databases[] = $row['Database'];
-                }
-            }
-        }
+        // get databases
+        $databases = $connection->createSchemaManager()->listDatabases();
+        // Remove known system databases
+        $excluded_databases = ['information_schema', 'mysql', 'performance_schema', 'sys', 'template0', 'template1', 'postgres'];
+        $databases = array_diff($databases, $excluded_databases);
+    } catch (\Exception $e) {
+        $connect_error = $e->getMessage();
     }
 
    // display html
     TemplateRenderer::getInstance()->display('install/step3.html.twig', [
         'update'             => $update,
-        'link'               => $link,
+        'link'               => $connection ?? null,
+        'connect_error'      => $connect_error,
         'host'               => $host,
         'user'               => $user,
-        'engine_requirement' => $engine_requirement,
-        'config_requirement' => $config_requirement,
+        'engine_requirement' => $engine_requirement ?? null,
+        'config_requirement' => $config_requirement ?? null,
         'databases'          => $databases,
     ]);
 }
@@ -221,7 +222,7 @@ function step3($host, $user, $password, $update)
 //Step 4 Create and fill database.
 function step4($databasename, $newdatabasename)
 {
-
+    $driver   = $_SESSION['db_access']['driver'];
     $host     = $_SESSION['db_access']['host'];
     $user     = $_SESSION['db_access']['user'];
     $password = $_SESSION['db_access']['password'];
@@ -229,10 +230,10 @@ function step4($databasename, $newdatabasename)
    //display the form to return to the previous step.
     echo "<h3>" . __('Initialization of the database') . "</h3>";
 
-    function prev_form($host, $user, $password)
+    function prev_form($driver, $host, $user, $password)
     {
-
         echo "<br><form action='install.php' method='post'>";
+        echo "<input type='hidden' name='db_driver' value='$driver'>";
         echo "<input type='hidden' name='db_host' value='" . $host . "'>";
         echo "<input type='hidden' name='db_user' value='" . $user . "'>";
         echo " <input type='hidden' name='db_pass' value='" . rawurlencode($password) . "'>";
@@ -261,49 +262,43 @@ function step4($databasename, $newdatabasename)
     $glpikey = new GLPIKey();
     if (!$glpikey->generate()) {
         echo "<p><strong>" . __('Security key cannot be generated!') . "</strong></p>";
-        prev_form($host, $user, $password);
+        prev_form($driver, $host, $user, $password);
         return;
     }
 
    //Check if the port is in url
-    $hostport = explode(":", $host);
-    if (count($hostport) < 2) {
-        $link = new mysqli($hostport[0], $user, $password);
-    } else {
-        $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
-    }
+//    $hostport = explode(":", $host);
+//    if (count($hostport) < 2) {
+//        $link = new mysqli($hostport[0], $user, $password);
+//    } else {
+//        $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
+//    }
 
-    $databasename    = $link->real_escape_string($databasename);
-    $newdatabasename = $link->real_escape_string($newdatabasename);
 
-    $db = new class ($link) extends DBmysql {
-        public function __construct($dbh)
-        {
-            $this->dbh = $dbh;
-        }
-    };
-    $timezones_requirement = new DbTimezones($db);
+//    $databasename    = $link->real_escape_string($databasename);
+//    $newdatabasename = $link->real_escape_string($newdatabasename);
+//
+//    $db = new class ($link) extends DBmysql {
+//        public function __construct($dbh)
+//        {
+//            $this->dbh = $dbh;
+//        }
+//    };
+//    $timezones_requirement = new DbTimezones($db);
 
     if (!empty($databasename)) { // use db already created
-        $DB_selected = $link->select_db($databasename);
-
-        if (!$DB_selected) {
-            echo __('Impossible to use the database:');
-            echo "<br>" . sprintf(__('The server answered: %s'), $link->error);
-            prev_form($host, $user, $password);
-        } else {
-            $success = DBConnection::createMainConfig(
-                $host,
-                $user,
-                $password,
-                $databasename,
-                $timezones_requirement->isValidated(),
-                false,
-                true,
-                false,
-                false,
-                false
-            );
+        //$DB_selected = $link->select_db($databasename);
+        try {
+            $connection = \Doctrine\DBAL\DriverManager::getConnection([
+                'driver' => $driver,
+                'host' => $host,
+                'dbname' => $databasename,
+                'user' => $user,
+                'password' => $password,
+            ]);
+            // We only needed to test the connection, we can close it now
+            $connection->close();
+            $success = \Glpi\DB\Config::createMainConfig($driver, $host, $user, $password, $databasename);
             if ($success) {
                 Toolbox::createSchema($_SESSION["glpilanguage"]);
                 echo "<p>" . __('OK - database was initialized') . "</p>";
@@ -311,76 +306,71 @@ function step4($databasename, $newdatabasename)
                 next_form();
             } else { // can't create config_db file
                 echo "<p>" . __('Impossible to write the database setup file') . "</p>";
-                prev_form($host, $user, $password);
+                prev_form($driver, $host, $user, $password);
             }
+        } catch (\Exception $e) {
+            echo __('Impossible to use the database:');
+            echo "<br>" . sprintf(__('The server answered: %s'), $e->getMessage());
+            prev_form($driver, $host, $user, $password);
         }
     } else if (!empty($newdatabasename)) { // create new db
        // Try to connect
-        if ($link->select_db($newdatabasename)) {
+        try {
+            $connection = \Doctrine\DBAL\DriverManager::getConnection([
+                'driver' => $driver,
+                'host' => $host,
+                'dbname' => $newdatabasename,
+                'user' => $user,
+                'password' => $password,
+            ]);
+            // We only needed to test the connection, we can close it now
+            $connection->close();
             echo "<p>" . __('Database created') . "</p>";
-
-            $success = DBConnection::createMainConfig(
-                $host,
-                $user,
-                $password,
-                $newdatabasename,
-                $timezones_requirement->isValidated(),
-                false,
-                true,
-                false,
-                false,
-                false
-            );
+            $success = \Glpi\DB\Config::createMainConfig($driver, $host, $user, $password, $databasename);
             if ($success) {
-                 Toolbox::createSchema($_SESSION["glpilanguage"]);
-                 echo "<p>" . __('OK - database was initialized') . "</p>";
-                 next_form();
+                Toolbox::createSchema($_SESSION["glpilanguage"]);
+                echo "<p>" . __('OK - database was initialized') . "</p>";
+                next_form();
             } else { // can't create config_db file
                 echo "<p>" . __('Impossible to write the database setup file') . "</p>";
-                prev_form($host, $user, $password);
+                prev_form($driver, $host, $user, $password);
             }
-        } else { // try to create the DB
-            if ($link->query("CREATE DATABASE IF NOT EXISTS `" . $newdatabasename . "`")) {
+        } catch (\Exception $e) {
+            // Try creating the database
+            try {
+                $connection = \Doctrine\DBAL\DriverManager::getConnection([
+                    'driver' => $driver,
+                    'host' => $host,
+                    'user' => $user,
+                    'password' => $password,
+                ]);
+                $connection->createSchemaManager()->createDatabase($newdatabasename);
+                $connection->close();
                 echo "<p>" . __('Database created') . "</p>";
-
-                $select_db = $link->select_db($newdatabasename);
-                $success = false;
-                if ($select_db) {
-                    $success = DBConnection::createMainConfig(
-                        $host,
-                        $user,
-                        $password,
-                        $newdatabasename,
-                        $timezones_requirement->isValidated(),
-                        false,
-                        true,
-                        false,
-                        false,
-                        false
-                    );
-                }
-
+                $success = \Glpi\DB\Config::createMainConfig($driver, $host, $user, $password, $databasename);
                 if ($success) {
                     Toolbox::createSchema($_SESSION["glpilanguage"]);
                     echo "<p>" . __('OK - database was initialized') . "</p>";
                     next_form();
                 } else { // can't create config_db file
                     echo "<p>" . __('Impossible to write the database setup file') . "</p>";
-                    prev_form($host, $user, $password);
+                    prev_form($driver, $host, $user, $password);
                 }
-            } else { // can't create database
+            } catch (\Exception $e) {
                 echo __('Error in creating database!');
-                echo "<br>" . sprintf(__('The server answered: %s'), $link->error);
-                prev_form($host, $user, $password);
+                echo "<br>" . sprintf(__('The server answered: %s'), $e->getMessage());
+                prev_form($driver, $host, $user, $password);
             }
         }
     } else { // no db selected
         echo "<p>" . __("You didn't select a database!") . "</p>";
        //prev_form();
-        prev_form($host, $user, $password);
+        prev_form($driver, $host, $user, $password);
     }
 
-    $link->close();
+    if (isset($connection) && $connection->isConnected()) {
+        $connection->close();
+    }
 }
 
 //send telemetry information
@@ -585,7 +575,7 @@ if (!isset($_SESSION['can_process_install']) || !isset($_POST["install"])) {
         case "Etape_2": // mysql settings ok, go test mysql settings and select database.
             checkConfigFile();
             header_html(sprintf(__('Step %d'), 2));
-            step3($_POST["db_host"], $_POST["db_user"], $_POST["db_pass"], $_POST["update"]);
+            step3($_POST['db_driver'], $_POST["db_host"], $_POST["db_user"], $_POST["db_pass"], $_POST["update"]);
             break;
 
         case "Etape_3": // Create and fill database

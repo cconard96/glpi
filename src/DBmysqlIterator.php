@@ -33,6 +33,8 @@
  * ---------------------------------------------------------------------
  */
 
+use Doctrine\DBAL\Exception\DriverException;
+
 /**
  *  Database iterator class for Mysql
  **/
@@ -43,9 +45,19 @@ class DBmysqlIterator implements SeekableIterator, Countable
      * @var ?DBmysql
      */
     private $conn;
+
+    /**
+     * @var \Glpi\DB\DB
+     */
+    private $pdo_conn;
+
    // Current SQL query
     private $sql;
-   // Current result
+
+    /**
+     * Current result
+     * @var Doctrine\DBAL\Result|false
+     */
     private $res = false;
 
     /**
@@ -92,7 +104,10 @@ class DBmysqlIterator implements SeekableIterator, Countable
      */
     public function __construct($dbconnexion)
     {
+        global $DB_PDO;
+
         $this->conn = $dbconnexion;
+        $this->pdo_conn = $DB_PDO;
     }
 
     /**
@@ -107,8 +122,20 @@ class DBmysqlIterator implements SeekableIterator, Countable
     public function execute($table, $crit = "", $debug = false)
     {
         $this->buildQuery($table, $crit, $debug);
-        $this->res = ($this->conn ? $this->conn->query($this->sql) : false);
-        $this->count = $this->res instanceof \mysqli_result ? $this->conn->numrows($this->res) : 0;
+        if ($this->pdo_conn !== null) {
+            $res = ($this->pdo_conn ? $this->pdo_conn->query($this->sql) : false);
+            if ($res !== false) {
+                $this->count = $res->rowCount();
+                $this->res = $res->iterateAssociative();
+            } else {
+                $this->count = 0;
+                $this->res = false;
+            }
+        } else {
+            $this->res = ($this->conn ? $this->conn->query($this->sql) : false);
+            $this->count = $this->res instanceof \mysqli_result ? $this->conn->numrows($this->res) : 0;
+        }
+
         $this->setPosition(0);
         return $this;
     }
@@ -780,7 +807,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
      */
     public function valid(): bool
     {
-        return $this->res instanceof \mysqli_result && $this->position < $this->count;
+        return ($this->res instanceof \mysqli_result || $this->res instanceof Generator) && $this->position < $this->count;
     }
 
     /**
@@ -822,7 +849,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
      */
     private function setPosition(int $position): void
     {
-        if (!($this->res instanceof \mysqli_result)) {
+        if ($this->res === false) {
            // Result is not valid, nothing to do.
             return;
         }
@@ -836,11 +863,28 @@ class DBmysqlIterator implements SeekableIterator, Countable
            //    position is set to 0 and was set previously (rewind case)
            // OR position is not moved to next element
            // => seek to requested position
-            $this->conn->dataSeek($this->res, $position);
+
+            if (!($this->res instanceof Generator)) {
+                // fetchAssoc already returns the next row, so we only need to seek if the next row is not the one we want
+                $this->conn->dataSeek($this->res, $position);
+            }
         }
 
+        if (!($this->res instanceof Generator)) {
+            $this->row = $this->conn->fetchAssoc($this->res);
+        } else {
+            if ($position === ($this->position ?? 0) + 1) {
+                $this->res->next();
+            } else {
+                // The generator is not seekable, so we need to rewind it and iterate until we reach the requested position
+                $this->res->rewind();
+                for ($i = 0; $i < $position; $i++) {
+                    $this->res->next();
+                }
+            }
+            $this->row = $this->res->current();
+        }
         $this->position = $position;
-        $this->row = $this->conn->fetchAssoc($this->res);
     }
 
     /**

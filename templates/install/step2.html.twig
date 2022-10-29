@@ -36,7 +36,16 @@
 <form action="install.php" method="post" data-submit-once>
 
    <div class="mb-3">
-      <label for="db_host" class="form-label">{{ __('SQL server (MariaDB or MySQL)') }}</label>
+      <label for="db_driver" class="form-label">{{ __('SQL server type') }}</label>
+      <select id="db_driver" name="db_driver" class="form-control form-select">
+         {% for driver_id, driver in db_drivers %}
+            <option value="{{ driver_id }}" {% if driver_id == db_driver %}selected{% endif %}>{{ driver }}</option>
+         {% endfor %}
+      </select>
+   </div>
+
+   <div class="mb-3">
+      <label for="db_host" class="form-label">{{ __('SQL server') }}</label>
       <input type="text" class="form-control" id="db_host" name="db_host">
    </div>
 
