@@ -161,7 +161,7 @@ final class DebugConnection implements Driver\Connection
         }
     }
 
-    private function preQuery($sql)
+    private function preQuery(string $sql)
     {
         global $CFG_GLPI, $DEBUG_SQL, $SQL_TOTAL_REQUEST;
 
@@ -177,7 +177,7 @@ final class DebugConnection implements Driver\Connection
         $this->checkForDeprecatedTableOptions($sql);
     }
 
-    private function postQuery($result)
+    private function postQuery(Result $result)
     {
         global $DEBUG_SQL, $SQL_TOTAL_REQUEST;
 
@@ -186,6 +186,19 @@ final class DebugConnection implements Driver\Connection
 //        if ($this->execution_time === true) {
 //            $this->execution_time = $this->timer->getTime(0, true);
 //        }s
+    }
+
+    private function preExec(string $sql): void
+    {
+        $this->preQuery($sql);
+    }
+
+    private function postExec(int $num_affected_rows): void
+    {
+        global $DEBUG_SQL, $SQL_TOTAL_REQUEST;
+
+        $DEBUG_SQL["times"][$SQL_TOTAL_REQUEST] = $this->timer->getTime();
+        $DEBUG_SQL['rows'][$SQL_TOTAL_REQUEST] = $num_affected_rows;
     }
 
     /**
@@ -228,9 +241,9 @@ final class DebugConnection implements Driver\Connection
 
     public function exec(string $sql): int
     {
-        $this->preQuery($sql);
+        $this->preExec($sql);
         $res = $this->connection->exec($sql);
-        $this->postQuery($res);
+        $this->postExec($res);
 
         return $res;
     }

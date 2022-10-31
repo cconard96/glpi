@@ -2315,68 +2315,71 @@ class Toolbox
         }
 
         $normalized_nersion = VersionParser::getNormalizedVersion(GLPI_VERSION, false);
-        if (!$DB_PDO->runFile(sprintf('%s/install/mysql/glpi-%s-empty.sql', GLPI_ROOT, $normalized_nersion))) {
-            echo "Errors occurred inserting default database";
-        } else {
-           //dataset
-            Session::loadLanguage($lang, false); // Load default language locales to translate empty data
-            $tables = require_once(__DIR__ . '/../install/empty_data.php');
-            Session::loadLanguage('', false); // Load back session language
+        try {
+            require_once(sprintf('%s/install/db/glpi-%s-empty.php', GLPI_ROOT, $normalized_nersion));
+        } catch(\Exception $e) {
+            echo "Errors occurred inserting default database: " . $e->getMessage();
+            return;
+        }
 
-            foreach ($tables as $table => $data) {
-                $reference = array_replace(
-                    $data[0],
-                    array_fill_keys(
-                        array_keys($data[0]),
-                        new QueryParam()
-                    )
-                );
+       //dataset
+        Session::loadLanguage($lang, false); // Load default language locales to translate empty data
+        $tables = require_once(__DIR__ . '/../install/empty_data.php');
+        Session::loadLanguage('', false); // Load back session language
 
-                try {
-                    $stmt = $DB_PDO->prepareInsert($table, $reference);
-                    foreach ($data as $row) {
-                        $stmt->executeStatement($row);
-                        if (!isCommandLine()) {
-                            // Flush will prevent proxy to timeout as it will receive data.
-                            // Flush requires a content to be sent, so we sent spaces as multiple spaces
-                            // will be shown as a single one on browser.
-                            echo ' ';
-                            Html::glpi_flush();
-                        }
-                    }
-                } catch (\Exception $e) {
-                    echo "Errors occurred inserting default data in table $table\n";
-                    echo $e->getMessage() . "\n";
-                }
-            }
-
-           //rules
-            RuleImportAsset::initRules();
-
-           // update default language
-            Config::setConfigurationValues(
-                'core',
-                [
-                    'language'      => $lang,
-                    'version'       => GLPI_VERSION,
-                    'dbversion'     => GLPI_SCHEMA_VERSION,
-                ]
+        foreach ($tables as $table => $data) {
+            $reference = array_replace(
+                $data[0],
+                array_fill_keys(
+                    array_keys($data[0]),
+                    new QueryParam()
+                )
             );
 
-            if (defined('GLPI_SYSTEM_CRON')) {
-               // Downstream packages may provide a good system cron
-                $DB_PDO->updateOrDie(
-                    'glpi_crontasks',
-                    [
-                        'mode'   => 2
-                    ],
-                    [
-                        'name'      => ['!=', 'watcher'],
-                        'allowmode' => ['&', 2]
-                    ],
-                    '4203'
-                );
+            try {
+                $stmt = $DB_PDO->prepareInsert($table, $reference);
+                foreach ($data as $row) {
+                    $stmt->executeStatement($row);
+                    if (!isCommandLine()) {
+                        // Flush will prevent proxy to timeout as it will receive data.
+                        // Flush requires a content to be sent, so we sent spaces as multiple spaces
+                        // will be shown as a single one on browser.
+                        echo ' ';
+                        Html::glpi_flush();
+                    }
+                }
+            } catch (\Exception $e) {
+                echo "Errors occurred inserting default data in table $table\n";
+                echo $e->getMessage() . "\n";
             }
+        }
+
+       //rules
+        RuleImportAsset::initRules();
+
+       // update default language
+        Config::setConfigurationValues(
+            'core',
+            [
+                'language'      => $lang,
+                'version'       => GLPI_VERSION,
+                'dbversion'     => GLPI_SCHEMA_VERSION,
+            ]
+        );
+
+        if (defined('GLPI_SYSTEM_CRON')) {
+           // Downstream packages may provide a good system cron
+            $DB_PDO->updateOrDie(
+                'glpi_crontasks',
+                [
+                    'mode'   => 2
+                ],
+                [
+                    'name'      => ['!=', 'watcher'],
+                    'allowmode' => ['&', 2]
+                ],
+                '4203'
+            );
         }
     }
 

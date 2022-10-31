@@ -43,7 +43,6 @@ use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\PDO;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
@@ -51,13 +50,8 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Statement;
 use Doctrine\DBAL\Types\Type;
-use Glpi\Application\ErrorHandler;
-use Glpi\Cache\CacheManager;
-use Glpi\System\Requirement\DbTimezones;
+use Glpi\DB\Type\TinyInt;
 use Html;
-use Psr\Cache\CacheItemPoolInterface;
-use Timer;
-use Toolbox;
 
 final class DB
 {
@@ -129,6 +123,12 @@ final class DB
             self::FEATURE_DATETIMES => false,
             self::FEATURE_LOG_DEPRECATION_WARNINGS => false,
         ];
+        $this->addCustomTypes();
+    }
+
+    private function addCustomTypes(): void
+    {
+        Type::addType('tinyint', TinyInt::class);
     }
 
     public function getFeatureFlag(string $flag): bool
@@ -229,6 +229,16 @@ final class DB
         if ($this->hasReplicaSupport()) {
             $this->connection->ensureConnectedToPrimary();
         }
+    }
+
+    public function quoteIdentifier(string $identifier): string
+    {
+        return $this->connection->quoteIdentifier($identifier);
+    }
+
+    public function quote(string $value): string
+    {
+        return $this->connection->quote($value);
     }
 
     /**

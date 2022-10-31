@@ -103,9 +103,18 @@ class QueryFunction
         return $function . '(' . implode(', ', $parameters) . ')';
     }
 
-
     public function __toString()
     {
         return $this->getValue();
+    }
+
+    public static function concat(string ...$params): self
+    {
+        return self::build('CONCAT', $params);
+    }
+
+    public static function groupConcat(string $field, string $separator = ','): self
+    {
+        return self::build('GROUP_CONCAT', [$field, "SEPARATOR '$separator'"]);
     }
 }
