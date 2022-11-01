@@ -4113,24 +4113,25 @@ final class SQLProvider implements SearchProviderInterface
      **/
     public static function constructData(array &$data, $onlycount = false)
     {
+        global $DB_PDO;
         if (!isset($data['sql']) || !isset($data['sql']['search'])) {
             return false;
         }
         $data['data'] = [];
 
         // Use a ReadOnly connection if available and configured to be used
-        $DBread = \DBConnection::getReadConnection();
-        $DBread->query("SET SESSION group_concat_max_len = 8194304;");
+        //$DBread = \DBConnection::getReadConnection();
+        $DB_PDO->setGroupConcatMaxLen(8194304);
 
-        $DBread->execution_time = true;
-        $result = $DBread->query($data['sql']['search']);
+        $DB_PDO->execution_time = true;
+        try {
+            $result = $DB_PDO->query($data['sql']['search']);
 
-        if ($result) {
-            $data['data']['execution_time'] = $DBread->execution_time;
+            $data['data']['execution_time'] = $DB_PDO->execution_time;
             if (isset($data['search']['savedsearches_id'])) {
                 \SavedSearch::updateExecutionTime(
                     (int)$data['search']['savedsearches_id'],
-                    $DBread->execution_time
+                    $DB_PDO->execution_time
                 );
             }
 
@@ -4140,17 +4141,17 @@ final class SQLProvider implements SearchProviderInterface
                 !$data['search']['no_search']
                 || $data['search']['export_all']
             ) {
-                $data['data']['totalcount'] = $DBread->numrows($result);
+                $data['data']['totalcount'] = $result->rowCount();
             } else {
                 if (
                     !isset($data['sql']['count'])
                     || (count($data['sql']['count']) == 0)
                 ) {
-                    $data['data']['totalcount'] = $DBread->numrows($result);
+                    $data['data']['totalcount'] = $result->rowCount();
                 } else {
                     foreach ($data['sql']['count'] as $sqlcount) {
-                        $result_num = $DBread->query($sqlcount);
-                        $data['data']['totalcount'] += $DBread->result($result_num, 0, 0);
+                        $result_num = $DB_PDO->query($sqlcount);
+                        $data['data']['totalcount'] += $result->fetchOne();
                     }
                 }
             }
@@ -4274,10 +4275,12 @@ final class SQLProvider implements SearchProviderInterface
             }
 
             // Get rows
+            $all_rows = $result->fetchAllAssociative();
 
             // if real search seek to begin of items to display (because of complete search)
             if (!$data['search']['no_search']) {
-                $DBread->dataSeek($result, $data['search']['start']);
+                $all_rows = array_values(array_slice($all_rows, $data['search']['start']));
+                //$DBread->dataSeek($result, $data['search']['start']);
             }
 
             $i = $data['data']['begin'];
@@ -4290,7 +4293,7 @@ final class SQLProvider implements SearchProviderInterface
             \Search::$output_type = $data['display_type'];
 
             while (($i < $data['data']['totalcount']) && ($i <= $data['data']['end'])) {
-                $row = $DBread->fetchAssoc($result);
+                $row = $all_rows[$i];
                 $newrow        = [];
                 $newrow['raw'] = $row;
 
@@ -4380,8 +4383,8 @@ final class SQLProvider implements SearchProviderInterface
             }
 
             $data['data']['count'] = count($data['data']['rows']);
-        } else {
-            $error_no = $DBread->errno();
+        } catch (\Exception $e) {
+            $error_no = $e->getCode();
             if ($error_no == 1116) { // Too many tables; MySQL can only use 61 tables in a join
                 echo \Search::showError(
                     $data['search']['display_type'],
@@ -4390,7 +4393,7 @@ final class SQLProvider implements SearchProviderInterface
                         "Please use 'Items seen' criterion instead")
                 );
             } else {
-                echo $DBread->error();
+                echo $e->getMessage();
             }
         }
     }

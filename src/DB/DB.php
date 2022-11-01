@@ -44,6 +44,13 @@ use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\PDO;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\MariaDBPlatform;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\DBAL\Platforms\SQLServerPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
@@ -54,6 +61,7 @@ use Doctrine\DBAL\Types\Type;
 use Glpi\DB\Type\Char;
 use Glpi\DB\Type\TinyInt;
 use Html;
+use Timer;
 
 final class DB
 {
@@ -109,12 +117,21 @@ final class DB
     public bool $connected = false;
 
     /**
+     * To calculate execution time
+     * @var bool|int
+     */
+    public bool $execution_time = false;
+
+    private Timer $timer;
+
+    /**
      * @param Connection $connection
      */
     public function __construct($connection)
     {
         $this->connection = $connection;
         $this->connected = $connection instanceof Connection && $connection->isConnected();
+        $this->timer = new Timer();
 //        $this->feature_flags = [
 //            self::FEATURE_TIMEZONES => false,
 //            self::FEATURE_UTF8MB4 => false,
@@ -274,6 +291,14 @@ final class DB
         return $this->connection->rollBack();
     }
 
+    public function setGroupConcatMaxLen(int $length): void
+    {
+        // Only needs done for MySQL/MariaDB
+        if ($this->connection->getDatabasePlatform() instanceof MySQLPlatform) {
+            $this->connection->executeStatement("SET SESSION group_concat_max_len = {$length}");
+        }
+    }
+
     public function escape($string)
     {
         return $string;
@@ -344,7 +369,14 @@ final class DB
      */
     public function query($sql, $params = [], $types = []): Result
     {
-        return $this->connection->executeQuery($sql, $params);
+        if ($this->execution_time) {
+            $this->timer->start();
+        }
+        $result = $this->connection->executeQuery($sql, $params);
+        if  ($this->execution_time) {
+            $this->execution_time = $this->timer->getTime();
+        }
+        return $result;
     }
 
     public function request(array $criteria, bool $debug = false)
@@ -608,22 +640,38 @@ final class DB
     {
         // No translation, used in sysinfo
         $ret = [];
-        $req = $this->request("SELECT @@sql_mode as mode, @@version AS vers, @@version_comment AS stype");
+        $driver = $this->getDriver();
+        $platform = $this->connection->getDatabasePlatform();
 
-        if (($data = $req->current())) {
-            if ($data['stype']) {
-                $ret['Server Software'] = $data['stype'];
-            }
-            if ($data['vers']) {
-                $ret['Server Version'] = $data['vers'];
+        if ($driver instanceof Driver\AbstractMySQLDriver) {
+            $req = $this->query("SELECT @@sql_mode as mode, @@version AS vers, @@version_comment AS stype")->fetchAllAssociative();
+        } else {
+            $req = $this->query("SELECT version() AS vers")->fetchAllAssociative();
+        }
+        $data = reset($req);
+
+        if (!isset($data['stype'])) {
+            if ($platform instanceof AbstractMySQLPlatform) {
+                $data['stype'] = $platform instanceof MariaDBPlatform ? 'MariaDB' : 'MySQL';
+            } else if ($platform instanceof PostgreSQLPlatform) {
+                $data['stype'] = 'PostgreSQL';
+            } else if ($platform instanceof SqlitePlatform) {
+                $data['stype'] = 'SQLite';
+            } else if ($platform instanceof SQLServerPlatform) {
+                $data['stype'] = 'SQLServer';
+            } else if ($platform instanceof OraclePlatform) {
+                $data['stype'] = 'Oracle';
             } else {
-                $ret['Server Version'] = $this->dbh->server_info;
+                $data['stype'] = 'Unknown';
             }
-            if ($data['mode']) {
-                $ret['Server SQL Mode'] = $data['mode'];
-            } else {
-                $ret['Server SQL Mode'] = '';
-            }
+        }
+
+        $ret['Server Software'] = $data['stype'];
+        $ret['Server Version'] = $data['vers'];
+        if (isset($data['mode'])) {
+            $ret['Server SQL Mode'] = $data['mode'];
+        } else {
+            $ret['Server SQL Mode'] = '';
         }
 
         //$ret['Parameters'] = $this->dbuser . "@" . $this->dbhost . "/" . $this->dbdefault;

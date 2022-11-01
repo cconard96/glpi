@@ -1167,6 +1167,44 @@ $schema->createTable(new Table('glpi_changetasks', [
 if ($schema->tablesExist('glpi_changevalidations')) {
     $schema->dropTable('glpi_changevalidations');
 }
+$schema->createTable(new Table('glpi_changevalidations', [
+    $column_templates['id'],
+    $column_templates['entities_id'],
+    $column_templates['is_recursive'],
+    $fk_column('users_id'),
+    $fk_column('changes_id'),
+    $fk_column('users_id_validate'),
+    new Column('itemtype_target', Type::getType('string'), [
+        'length' => 255,
+        'notnull' => false,
+        'default' => null,
+    ]),
+    $fk_column('items_id_target'),
+    new Column('comment_submission', Type::getType('text'), ['length' => $TEXT_LENGTH, 'notnull' => false]),
+    new Column('comment_validation', Type::getType('text'), ['length' => $TEXT_LENGTH, 'notnull' => false]),
+    new Column('status', Type::getType('integer'), [
+        'notnull' => true,
+        'default' => 0,
+    ]),
+    new Column('submission_date', Type::getType('datetime'), [
+        'notnull' => false,
+        'default' => null,
+    ]),
+    new Column('validation_date', Type::getType('datetime'), [
+        'notnull' => false,
+        'default' => null,
+    ]),
+    new Column('timeline_position', Type::getType('tinyint'), [
+        'notnull' => true,
+        'default' => 0,
+    ]),
+    new Column('last_reminder_date', Type::getType('datetime'), [
+        'notnull' => false,
+        'default' => null,
+    ]),
+], [
+    $id_index,
+]));
 
 if ($schema->tablesExist('glpi_computerantiviruses')) {
     $schema->dropTable('glpi_computerantiviruses');
@@ -2783,6 +2821,28 @@ $schema->createTable(new Table('glpi_logs', [
 if ($schema->tablesExist('glpi_mailcollectors')) {
     $schema->dropTable('glpi_mailcollectors');
 }
+$schema->createTable(new Table('glpi_mailcollectors', [
+    $column_templates['id'],
+    $column_templates['name'],
+    new Column('host', Type::getType('string'), ['length' => 255, 'notnull' => false, 'default' => null]),
+    new Column('login', Type::getType('string'), ['length' => 255, 'notnull' => false, 'default' => null]),
+    new Column('filesize_max', Type::getType('integer'), ['notnull' => true, 'default' => 2097152]),
+    new Column('is_active', Type::getType('boolean'), ['notnull' => true, 'default' => true]),
+    $column_templates['date_mod'],
+    $column_templates['comment'],
+    new Column('passwd', Type::getType('string'), ['length' => 255, 'notnull' => false, 'default' => null]),
+    new Column('accepted', Type::getType('string'), ['length' => 255, 'notnull' => false, 'default' => null]),
+    new Column('refused', Type::getType('string'), ['length' => 255, 'notnull' => false, 'default' => null]),
+    new Column('errors', Type::getType('string'), ['length' => 255, 'notnull' => false, 'default' => null]),
+    new Column('use_mail_date', Type::getType('boolean'), ['notnull' => true, 'default' => false]),
+    $column_templates['date_creation'],
+    new Column('requester_field', Type::getType('integer'), ['notnull' => true, 'default' => 0]),
+    new Column('add_cc_to_observer', Type::getType('boolean'), ['notnull' => true, 'default' => false]),
+    new Column('collect_only_unread', Type::getType('boolean'), ['notnull' => true, 'default' => false]),
+    new Column('create_user_from_email', Type::getType('boolean'), ['notnull' => true, 'default' => false]),
+], [
+    $id_index
+]));
 
 if ($schema->tablesExist('glpi_manufacturers')) {
     $schema->dropTable('glpi_manufacturers');
