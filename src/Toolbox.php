@@ -2308,10 +2308,15 @@ class Toolbox
     public static function createSchema($lang = 'en_GB')
     {
         /** @global \Glpi\DB\DB $DB_PDO */
-        global $DB_PDO;
+        global $DB_PDO, $DB;
 
         if (null === $DB_PDO) {
            \Glpi\DB\DB::establishDBConnection();
+        }
+
+        if (null === $DB) {
+            //$DB = new DBmysql(null);
+            $DB = $DB_PDO;
         }
 
         $normalized_nersion = VersionParser::getNormalizedVersion(GLPI_VERSION, false);
@@ -2339,7 +2344,11 @@ class Toolbox
             try {
                 $stmt = $DB_PDO->prepareInsert($table, $reference);
                 foreach ($data as $row) {
-                    $stmt->executeStatement($row);
+                    // Bind values
+                    foreach ($row as $key => $value) {
+                        $stmt->bindValue($key, $value);
+                    }
+                    $stmt->executeStatement();
                     if (!isCommandLine()) {
                         // Flush will prevent proxy to timeout as it will receive data.
                         // Flush requires a content to be sent, so we sent spaces as multiple spaces
@@ -2352,6 +2361,12 @@ class Toolbox
                 echo "Errors occurred inserting default data in table $table\n";
                 echo $e->getMessage() . "\n";
             }
+        }
+
+        // Some DBMS don't handle auto-increment properly after inserting data with hard-coded IDs
+        $table_names = array_keys($tables);
+        foreach ($table_names as $table) {
+            $DB_PDO->syncAutoIncrementSequence($table, 'id');
         }
 
        //rules

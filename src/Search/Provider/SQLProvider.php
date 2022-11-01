@@ -1176,7 +1176,7 @@ final class SQLProvider implements SearchProviderInterface
                 $append_criterion_with_search($criteria[$tmplink], "$table.$field");
                 $append_criterion_with_search(
                     $criteria[$tmplink],
-                    new \QueryFunction("CONCAT(`$table`.`$name1`, ' ', `$table`.`$name2`)")
+                    QueryFunction::concat(["$table.$name1", ' ', "$table.$name2"])
                 );
                 if ($nott && ($val !== 'NULL') && ($val !== 'null')) {
                     $criteria = [
@@ -1504,14 +1504,16 @@ final class SQLProvider implements SearchProviderInterface
                     $search_unit = $opt['searchunit'] ?? ' MONTH ';
                     if ($opt["datatype"] === "date_delay") {
                         $delay_unit = $opt['delayunit'] ?? ' MONTH ';
-                        $add_minus = '';
+                        $add_minus = null;
                         if (isset($opt["datafields"][3])) {
                             $add_minus = "-`$table`.`" . $opt["datafields"][3] . "`";
                         }
-                        $date_computation = QueryFunction::build('ADDDATE', [
+                        $date_computation = QueryFunction::addDate(
                             "$table." . $opt["datafields"][1],
-                            'INTERVAL ' . "$table." . $opt["datafields"][2] . " $add_minus $delay_unit",
-                        ]);
+                            "$table." . $opt["datafields"][2],
+                            $delay_unit,
+                            $add_minus
+                        );
                     }
                     if (in_array($searchtype, ['equals', 'notequals', 'empty'])) {
                         $criteria = [];

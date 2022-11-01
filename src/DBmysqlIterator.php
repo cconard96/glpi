@@ -110,6 +110,16 @@ class DBmysqlIterator implements SeekableIterator, Countable
         $this->pdo_conn = $DB_PDO;
     }
 
+    private function quoteName($name)
+    {
+        return ($this->pdo_conn !== null) ? $this->pdo_conn->quoteIdentifier($name) : DBmysql::quoteName($name);
+    }
+
+    private function quoteValue($name)
+    {
+        return ($this->pdo_conn !== null) ? $this->pdo_conn->quote($name) : DBmysql::quoteValue($name);
+    }
+
     /**
      * Executes the query
      *
@@ -264,7 +274,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
                     $this->sql .= 'DISTINCT ';
                 }
                 if (!empty($field) && !is_array($field)) {
-                    $this->sql .= "" . DBmysql::quoteName($field);
+                    $this->sql .= "" . $this->quoteName($field);
                 } else {
                     if ($distinct) {
                         trigger_error("With COUNT and DISTINCT, you must specify exactly one field, or use 'COUNT DISTINCT'", E_USER_ERROR);
@@ -299,7 +309,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
            // FROM table list
             if (is_array($table)) {
                 if (count($table)) {
-                    $table = array_map([DBmysql::class, 'quoteName'], $table);
+                    $table = array_map([$this, 'quoteName'], $table);
                     $this->sql .= ' FROM ' . implode(", ", $table);
                 } else {
                     trigger_error("Missing table name", E_USER_ERROR);
@@ -310,7 +320,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
                 } else if ($table instanceof \QueryExpression) {
                     $table = $table->getValue();
                 } else {
-                    $table = DBmysql::quoteName($table);
+                    $table = $this->quoteName($table);
                 }
                 $this->sql .= " FROM $table";
             } else {
@@ -342,13 +352,13 @@ class DBmysqlIterator implements SeekableIterator, Countable
            // GROUP BY field list
             if (is_array($groupby)) {
                 if (count($groupby)) {
-                    $groupby = array_map([DBmysql::class, 'quoteName'], $groupby);
+                    $groupby = array_map([$this, 'quoteName'], $groupby);
                     $this->sql .= ' GROUP BY ' . implode(", ", $groupby);
                 } else {
                     trigger_error("Missing group by field", E_USER_ERROR);
                 }
             } else if ($groupby) {
-                $groupby = DBmysql::quoteName($groupby);
+                $groupby = $this->quoteName($groupby);
                 $this->sql .= " GROUP BY $groupby";
             }
 
@@ -391,7 +401,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
                 foreach ($fields as $field) {
                     $new = '';
                     $tmp = explode(' ', trim($field));
-                    $new .= DBmysql::quoteName($tmp[0]);
+                    $new .= $this->quoteName($tmp[0]);
                     // ASC OR DESC added
                     if (isset($tmp[1]) && in_array($tmp[1], ['ASC', 'DESC'])) {
                         $new .= ' ' . $tmp[1];
@@ -442,10 +452,10 @@ class DBmysqlIterator implements SeekableIterator, Countable
         if (is_numeric($t)) {
             if ($f instanceof \AbstractQuery) {
                 return $f->getQuery();
-            } else if ($f instanceof \QueryExpression) {
+            } else if ($f instanceof \QueryExpression || $f instanceof \QueryFunction) {
                 return $f->getValue();
             } else {
-                return DBmysql::quoteName($f);
+                return $this->quoteName($f);
             }
         } else {
             switch ($t) {
@@ -478,12 +488,12 @@ class DBmysqlIterator implements SeekableIterator, Countable
                     break;
                 default:
                     if (is_array($f)) {
-                        $t = DBmysql::quoteName($t);
-                        $f = array_map([DBmysql::class, 'quoteName'], $f);
+                        $t = $this->quoteName($t);
+                        $f = array_map([$this, 'quoteName'], $f);
                         return "$t." . implode(", $t.", $f);
                     } else {
-                        $t = DBmysql::quoteName($t);
-                        $f = ($f == '*' ? $f : DBmysql::quoteName($f));
+                        $t = $this->quoteName($t);
+                        $f = ($f == '*' ? $f : $this->quoteName($f));
                         return "$t.$f";
                     }
                     break;
@@ -505,7 +515,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
         $names = preg_split('/\s+AS\s+/i', $f);
         $expr  = "$t(" . $this->handleFields(0, $names[0]) . "$suffix)";
         if (isset($names[1])) {
-            $expr .= " AS " . DBmysql::quoteName($names[1]);
+            $expr .= " AS " . $this->quoteName($names[1]);
         }
 
         return $expr;
@@ -581,7 +591,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
                 $value = current($value);
                 $ret .= '((' . $key . ') ' . $this->analyseCriterion($value) . ')';
             } else {
-                $ret .= DBmysql::quoteName($name) . ' ' . $this->analyseCriterion($value);
+                $ret .= $this->quoteName($name) . ' ' . $this->analyseCriterion($value);
             }
         }
         return $ret;
@@ -665,11 +675,11 @@ class DBmysqlIterator implements SeekableIterator, Countable
         $crit_value = null;
         if (is_array($value)) {
             foreach ($value as $k => $v) {
-                $value[$k] = DBmysql::quoteValue($v);
+                $value[$k] = $this->quoteValue($v);
             }
             $crit_value = implode(', ', $value);
         } else {
-            $crit_value = DBmysql::quoteValue($value);
+            $crit_value = $this->quoteValue($value);
         }
         return $crit_value;
     }
@@ -713,7 +723,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
                 if ($jointablekey instanceof \QuerySubQuery) {
                     $jointablekey = $jointablekey->getQuery();
                 } else {
-                    $jointablekey = DBmysql::quoteName($jointablekey);
+                    $jointablekey = $this->quoteName($jointablekey);
                 }
 
                 $query .= " $jointype $jointablekey ON (" . $this->analyseCrit($jointablecrit) . ")";
@@ -739,11 +749,11 @@ class DBmysqlIterator implements SeekableIterator, Countable
                 $t2 = $keys[1];
                 $f2 = $values[$t2];
                 if ($f2 instanceof QuerySubQuery || $f2 instanceof QueryExpression) {
-                    return (is_numeric($t1) ? DBmysql::quoteName($f1) : DBmysql::quoteName($t1) . '.' . DBmysql::quoteName($f1)) . ' = ' .
+                    return (is_numeric($t1) ? $this->quoteName($f1) : $this->quoteName($t1) . '.' . $this->quoteName($f1)) . ' = ' .
                     $f2;
                 } else {
-                    return (is_numeric($t1) ? DBmysql::quoteName($f1) : DBmysql::quoteName($t1) . '.' . DBmysql::quoteName($f1)) . ' = ' .
-                    (is_numeric($t2) ? DBmysql::quoteName($f2) : DBmysql::quoteName($t2) . '.' . DBmysql::quoteName($f2));
+                    return (is_numeric($t1) ? $this->quoteName($f1) : $this->quoteName($t1) . '.' . $this->quoteName($f1)) . ' = ' .
+                    (is_numeric($t2) ? $this->quoteName($f2) : $this->quoteName($t2) . '.' . $this->quoteName($f2));
                 }
             } else if (count($values) == 3) {
                 $condition = array_pop($values);

@@ -552,7 +552,7 @@ class CommonDBTM extends CommonGLPI
      **/
     public function find($condition = [], $order = [], $limit = null)
     {
-        global $DB;
+        global $DB_PDO;
 
         $criteria = [
             'FROM'   => $this->getTable()
@@ -574,7 +574,7 @@ class CommonDBTM extends CommonGLPI
         }
 
         $data = [];
-        $iterator = $DB->request($criteria);
+        $iterator = $DB_PDO->request($criteria);
         foreach ($iterator as $line) {
             $data[$line['id']] = $line;
         }

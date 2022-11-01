@@ -376,11 +376,9 @@ function step4($databasename, $newdatabasename)
 //send telemetry information
 function step6()
 {
-    global $DB;
-
-    include_once(GLPI_ROOT . "/inc/dbmysql.class.php");
-    include_once(GLPI_CONFIG_DIR . "/config_db.php");
-    $DB = new DB();
+    global $DB, $DB_PDO;
+    \Glpi\DB\DB::establishDBConnection();
+    $DB = $DB_PDO;
 
     $_SESSION['telemetry_from_install'] = true;
 
@@ -401,9 +399,9 @@ function step7()
 // finish installation
 function step8()
 {
-    include_once(GLPI_ROOT . "/inc/dbmysql.class.php");
-    include_once(GLPI_CONFIG_DIR . "/config_db.php");
-    $DB = new DB();
+    global $DB, $DB_PDO;
+    \Glpi\DB\DB::establishDBConnection();
+    $DB = $DB_PDO;
 
     if (isset($_POST['send_stats'])) {
        //user has accepted to send telemetry infos; activate cronjob

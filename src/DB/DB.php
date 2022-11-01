@@ -36,6 +36,7 @@
 namespace Glpi\DB;
 
 use DBConnection;
+use DBmysqlIterator;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Connections\PrimaryReadReplicaConnection;
@@ -50,6 +51,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Statement;
 use Doctrine\DBAL\Types\Type;
+use Glpi\DB\Type\Char;
 use Glpi\DB\Type\TinyInt;
 use Html;
 
@@ -102,12 +104,17 @@ final class DB
 
     private $feature_flags;
 
+    private int $affected_rows = 0;
+
+    public bool $connected = false;
+
     /**
      * @param Connection $connection
      */
     public function __construct($connection)
     {
         $this->connection = $connection;
+        $this->connected = $connection instanceof Connection && $connection->isConnected();
 //        $this->feature_flags = [
 //            self::FEATURE_TIMEZONES => false,
 //            self::FEATURE_UTF8MB4 => false,
@@ -129,6 +136,7 @@ final class DB
     private function addCustomTypes(): void
     {
         Type::addType('tinyint', TinyInt::class);
+        Type::addType('char', Char::class);
     }
 
     public function getFeatureFlag(string $flag): bool
@@ -231,9 +239,91 @@ final class DB
         }
     }
 
-    public function quoteIdentifier(string $identifier): string
+    public function isSlave()
     {
+        return false;
+    }
+
+    public function insertId()
+    {
+        return $this->connection->lastInsertId(null);
+    }
+
+    public function inTransaction()
+    {
+        return $this->connection->isTransactionActive();
+    }
+
+    public function beginTransaction(): bool
+    {
+        if ($this->inTransaction()) {
+            trigger_error('A database transaction has already been started!', E_USER_WARNING);
+        }
+        return $this->connection->beginTransaction();
+    }
+
+    public function commit(): bool
+    {
+        return $this->connection->commit();
+    }
+
+    public function rollBack($savepoint = null): bool
+    {
+        //TODO Doctrine doesn't use named savepoints
+        //They aren't used in GLPI and this param was only added for a potential feature of a plugin that was never implemented
+        return $this->connection->rollBack();
+    }
+
+    public function escape($string)
+    {
+        return $string;
+    }
+
+    public function affectedRows(): int
+    {
+        return $this->affected_rows ?? 0;
+    }
+
+    public function quoteIdentifier($identifier): string
+    {
+        //handle verbatim names
+        if ($identifier instanceof \QueryExpression) {
+            return $identifier->getValue();
+        }
+        if ($identifier === '*') {
+            return $identifier;
+        }
+
+        $names = preg_split('/\s+AS\s+/i', $identifier);
+        if (count($names) > 2) {
+            throw new \RuntimeException(
+                'Invalid field name ' . $identifier
+            );
+        }
+
+        if (count($names) == 2) {
+            $identifier = self::quoteIdentifier($names[0]);
+            $identifier .= ' AS ' . self::quoteIdentifier($names[1]);
+            return $identifier;
+        }
+        if (strpos($identifier, '.')) {
+            $n = explode('.', $identifier, 2);
+            $table = self::quoteIdentifier($n[0]);
+            $field = ($n[1] === '*') ? $n[1] : self::quoteIdentifier($n[1]);
+            return "$table.$field";
+        }
         return $this->connection->quoteIdentifier($identifier);
+    }
+
+    /**
+     * @param $name
+     * @return string
+     * @deprecated Used for DBmysql compatibility only
+     */
+    public static function quoteName($name)
+    {
+        global $DB_PDO;
+        return $DB_PDO->quoteIdentifier($name);
     }
 
     public function quote(string $value): string
@@ -257,12 +347,21 @@ final class DB
         return $this->connection->executeQuery($sql, $params);
     }
 
+    public function request(array $criteria, bool $debug = false)
+    {
+        $iterator = new DBmysqlIterator(null);
+        $iterator->execute($criteria, $debug);
+        return $iterator;
+    }
+
     /**
      * @throws Exception
      */
     public function prepareInsert(string $table, array $data): Statement
     {
-        $sql = "INSERT INTO $table (".implode(', ', array_keys($data)).") VALUES (".implode(', ', array_fill(0, count($data), '?')).")";
+        $columns = array_map(fn ($k) => $this->quoteIdentifier($k), array_keys($data));
+        $values_placeholders = array_map(static fn ($k) => ":$k", array_keys($data));
+        $sql = "INSERT INTO $table (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $values_placeholders) . ")";
         return $this->connection->prepare($sql);
     }
 
@@ -271,7 +370,9 @@ final class DB
      */
     public function insert(string $table, array $data): int
     {
-        return $this->prepareInsert($table, $data)->executeStatement(array_values($data));
+        $rows = $this->prepareInsert($table, $data)->executeStatement(array_values($data));
+        $this->affected_rows = $rows;
+        return $rows;
     }
 
     public function insertOrDie(string $table, array $data, string $message = ''): int
@@ -308,7 +409,9 @@ final class DB
      */
     public function update(string $table, array $data, array $where): int
     {
-        return $this->prepareUpdate($table, $data, $where)->executeStatement(array_merge(array_values($data), array_values($where)));
+        $rows = $this->prepareUpdate($table, $data, $where)->executeStatement(array_merge(array_values($data), array_values($where)));
+        $this->affected_rows = $rows;
+        return $rows;
     }
 
     public function updateOrDie(string $table, array $data, array $where, string $message = ''): int
@@ -503,8 +606,30 @@ final class DB
 
     public function getInfo()
     {
-        //TODO
-        return [];
+        // No translation, used in sysinfo
+        $ret = [];
+        $req = $this->request("SELECT @@sql_mode as mode, @@version AS vers, @@version_comment AS stype");
+
+        if (($data = $req->current())) {
+            if ($data['stype']) {
+                $ret['Server Software'] = $data['stype'];
+            }
+            if ($data['vers']) {
+                $ret['Server Version'] = $data['vers'];
+            } else {
+                $ret['Server Version'] = $this->dbh->server_info;
+            }
+            if ($data['mode']) {
+                $ret['Server SQL Mode'] = $data['mode'];
+            } else {
+                $ret['Server SQL Mode'] = '';
+            }
+        }
+
+        //$ret['Parameters'] = $this->dbuser . "@" . $this->dbhost . "/" . $this->dbdefault;
+        //$ret['Host info']  = $this->dbh->host_info;
+
+        return $ret;
     }
 
     public function getLock($name)
@@ -528,11 +653,18 @@ final class DB
 
     public function fieldExists($table, $field, $usecache = true)
     {
-        $fields = $this->listFields($table);
-        $field = array_filter($fields, static function($f) use ($field) {
-            return $f->getName() === $field;
-        });
-        return count($field) > 0;
+        static $fields = [];
+
+        if (!array_key_exists($table, $fields) || !$usecache) {
+            $fields[$table] = $this->listFields($table);
+        }
+        if (isset($fields[$table])) {
+            $field = array_filter($fields[$table], static function ($f) use ($field) {
+                return $f->getName() === $field;
+            });
+            return count($field) > 0;
+        }
+        return false;
     }
 
     public function getVersion()
@@ -671,7 +803,7 @@ final class DB
     /**
      * @return Driver The driver used by the current connection. If the driver is the {@link DebugDriver} wrapper, the wrapped driver is returned.
      */
-    private function getDriver(): Driver
+    public function getDriver(): Driver
     {
         $driver = $this->connection->getDriver();
         if ($driver instanceof DebugDriver) {
@@ -699,6 +831,19 @@ final class DB
             $this->connection->executeQuery('SET FOREIGN_KEY_CHECKS = 1');
         } else if ($driver instanceof PDO\PgSQL\Driver) {
             $this->connection->executeQuery('SET CONSTRAINTS ALL IMMEDIATE');
+        } else {
+            throw new Exception('Unsupported driver');
+        }
+    }
+
+    public function syncAutoIncrementSequence(string $table, string $field): void
+    {
+        $driver = $this->getDriver();
+        if ($driver instanceof PDO\MySQL\Driver) {
+            //MySQL and MariaDB seem to not need this
+            //$this->connection->executeQuery("ALTER TABLE `$table` AUTO_INCREMENT = (SELECT MAX(`$field`) FROM `$table`)");
+        } else if ($driver instanceof PDO\PgSQL\Driver) {
+            $this->connection->executeQuery("SELECT setval(pg_get_serial_sequence('$table', '$field'), coalesce(max(id),0) + 1, false) FROM $table;");
         } else {
             throw new Exception('Unsupported driver');
         }

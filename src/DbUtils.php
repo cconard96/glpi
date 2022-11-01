@@ -482,8 +482,9 @@ final class DbUtils
             }
         }
         $condition['COUNT'] = 'cpt';
+        $condition['FROM'] = $table;
 
-        $row = $DB->request($table, $condition)->current();
+        $row = $DB->request($condition)->current();
         return ($row ? (int)$row['cpt'] : 0);
     }
 
@@ -593,7 +594,9 @@ final class DbUtils
             $criteria['ORDER'] = $order; // Deprecated use case
         }
 
-        $iterator = $DB->request($table, $criteria);
+        $criteria['FROM'] = $table;
+
+        $iterator = $DB->request($criteria);
 
         foreach ($iterator as $row) {
             $data[$row['id']] = $row;
@@ -1658,8 +1661,8 @@ final class DbUtils
             }
         } else if ($ID) {
             $iterator = $DB->request(
-                'glpi_users',
                 [
+                    'FROM' => 'glpi_users',
                     'WHERE' => ['id' => $ID]
                 ]
             );

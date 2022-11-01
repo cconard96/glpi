@@ -33,40 +33,62 @@
  * ---------------------------------------------------------------------
  */
 
+use Doctrine\DBAL\Driver\AbstractMySQLDriver;
+use Doctrine\DBAL\Driver\AbstractPostgreSQLDriver;
+use Doctrine\DBAL\VersionAwarePlatformDriver;
+
 /**
  *  Query function class
+ * @phpstan-type FunctionPlatformMapping array{driver: class-string<VersionAwarePlatformDriver>, name: string, output_callback?: callable(string, mixed[], string|null): string}
+ * @phpstan-type FunctionMapping array{name: string, platforms: FunctionPlatformMapping[]}
  **/
 class QueryFunction
 {
     private $raw;
+
+    private string $name;
+
+    private array $params;
+
+    private ?string $alias;
 
     /**
      * Create a query expression
      *
      * @param string $raw Query function expression value
      */
-    public function __construct($raw)
+    public function __construct(string $name, array $params = [], ?string $alias = null)
     {
-        if (empty($raw)) {
-            throw new \RuntimeException('Cannot build an empty function');
-        }
-        $this->raw = $raw;
-    }
-
-    public static function build(string $name, array $params = []): self
-    {
-        $raw = $name . '(';
-        if (!empty($params)) {
-            $raw .= implode(', ', $params);
-        }
-        $raw = rtrim($raw, ', ') . ')';
-        $raw .= ')';
-        return new self($raw);
+        $this->name = self::getFunctionNameForCurrentPlatform($name);
+        $this->params = $params;
+        $this->alias = $alias;
     }
 
     public function getRawValue(): string
     {
         return $this->raw;
+    }
+
+    private function getDefaultOutput(): string
+    {
+        global $DB_PDO;
+
+        // Quote parameters if needed
+        foreach ($this->params as &$parameter) {
+            $parameter = trim($parameter);
+            // Check if the parameter is an unquoted table column name (table.column)
+            if (preg_match('/^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$/', $parameter)) {
+                // quote the table name and column name, then recombine
+                $parts = explode('.', $parameter);
+                $parts = array_map([$DB_PDO, 'quoteName'], $parts);
+                $parameter = implode('.', $parts);
+            } else if (!is_numeric($parameter)) {
+                // Quote the parameter if it is not a number
+                $parameter = $DB_PDO->quote($parameter);
+            }
+        }
+
+        return $this->name . '(' . implode(', ', $this->params) . ')' . ($this->alias ? ' AS ' . $DB_PDO->quoteIdentifier($this->alias) : '');
     }
 
     /**
@@ -76,31 +98,22 @@ class QueryFunction
      */
     public function getValue()
     {
-        global $DB;
+        $output = $this->getDefaultOutput();
 
-        $raw = $this->getRawValue();
-        // Tokenize the expression to get the function name and an array of parameters
-        // Sample "CONCAT('foo', 'bar')" where CONCAT is the function name and 'foo' and 'bar' are parameters
-        $tokens = preg_split('/\s*\(\s*/', $raw, 2);
-        $function = $tokens[0];
-        $parameters = [];
-        if (count($tokens) > 1) {
-            $parameters = preg_split('/\s*,\s*/', rtrim($tokens[1], ')'));
-        }
-
-        // Quote parameters if needed
-        foreach ($parameters as &$parameter) {
-            $parameter = trim($parameter);
-            // Check if the parameter is an unquoted table column name (table.column)
-            if (preg_match('/^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$/', $parameter)) {
-                // quote the table name and column name, then recombine
-                $parts = explode('.', $parameter);
-                $parts = array_map([$DB, 'quoteName'], $parts);
-                $parameter = implode('.', $parts);
+        // Check if the function has a custom output callback
+        $function = $this->getFunctionMapping($this->name);
+        if (isset($function['platforms'])) {
+            foreach ($function['platforms'] as $platform) {
+                if (is_a($GLOBALS['DB']->getDriver(), $platform['driver'])) {
+                    if (isset($platform['output_callback'])) {
+                        $output = $platform['output_callback']($this->name, $this->params, $this->alias);
+                    }
+                    break;
+                }
             }
         }
 
-        return $function . '(' . implode(', ', $parameters) . ')';
+        return $output;
     }
 
     public function __toString()
@@ -108,13 +121,124 @@ class QueryFunction
         return $this->getValue();
     }
 
-    public static function concat(string ...$params): self
+    /**
+     * @return array[]
+     * @phpstan-return FunctionMapping[]
+     */
+    private static function getSupportedFunctions(): array
     {
-        return self::build('CONCAT', $params);
+        global $DB_PDO;
+
+        return [
+            [
+                'name' => 'CONCAT',
+                'platforms' => []
+            ],
+            [
+                'name' => 'GROUP_CONCAT',
+                'platforms' => [
+                    [
+                        'driver' => AbstractPostgreSQLDriver::class,
+                        'name' => 'STRING_AGG'
+                    ]
+                ]
+            ],
+            [
+                'name' => 'DATE_ADD',
+                'platforms' => [
+                    [
+                        'driver' => AbstractPostgreSQLDriver::class,
+                        'name' => '', // Not a true function
+                        'output_callback' => function ($name, $params, $alias) use ($DB_PDO): string {
+                            $output = sprintf(
+                                '(%s + INTERVAL \'%s %s %s\')',
+                                $params[0],
+                                $params[1], // Interval
+                                $params[2] !== null ? '-' . $params[2] : '', // Optional minus field/value (subtraction from interval)
+                                strtoupper($params[3]) // Unit
+                            );
+                            if ($alias !== null) {
+                                $output .= ' AS ' . $DB_PDO->quoteIdentifier($alias);
+                            }
+                            return $output;
+                        }
+                    ],
+                    [
+                        'driver' => AbstractMySQLDriver::class,
+                        'name' => '', // Not a true function
+                        'output_callback' => function ($name, $params, $alias) use ($DB_PDO): string {
+                            $output = sprintf(
+                                'DATE_ADD(%s, INTERVAL %s %s %s)',
+                                $params[0], // Date
+                                $params[1], // Interval
+                                $params[2] !== null ? '-' . $params[2] : '', // Optional minus field/value (subtraction from interval)
+                                strtoupper($params[3]) // Unit
+                            );
+                            if ($alias !== null) {
+                                $output .= ' AS ' . $DB_PDO->quoteIdentifier($alias);
+                            }
+                            return $output;
+                        }
+                    ]
+                ]
+            ]
+        ];
     }
 
-    public static function groupConcat(string $field, string $separator = ','): self
+    /**
+     * @param string $function
+     * @return array
+     * @phpstan-return FunctionMapping
+     */
+    public function getFunctionMapping(string $function): array
     {
-        return self::build('GROUP_CONCAT', [$field, "SEPARATOR '$separator'"]);
+        $function = strtoupper($function);
+        foreach (self::getSupportedFunctions() as $supported_function) {
+            if (strpos($function, $supported_function['name']) === 0) {
+                $parameters = [];
+                if (preg_match('/\((.*)\)/', $function, $matches)) {
+                    $parameters = explode(',', $matches[1]);
+                }
+                $supported_function['parameters'] = $parameters;
+                return $supported_function;
+            }
+        }
+        return [];
+    }
+
+    private static function getFunctionNameForCurrentPlatform(string $function): string
+    {
+        global $DB_PDO;
+
+        $driver = $DB_PDO->getDriver();
+        $supported_functions = self::getSupportedFunctions();
+
+        foreach ($supported_functions as $supported_function) {
+            if ($supported_function['name'] === $function) {
+                foreach ($supported_function['platforms'] as $platform) {
+                    if ($driver instanceof $platform['driver']) {
+                        return $platform['name'];
+                    }
+                }
+                return $function;
+            }
+        }
+
+        return $function;
+    }
+
+    public static function concat(array $params, ?string $alias = null): self
+    {
+        return new self('CONCAT', $params, $alias);
+    }
+
+    public static function groupConcat(string $field, string $separator = ',', ?string $alias = null): self
+    {
+        return new self('GROUP_CONCAT', [$field, "SEPARATOR '$separator'"], $alias);
+    }
+
+    public static function addDate(string $date, string $interval, string $interval_unit, ?string $minus = null, ?string $alias = null): self
+    {
+        return new self('DATE_ADD', [$date, $interval, $interval_unit, $minus], $alias);
     }
 }

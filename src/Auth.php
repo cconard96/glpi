@@ -374,31 +374,29 @@ class Auth extends CommonGLPI
      */
     public function connection_db($name, $password)
     {
-        global $CFG_GLPI, $DB;
+        global $CFG_GLPI, $DB_PDO;
 
         $pass_expiration_delay = (int)$CFG_GLPI['password_expiration_delay'];
         $lock_delay            = (int)$CFG_GLPI['password_expiration_lock_delay'];
 
        // SQL query
-        $result = $DB->request(
+        $result = $DB_PDO->request(
             [
                 'SELECT' => [
                     'id',
                     'password',
-                    new QueryExpression(
-                        sprintf(
-                            'ADDDATE(%s, INTERVAL %d DAY) AS ' . $DB->quoteName('password_expiration_date'),
-                            $DB->quoteName('password_last_update'),
-                            $pass_expiration_delay
-                        )
+                    QueryFunction::addDate(
+                        date: 'password_expiration_date',
+                        interval: 'password_last_update',
+                        interval_unit: 'DAY',
+                        alias: $pass_expiration_delay
                     ),
-                    new QueryExpression(
-                        sprintf(
-                            'ADDDATE(%s, INTERVAL %d DAY) AS ' . $DB->quoteName('lock_date'),
-                            $DB->quoteName('password_last_update'),
-                            $pass_expiration_delay + $lock_delay
-                        )
-                    )
+                    QueryFunction::addDate(
+                        date: 'lock_date',
+                        interval: 'password_last_update',
+                        interval_unit: 'DAY',
+                        alias: $pass_expiration_delay + $lock_delay
+                    ),
                 ],
                 'FROM'   => User::getTable(),
                 'WHERE'  =>  [
@@ -410,7 +408,7 @@ class Auth extends CommonGLPI
         );
 
        // Have we a result ?
-        if ($result->numrows() == 1) {
+        if ($result->numrows() === 1) {
             $row = $result->current();
             $password_db = $row['password'];
 
