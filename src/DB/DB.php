@@ -45,6 +45,7 @@ use Doctrine\DBAL\Driver\PDO;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\MariaDBPlatform;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
@@ -312,7 +313,7 @@ final class DB
     public function quoteIdentifier($identifier): string
     {
         //handle verbatim names
-        if ($identifier instanceof \QueryExpression) {
+        if ($identifier instanceof \QueryExpression || $identifier instanceof \QueryFunction) {
             return $identifier->getValue();
         }
         if ($identifier === '*') {
@@ -706,7 +707,7 @@ final class DB
         if (!array_key_exists($table, $fields) || !$usecache) {
             $fields[$table] = $this->listFields($table);
         }
-        if (isset($fields[$table])) {
+        if (isset($fields[$table]) && is_array($fields[$table])) {
             $field = array_filter($fields[$table], static function ($f) use ($field) {
                 return $f->getName() === $field;
             });
@@ -858,6 +859,11 @@ final class DB
             $driver = $driver->getDriver();
         }
         return $driver;
+    }
+
+    public function getPlatform(): AbstractPlatform
+    {
+        return $this->connection->getDatabasePlatform();
     }
 
     public function disableForeignKeyChecks()

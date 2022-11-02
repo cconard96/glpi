@@ -69,8 +69,10 @@ final class SQLProvider implements SearchProviderInterface
 
     private static function buildSelect(array $data, string $itemtable): string
     {
+        global $DB_PDO;
+
         // request currentuser for SQL supervision, not displayed
-        $SELECT = "SELECT DISTINCT `$itemtable`.`id` AS id, '" . \Toolbox::addslashes_deep($_SESSION['glpiname'] ?? '') . "' AS currentuser,
+        $SELECT = "SELECT DISTINCT " . $DB_PDO->quoteIdentifier("$itemtable.id") . " AS id, '" . \Toolbox::addslashes_deep($_SESSION['glpiname'] ?? '') . "' AS currentuser,
                         " . \Search::addDefaultSelect($data['itemtype']);
 
         // Add select for all toview item
@@ -80,7 +82,7 @@ final class SQLProvider implements SearchProviderInterface
 
         $as_map = isset($data['search']['as_map']) && (int)$data['search']['as_map'] === 1;
         if ($as_map && $data['itemtype'] !== 'Entity') {
-            $SELECT .= ' `glpi_locations`.`id` AS loc_id, ';
+            $SELECT .= ' ' . $DB_PDO->quoteIdentifier('glpi_locations.id') . ' AS loc_id, ';
         }
 
         return $SELECT;
@@ -93,7 +95,7 @@ final class SQLProvider implements SearchProviderInterface
      */
     public static function getDefaultSelectCriteria(string $itemtype): array
     {
-        global $DB;
+        global $DB, $DB_PDO;
 
         $itemtable = SearchEngine::getOrigTableName($itemtype);
         $item      = null;
@@ -105,7 +107,7 @@ final class SQLProvider implements SearchProviderInterface
         $ret = [];
         switch ($itemtype) {
             case 'FieldUnicity':
-                $ret[] = "`glpi_fieldunicities`.`itemtype` AS ITEMTYPE";
+                $ret[] = $DB_PDO->quoteIdentifier('glpi_fieldunicities.itemtype') . ' AS ITEMTYPE';
                 break;
 
             default:
@@ -115,14 +117,14 @@ final class SQLProvider implements SearchProviderInterface
                 }
         }
         if ($itemtable === 'glpi_entities') {
-            $ret[] = "`$itemtable`.`id` AS entities_id";
-            $ret[] = "'1' AS is_recursive";
+            $ret[] = $DB_PDO->quoteIdentifier("$itemtable.id") . " AS entities_id";
+            $ret[] = $DB_PDO->quote('1') . " AS is_recursive";
         } else if ($mayberecursive) {
             if ($item->isField('entities_id')) {
-                $ret[] = $DB::quoteName("$itemtable.entities_id");
+                $ret[] = $DB_PDO->quoteIdentifier("$itemtable.entities_id");
             }
             if ($item->isField('is_recursive')) {
-                $ret[] = $DB::quoteName("$itemtable.is_recursive");
+                $ret[] = $DB_PDO->quoteIdentifier("$itemtable.is_recursive");
             }
         }
         return $ret;
@@ -139,7 +141,7 @@ final class SQLProvider implements SearchProviderInterface
      */
     public static function getSelectCriteria(string $itemtype, int $ID, bool $meta = false, string $meta_type = ''): array
     {
-        global $DB, $CFG_GLPI;
+        global $DB, $CFG_GLPI, $DB_PDO;
 
         $opt_arrays = SearchOption::getOptionsForItemtype($itemtype);
         $opt = new SearchOption($opt_arrays[$ID]);
@@ -192,9 +194,10 @@ final class SQLProvider implements SearchProviderInterface
             }
         }
 
-        $tocompute      = "`$table$addtable`.`$field`";
-        $tocomputeid    = "`$table$addtable`.`id`";
-        $tocomputetrans = "IFNULL(`$table" . $addtable . "_trans_" . $field . "`.`value`,'" . \Search::NULLVALUE . "')";
+        $tocompute      = $DB_PDO->quoteIdentifier("$table$addtable.$field");
+        $tocomputeid    = $DB_PDO->quoteIdentifier("$table$addtable.id");
+        //$tocomputetrans = "IFNULL(`$table" . $addtable . "_trans_" . $field . "`.`value`,'" . \Search::NULLVALUE . "')";
+        $tocomputetrans = QueryFunction::ifNull("{$table}{$addtable}_trans_{$field}.value", \Search::NULLVALUE);
 
         $ADDITONALFIELDS = [];
         if (
@@ -250,10 +253,10 @@ final class SQLProvider implements SearchProviderInterface
                         return array_merge($SELECT, $ADDITONALFIELDS);
                     }
                     $SELECT = [
-                        "`$table$addtable`.`$field` AS `{$NAME}`",
-                        "`$table$addtable`.`realname` AS `{$NAME}_realname`",
-                        "`$table$addtable`.`id` AS `{$NAME}_id`",
-                        "`$table$addtable`.`firstname` AS `{$NAME}_firstname`",
+                        $DB_PDO->quoteIdentifier("$table$addtable.$field AS {$NAME}"),
+                        $DB_PDO->quoteIdentifier("$table$addtable.realname AS {$NAME}_realname"),
+                        $DB_PDO->quoteIdentifier("$table$addtable.id AS {$NAME}_id"),
+                        $DB_PDO->quoteIdentifier("$table$addtable.firstname AS {$NAME}_firstname"),
                     ];
                     return array_merge($SELECT, $ADDITONALFIELDS);
                 }
@@ -410,7 +413,7 @@ final class SQLProvider implements SearchProviderInterface
         if (isset($opt["computation"])) {
             $tocompute = $opt["computation"];
             $tocompute = str_replace($DB::quoteName('TABLE'), 'TABLE', $tocompute);
-            $tocompute = str_replace("TABLE", $DB::quoteName("$table$addtable"), $tocompute);
+            $tocompute = str_replace("TABLE", $DB_PDO->quoteIdentifier("$table$addtable"), $tocompute);
         }
         // Preformat items
         if (isset($opt["datatype"])) {
@@ -475,8 +478,8 @@ final class SQLProvider implements SearchProviderInterface
                         return array_merge($SELECT, $ADDITONALFIELDS);
                     }
                     return array_merge([
-                        "$tocompute AS `{$NAME}`",
-                        "`$table$addtable`.`id` AS `{$NAME}_id`"
+                        $DB_PDO->quoteIdentifier("$tocompute AS {$NAME}"),
+                        $DB_PDO->quoteIdentifier("$table$addtable.id AS {$NAME}_id")
                     ], $ADDITONALFIELDS);
             }
         }
@@ -501,15 +504,14 @@ final class SQLProvider implements SearchProviderInterface
                 ";
             }
             $SELECT = [
-                new QueryExpression("
-                    GROUP_CONCAT(
-                        DISTINCT CONCAT(
-                            IFNULL($tocompute, '" . \Search::NULLVALUE . "'),
-                            '" . \Search::SHORTSEP . "',
-                            $tocomputeid
-                        ) ORDER BY $tocomputeid SEPARATOR '" . \Search::LONGSEP . "'
-                    ) AS `{$NAME}`
-                ")
+                QueryFunction::groupConcat(
+                    field: new QueryExpression('DISTINCT ' . QueryFunction::concat([
+                        QueryFunction::ifNull($tocompute, \Search::NULLVALUE),
+                        \Search::SHORTSEP,
+                        $tocomputeid
+                    ]) . ' ORDER BY ' . $tocomputeid . ' SEPARATOR ' . \Search::LONGSEP),
+                    alias: $NAME
+                ),
             ];
             if (!empty($TRANS)) {
                 $SELECT[] = new QueryExpression($TRANS);
@@ -517,17 +519,18 @@ final class SQLProvider implements SearchProviderInterface
             return array_merge($SELECT, $ADDITONALFIELDS);
         }
         $SELECT = [
-            "$tocompute AS `{$NAME}`",
+            "$tocompute AS " . $DB_PDO->quoteIdentifier($NAME),
         ];
         if (Session::haveTranslations(getItemTypeForTable($table), $field)) {
-            $SELECT[] = $tocomputetrans . " AS `{$NAME}_trans_{$field}`";
+            $SELECT[] = $tocomputetrans . " AS " . $DB_PDO->quoteIdentifier("{$NAME}_trans_{$field}");
         }
         return array_merge($SELECT, $ADDITONALFIELDS);
     }
 
     private static function buildFrom(string $itemtable): string
     {
-        return " FROM `$itemtable`";
+        global $DB_PDO;
+        return " FROM " . $DB_PDO->quoteIdentifier($itemtable);
     }
 
     /**
@@ -3224,7 +3227,7 @@ final class SQLProvider implements SearchProviderInterface
      **/
     public static function getOrderByCriteria(string $itemtype, array $sort_fields): array
     {
-        global $CFG_GLPI;
+        global $CFG_GLPI, $DB_PDO;
 
         $orderby_criteria = [];
         $searchopt = &SearchOption::getOptionsForItemtype($itemtype);
@@ -3266,7 +3269,7 @@ final class SQLProvider implements SearchProviderInterface
             }
 
             if (isset($CFG_GLPI["union_search_type"][$itemtype])) {
-                $criterion = "`ITEM_{$itemtype}_{$ID}` $order";
+                $criterion = $DB_PDO->quoteIdentifier("ITEM_{$itemtype}_{$ID}") . " $order";
             }
 
             // Plugin can override core definition for its type
@@ -3291,7 +3294,7 @@ final class SQLProvider implements SearchProviderInterface
                     // FIXME Dead case? Can't see any itemtype referencing this table in their search options to be able to get here.
                     case "glpi_auth_tables.name":
                         $user_searchopt = SearchOption::getOptionsForItemtype('User');
-                        $criterion = "`glpi_users`.`authtype` $order,
+                        $criterion = $DB_PDO->quoteIdentifier("glpi_users.authtype") .  " $order,
                               `glpi_authldaps" . $addtable . "_" .
                             self::computeComplexJoinID($user_searchopt[30]['joinparams']) . "`.
                                  `name` $order,
@@ -3366,7 +3369,7 @@ final class SQLProvider implements SearchProviderInterface
                 }
             }
 
-            $orderby_criteria[] = new QueryExpression($criterion ?? "`ITEM_{$itemtype}_{$ID}` $order");
+            $orderby_criteria[] = new QueryExpression($criterion ?? $DB_PDO->quoteIdentifier("ITEM_{$itemtype}_{$ID}") . " $order");
         }
 
         return $orderby_criteria;
@@ -3386,7 +3389,7 @@ final class SQLProvider implements SearchProviderInterface
      */
     public static function constructSQL(array &$data)
     {
-        global $DB, $CFG_GLPI;
+        global $DB, $CFG_GLPI, $DB_PDO;
 
         if (!isset($data['itemtype'])) {
             return false;
@@ -3565,7 +3568,7 @@ final class SQLProvider implements SearchProviderInterface
             || !empty($HAVING)
             || $data['search']['all_search']
         ) {
-            $GROUPBY = " GROUP BY `$itemtable`.`id`";
+            $GROUPBY = " GROUP BY " . $DB_PDO->quoteIdentifier("$itemtable.id");
         }
 
         if (empty($GROUPBY)) {
@@ -3574,7 +3577,7 @@ final class SQLProvider implements SearchProviderInterface
                     break;
                 }
                 if (isset($searchopt[$val2]["forcegroupby"])) {
-                    $GROUPBY = " GROUP BY `$itemtable`.`id`";
+                    $GROUPBY = " GROUP BY " . $DB_PDO->quoteIdentifier("$itemtable.id");
                 }
             }
         }
@@ -3583,7 +3586,7 @@ final class SQLProvider implements SearchProviderInterface
         $numrows = 0;
         //No search : count number of items using a simple count(ID) request and LIMIT search
         if ($data['search']['no_search']) {
-            $LIMIT = " LIMIT " . (int)$data['search']['start'] . ", " . (int)$data['search']['list_limit'];
+            $LIMIT = " OFFSET " . (int)$data['search']['start'] . " LIMIT " . (int)$data['search']['list_limit'];
 
             $count = "count(DISTINCT `$itemtable`.`id`)";
             // request currentuser for SQL supervision, not displayed

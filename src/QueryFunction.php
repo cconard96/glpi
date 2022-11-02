@@ -44,8 +44,6 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
  **/
 class QueryFunction
 {
-    private $raw;
-
     private string $name;
 
     private array $params;
@@ -64,23 +62,24 @@ class QueryFunction
         $this->alias = $alias;
     }
 
-    public function getRawValue(): string
-    {
-        return $this->raw;
-    }
-
     private function getDefaultOutput(): string
     {
         global $DB_PDO;
 
         // Quote parameters if needed
         foreach ($this->params as &$parameter) {
+            if ($parameter instanceof self || $parameter instanceof QueryExpression) {
+                continue;
+            }
+            if ($parameter === null) {
+                $t = '';
+            }
             $parameter = trim($parameter);
             // Check if the parameter is an unquoted table column name (table.column)
             if (preg_match('/^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$/', $parameter)) {
                 // quote the table name and column name, then recombine
                 $parts = explode('.', $parameter);
-                $parts = array_map([$DB_PDO, 'quoteName'], $parts);
+                $parts = array_map([$DB_PDO, 'quoteIdentifier'], $parts);
                 $parameter = implode('.', $parts);
             } else if (!is_numeric($parameter)) {
                 // Quote the parameter if it is not a number
@@ -139,7 +138,37 @@ class QueryFunction
                 'platforms' => [
                     [
                         'driver' => AbstractPostgreSQLDriver::class,
-                        'name' => 'STRING_AGG'
+                        'name' => 'STRING_AGG',
+                        'output_callback' => function ($name, $params, $alias) use ($DB_PDO): string {
+                            $separator = $params[1] ?? ',';
+                            $order_by = $params[2] ?? null;
+                            $output = $name . '(' . $params[0] . ' ' . $separator;
+                            if ($order_by) {
+                                $output .= ' ORDER BY ' . $order_by;
+                            }
+                            $output .= ')';
+                            if ($alias) {
+                                $output .= ' AS ' . $DB_PDO->quoteIdentifier($alias);
+                            }
+                            return $output;
+                        }
+                    ],
+                    [
+                        'driver' => AbstractMySQLDriver::class,
+                        'name' => 'GROUP_CONCAT',
+                        'output_callback' => function ($name, $params, $alias): string {
+                            $separator = $params[1] ?? ',';
+                            $order_by = $params[2] ?? null;
+                            $output = $name . '(' . $params[0] . ' ' . $separator;
+                            if ($order_by) {
+                                $output .= ' ORDER BY ' . $order_by;
+                            }
+                            $output .= ')';
+                            if ($alias) {
+                                $output .= ' AS ' . $alias;
+                            }
+                            return $output;
+                        }
                     ]
                 ]
             ],
@@ -179,6 +208,15 @@ class QueryFunction
                             }
                             return $output;
                         }
+                    ]
+                ]
+            ],
+            [
+                'name' => 'IFNULL',
+                'platforms' => [
+                    [
+                        'driver' => AbstractPostgreSQLDriver::class,
+                        'name' => 'COALESCE'
                     ]
                 ]
             ]
@@ -232,13 +270,18 @@ class QueryFunction
         return new self('CONCAT', $params, $alias);
     }
 
-    public static function groupConcat(string $field, string $separator = ',', ?string $alias = null): self
+    public static function groupConcat(string $field, string $separator = ',', ?string $order_by = null, ?string $alias = null): self
     {
-        return new self('GROUP_CONCAT', [$field, "SEPARATOR '$separator'"], $alias);
+        return new self('GROUP_CONCAT', [$field, $separator, $order_by], $alias);
     }
 
     public static function addDate(string $date, string $interval, string $interval_unit, ?string $minus = null, ?string $alias = null): self
     {
         return new self('DATE_ADD', [$date, $interval, $interval_unit, $minus], $alias);
+    }
+
+    public static function ifNull(string $field, string $value, ?string $alias = null): self
+    {
+        return new self('IFNULL', [$field, $value], $alias);
     }
 }
