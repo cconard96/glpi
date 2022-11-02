@@ -403,7 +403,7 @@ final class DB
      */
     public function insert(string $table, array $data): int
     {
-        $rows = $this->prepareInsert($table, $data)->executeStatement(array_values($data));
+        $rows = $this->prepareInsert($table, $data)->executeStatement($data);
         $this->affected_rows = $rows;
         return $rows;
     }
