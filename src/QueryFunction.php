@@ -194,13 +194,13 @@ class QueryFunction
                     ],
                     [
                         'driver' => AbstractMySQLDriver::class,
-                        'name' => '', // Not a true function
+                        'name' => 'DATE_ADD', // Not a true function
                         'output_callback' => function ($name, $params, $alias) use ($DB_PDO): string {
                             $output = sprintf(
                                 'DATE_ADD(%s, INTERVAL %s %s %s)',
                                 $params[0], // Date
                                 $params[1], // Interval
-                                $params[2] !== null ? '-' . $params[2] : '', // Optional minus field/value (subtraction from interval)
+                                !empty($params[2]) ? '-' . $params[2] : '', // Optional minus field/value (subtraction from interval)
                                 strtoupper($params[3]) // Unit
                             );
                             if ($alias !== null) {
@@ -254,7 +254,7 @@ class QueryFunction
         foreach ($supported_functions as $supported_function) {
             if ($supported_function['name'] === $function) {
                 foreach ($supported_function['platforms'] as $platform) {
-                    if ($driver instanceof $platform['driver']) {
+                    if ($driver instanceof $platform['driver'] && isset($platform['name'])) {
                         return $platform['name'];
                     }
                 }
