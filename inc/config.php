@@ -111,14 +111,16 @@ if (!isset($skip_db_check) && !file_exists(GLPI_CONFIG_DIR . "/config_db.php")) 
         include_once(GLPI_CONFIG_DIR . "/config_db.php");
 
        //Database connection
-        DBConnection::establishDBConnection(
-            (isset($USEDBREPLICATE) ? $USEDBREPLICATE : 0),
-            (isset($DBCONNECTION_REQUIRED) ? $DBCONNECTION_REQUIRED : 0)
-        );
+//        DBConnection::establishDBConnection(
+//            (isset($USEDBREPLICATE) ? $USEDBREPLICATE : 0),
+//            (isset($DBCONNECTION_REQUIRED) ? $DBCONNECTION_REQUIRED : 0)
+//        );
         Glpi\DB\DB::establishDBConnection(
             (isset($USEDBREPLICATE) ? $USEDBREPLICATE : 0),
             (isset($DBCONNECTION_REQUIRED) ? $DBCONNECTION_REQUIRED : 0)
         );
+        global $DB, $DB_PDO;
+        $DB = $DB_PDO;
 
        //Options from DB, do not touch this part.
         if (!Config::loadLegacyConfiguration()) {
