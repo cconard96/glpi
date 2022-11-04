@@ -55,7 +55,7 @@
         "simplepie/simplepie": "^1.5",
         "symfony/cache": "^5.4",
         "symfony/console": "^5.4",
-        "symfony/css-selector": "^5.4",
+        "symfony/css-selector": "^6.0",
         "symfony/dom-crawler": "^5.4",
         "symfony/mailer": "^5.4",
         "symfony/mime": "^5.4",
