@@ -86,7 +86,7 @@
         "exports-loader": "^3.1.0",
         "glob": "^7.1.6",
         "jest": "^27.3.0",
-        "jest-extended": "^2.0.0",
+        "jest-extended": "^3.1.0",
         "mini-css-extract-plugin": "^2.0.0",
         "script-loader": "^0.7.2",
         "strip-sourcemap-loader": "^0.0.1",
