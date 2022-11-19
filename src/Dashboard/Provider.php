@@ -1226,7 +1226,8 @@ class Provider
         $criteria = [
             'SELECT'   => [
                 new QueryExpression(
-                    "FROM_UNIXTIME(UNIX_TIMESTAMP(" . $DB->quoteName("{$t_table}_distinct.date") . "),'%Y-%m') AS period"
+                    "FROM_UNIXTIME(UNIX_TIMESTAMP(IFNULL(" . $DB::quoteName("{$t_table}_distinct.date") .
+                    ', ' . $DB::quoteName("{$t_table}_distinct.date_creation") . ")),'%Y-%m') AS period"
                 ),
                 new QueryExpression(
                     "SUM(IF({$t_table}_distinct.status = " . Ticket::INCOMING . ", 1, 0))
