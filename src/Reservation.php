@@ -538,6 +538,7 @@ JAVASCRIPT;
 
             $my_item = $data['users_id'] === Session::getLoginUserID();
 
+            $username = null;
             if ($canedit_admin || $my_item) {
                 $user->getFromDB($data['users_id']);
                 $username = $user->getFriendlyName();
@@ -555,9 +556,9 @@ JAVASCRIPT;
                 'start'       => $data['begin'],
                 'end'         => $data['end'],
                 'comment'     => $data['comment'] .
-                             $canedit_admin || $my_item
-                              ? "\n" . sprintf(__("Reserved by %s"), $username)
-                              : "",
+                    $username !== null
+                        ? "\n" . sprintf(__("Reserved by %s"), $username)
+                        : "",
                 'title'       => $params['reservationitems_id'] ? "" : $name,
                 'icon'        => $item->getIcon(),
                 'description' => $item->getTypeName(),
