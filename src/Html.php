@@ -1509,7 +1509,7 @@ HTML;
      */
     public static function generateMenuSession($force = false)
     {
-        global $PLUGIN_HOOKS;
+        global $PLUGIN_HOOKS, $CFG_GLPI;
         $menu = [];
 
         if (
@@ -1582,14 +1582,7 @@ HTML;
                 }
             }
 
-            $allassets = [
-                'Computer',
-                'Monitor',
-                'Peripheral',
-                'NetworkEquipment',
-                'Phone',
-                'Printer'
-            ];
+            $allassets = $CFG_GLPI["asset_types"];
 
             foreach ($allassets as $type) {
                 if (isset($menu['assets']['content'][strtolower($type)])) {
