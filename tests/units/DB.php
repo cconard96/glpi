@@ -767,4 +767,34 @@ OTHER EXPRESSION;"
             LogLevel::WARNING
         );
     }
+
+    protected function dataReplace()
+    {
+        return [
+            [
+                'table', [
+                    'field'  => 'value',
+                    'other'  => 'doe'
+                ],
+                'REPLACE INTO `table` SET `field` = \'value\', `other` = \'doe\''
+            ], [
+                '`table`', [
+                    '`field`'  => 'value',
+                    '`other`'  => 'doe'
+                ],
+                'REPLACE INTO `table` SET `field` = \'value\', `other` = \'doe\''
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataReplace
+     */
+    public function testBuildReplace($table, $params, $expected)
+    {
+        $this
+            ->if($this->newTestedInstance)
+            ->then
+            ->string($this->testedInstance->buildReplace($table, $params))->isIdenticalTo($expected);
+    }
 }

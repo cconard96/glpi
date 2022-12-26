@@ -1587,6 +1587,43 @@ class DBmysql
         return $res;
     }
 
+    public function buildReplace(string $table, array $params)
+    {
+        $query = "REPLACE INTO " . self::quoteName($table) . " SET ";
+        foreach ($params as $key => $val) {
+            $query .= self::quoteName($key) . " = " . $this->quote($val) . ", ";
+        }
+        $query = rtrim($query, ', ');
+        return $query;
+    }
+
+    public function replace(string $table, array $params)
+    {
+        $query = $this->buildReplace($table, $params);
+        return $this->query($query);
+    }
+
+    public function replaceOrDie(string $table, array $params, string $message = '')
+    {
+        $query = $this->buildReplace($table, $params);
+        $res = $this->query($query);
+        if (!$res) {
+            //TRANS: %1$s is the description, %2$s is the query, %3$s is the error message
+            $message = sprintf(
+                __('%1$s - Error during the database query: %2$s - Error is %3$s'),
+                $message,
+                $query,
+                $this->error()
+            );
+            if (isCommandLine()) {
+                throw new \RuntimeException($message);
+            } else {
+                echo $message . "\n";
+                die(1);
+            }
+        }
+        return $res;
+    }
 
     /**
      * Truncate table in the database

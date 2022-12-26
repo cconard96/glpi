@@ -16,6 +16,7 @@ The present file will list all changes made to the project; according to the
 ### API changes
 
 #### Added
+- Added `DBMysql::buildReplace()`, `DBMysql::replace()`, and `DBMysql::replaceOrDie()` for REPLACE INTO queries.
 
 #### Changes
 
