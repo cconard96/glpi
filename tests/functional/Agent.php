@@ -48,11 +48,8 @@ class Agent extends DbTestCase
             'RuleMatchedLog$0' => "<span><i class='ti ti-book me-2'></i>Import information</span>",
             'Log$1'            => "<span><i class='ti ti-history me-2'></i>Historical</span>",
         ];
-        $this
-         ->given($this->newTestedInstance)
-            ->then
-               ->array($this->testedInstance->defineTabs())
-               ->isIdenticalTo($expected);
+        $agent = new \Agent();
+        $this->array($agent->defineTabs())->isIdenticalTo($expected);
     }
 
     public function testHandleAgent()
@@ -71,38 +68,33 @@ class Agent extends DbTestCase
                 "wakeonlan",
             ]
         ];
+        $agent = new \Agent();
 
-        $this
-         ->given($this->newTestedInstance)
-            ->then
-               ->integer($this->testedInstance->handleAgent($metadata))
-               ->isGreaterThan(0);
+        $this->integer($agent->handleAgent($metadata))->isGreaterThan(0);
 
         // This should also work when inventory type is different than agent linked item type
         $metadata['itemtype'] = 'Printer';
 
         $this
          ->given($this->newTestedInstance)
-            ->then
-               ->integer($this->testedInstance->handleAgent($metadata))
-               ->isGreaterThan(0);
+            ->integer($agent->handleAgent($metadata))->isGreaterThan(0);
 
         // In the case the agent is used to submit another item type, we still
         // need to have access to agent tag but no item should be linked
-        $tag = $this->testedInstance->fields['tag'];
-        $port = $this->testedInstance->fields['port'];
-        $items_id = $this->testedInstance->fields['items_id'];
+        $tag = $agent->fields['tag'];
+        $port = $agent->fields['port'];
+        $items_id = $agent->fields['items_id'];
         $this->string($tag)->isIdenticalTo('000005');
         $this->string($port)->isIdenticalTo('62354');
 
-        $this->integer($this->testedInstance->fields['use_module_computer_inventory'])->isIdenticalTo(1);
-        $this->integer($this->testedInstance->fields['use_module_network_discovery'])->isIdenticalTo(1);
-        $this->integer($this->testedInstance->fields['use_module_network_inventory'])->isIdenticalTo(1);
-        $this->integer($this->testedInstance->fields['use_module_remote_inventory'])->isIdenticalTo(1);
-        $this->integer($this->testedInstance->fields['use_module_wake_on_lan'])->isIdenticalTo(1);
-        $this->integer($this->testedInstance->fields['use_module_esx_remote_inventory'])->isIdenticalTo(0);
-        $this->integer($this->testedInstance->fields['use_module_package_deployment'])->isIdenticalTo(0);
-        $this->integer($this->testedInstance->fields['use_module_collect_data'])->isIdenticalTo(0);
+        $this->integer($agent->fields['use_module_computer_inventory'])->isIdenticalTo(1);
+        $this->integer($agent->fields['use_module_network_discovery'])->isIdenticalTo(1);
+        $this->integer($agent->fields['use_module_network_inventory'])->isIdenticalTo(1);
+        $this->integer($agent->fields['use_module_remote_inventory'])->isIdenticalTo(1);
+        $this->integer($agent->fields['use_module_wake_on_lan'])->isIdenticalTo(1);
+        $this->integer($agent->fields['use_module_esx_remote_inventory'])->isIdenticalTo(0);
+        $this->integer($agent->fields['use_module_package_deployment'])->isIdenticalTo(0);
+        $this->integer($agent->fields['use_module_collect_data'])->isIdenticalTo(0);
     }
 
     public function testHandleAgentWOType()
@@ -141,18 +133,14 @@ class Agent extends DbTestCase
 
         $this
          ->given($this->newTestedInstance)
-            ->then
-               ->integer($this->testedInstance->handleAgent($metadata))
-               ->isGreaterThan(0);
+            ->integer($this->testedInstance->handleAgent($metadata))->isGreaterThan(0);
 
         // This should also work when inventory type is different than agent linked item type
         $metadata['itemtype'] = 'Printer';
 
         $this
          ->given($this->newTestedInstance)
-            ->then
-               ->integer($this->testedInstance->handleAgent($metadata))
-               ->isGreaterThan(0);
+            ->integer($this->testedInstance->handleAgent($metadata))->isGreaterThan(0);
 
         // In the case the agent is used to submit another item type, we still
         // need to have access to agent tag but no item should be linked
@@ -212,7 +200,6 @@ class Agent extends DbTestCase
 
         $this
          ->given($this->newTestedInstance)
-            ->then
                ->boolean($this->testedInstance->getFromDB($agent['id']))
                ->isTrue();
 
@@ -312,7 +299,6 @@ class Agent extends DbTestCase
 
         $this
             ->given($this->newTestedInstance)
-            ->then
             ->boolean($this->testedInstance->getFromDB($agent['id']))
             ->isTrue();
 
@@ -458,7 +444,6 @@ class Agent extends DbTestCase
 
         $this
             ->given($this->newTestedInstance)
-            ->then
             ->boolean($this->testedInstance->getFromDB($agent['id']))
             ->isTrue();
 

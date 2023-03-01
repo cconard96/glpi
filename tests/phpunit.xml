@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<phpunit bootstrap="bootstrap.php" stopOnFailure="true">
+    <testsuites>
+        <testsuite name='GLPI Unit Tests'>
+            <directory suffix='.php'>./units/</directory>
+        </testsuite>
+        <testsuite name='GLPI Functional Tests'>
+            <directory suffix='.php'>./functionnal/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

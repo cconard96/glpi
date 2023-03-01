@@ -37,18 +37,18 @@
 
 class DbTestCase extends \GLPITestCase
 {
-    public function beforeTestMethod($method)
+    public function setUp(): void
     {
         global $DB;
         $DB->beginTransaction();
-        parent::beforeTestMethod($method);
+        parent::setUp();
     }
 
-    public function afterTestMethod($method)
+    public function tearDown(): void
     {
         global $DB;
         $DB->rollback();
-        parent::afterTestMethod($method);
+        parent::tearDown();
     }
 
 

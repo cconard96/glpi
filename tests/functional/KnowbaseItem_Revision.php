@@ -41,11 +41,11 @@ use DbTestCase;
 
 class KnowbaseItem_Revision extends DbTestCase
 {
-    public function afterTestMethod($method)
+    public function tearDown(): void
     {
         global $DB;
         $DB->delete('glpi_knowbaseitems_revisions', [true]);
-        parent::afterTestMethod($method);
+        parent::tearDown();
     }
 
     public function testGetTypeName()

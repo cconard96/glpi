@@ -24,7 +24,6 @@
 /tools/htmlcov/
 /vendor/*
 !/vendor/.htaccess
-phpunit.xml
 /tests/code-coverage/
 /tests/coverage-*/
 /tests/files/

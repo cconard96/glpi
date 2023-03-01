@@ -135,7 +135,7 @@ abstract class CommonITILSatisfaction extends DbTestCase
 
         $log_type = $satisfaction->getLogTypeID();
         $this->boolean(is_array($log_type))->isTrue();
-        $this->array($log_type)->size->isEqualTo(2);
+        $this->array($log_type)->size()->isEqualTo(2);
         $this->string($log_type[0])->isEqualTo($itilobject_type);
 
         $this->integer($log_type[1])->isEqualTo($items_id);

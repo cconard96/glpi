@@ -36,6 +36,7 @@
 namespace tests\units;
 
 use DbTestCase;
+use const _PHPStan_a4fa95a42\__;
 
 /* Test for inc/alert.class.php */
 
@@ -47,7 +48,7 @@ class Certificate extends DbTestCase
         $obj = new \Certificate();
 
        // Add
-        $in = $this->getIn(__METHOD__);
+        $in = $this->getCertificateData();
         $id = $obj->add($in);
         $this->integer((int)$id)->isGreaterThan(0);
         $this->boolean($obj->getFromDB($id))->isTrue();
@@ -73,7 +74,7 @@ class Certificate extends DbTestCase
 
        // Update
         $id = $obj->getID();
-        $in = array_merge(['id' => $id], $this->getIn(__METHOD__));
+        $in = array_merge(['id' => $id], $this->getCertificateData());
         $this->boolean($obj->update($in))->isTrue();
         $this->boolean($obj->getFromDB($id))->isTrue();
 
@@ -116,7 +117,7 @@ class Certificate extends DbTestCase
 
        // Update
         $id = $certificate->getID();
-        $in = array_merge(['id' => $id], $this->getIn(__METHOD__));
+        $in = array_merge(['id' => $id], $this->getCertificateData());
         $this->boolean($certificate->update($in))->isTrue();
         $this->boolean($certificate->getFromDB($id))->isTrue();
 
@@ -153,10 +154,10 @@ class Certificate extends DbTestCase
         }
     }
 
-    public function getIn($method = "")
+    public function getCertificateData()
     {
         return [
-            'name'                => $method,
+            'name'                => __METHOD__,
             'entities_id'         => 0,
             'serial'              => $this->getUniqueString(),
             'otherserial'         => $this->getUniqueString(),
@@ -231,10 +232,9 @@ class Certificate extends DbTestCase
         $this->array($alerts)
             ->hasSize(1);
         $alert_certificate = array_pop($alerts);
-        $this->array($alert_certificate)
-            ->string['itemtype']->isEqualTo('Certificate')
-            ->integer['items_id']->isEqualTo($id)
-            ->integer['id']->isEqualTo($alert_id);
+        $this->string($alert_certificate['itemtype'])->isEqualTo('Certificate');
+        $this->integer($alert_certificate['items_id'])->isEqualTo($id);
+        $this->integer($alert_certificate['id'])->isEqualTo($alert_id);
 
         // New alert if the last one is more than 1 hour old
         $alert_id = $alert_certificate['id'];

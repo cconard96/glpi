@@ -33,14 +33,16 @@
  * ---------------------------------------------------------------------
  */
 
-use atoum\atoum;
 use Glpi\Tests\Log\TestHandler;
 use Monolog\Level;
 use Psr\Log\LogLevel;
 
 // Main GLPI test case. All tests should extends this class.
 
-class GLPITestCase extends atoum
+/**
+ * @property null newTestedInstance
+ */
+class GLPITestCase extends \CJDevStudios\AtoumShim\Atoum
 {
     private $int;
     private $str;
@@ -56,10 +58,27 @@ class GLPITestCase extends atoum
      */
     private $sql_log_handler;
 
-    public function beforeTestMethod($method)
+    private $testedInstance = null;
+
+    public function __get(string $name)
+    {
+        if ($name === 'newTestedInstance') {
+            $tested_class_name = str_replace('tests\units', '', static::class);
+            $this->newTestedInstance = new $tested_class_name();
+            return null;
+        } else if ($name === 'testedInstance') {
+            if ($this->testedInstance === null) {
+                $this->newTestedInstance;
+            }
+            return $this->testedInstance;
+        }
+        return null;
+    }
+
+    public function setUp(): void
     {
        // By default, no session, not connected
-        $this->resetSession();
+        //$this->resetSession();
 
         // By default, there shouldn't be any pictures in the test files
         $this->resetPictures();
@@ -77,7 +96,7 @@ class GLPITestCase extends atoum
         $SQLLOGGER->setHandlers([$this->sql_log_handler]);
     }
 
-    public function afterTestMethod($method)
+    public function tearDown(): void
     {
         if (isset($_SESSION['MESSAGE_AFTER_REDIRECT']) && !$this->has_failed) {
             unset($_SESSION['MESSAGE_AFTER_REDIRECT'][INFO]);
@@ -86,7 +105,7 @@ class GLPITestCase extends atoum
                 sprintf(
                     "Some messages has not been handled in %s::%s:\n%s",
                     static::class,
-                    $method,
+                    $this->getName(),
                     print_r($_SESSION['MESSAGE_AFTER_REDIRECT'], true)
                 )
             );
@@ -109,7 +128,7 @@ class GLPITestCase extends atoum
                     sprintf(
                         "Unexpected entries in log in %s::%s:\n%s",
                         static::class,
-                        $method,
+                        $this->getName(),
                         print_r($clean_logs, true)
                     )
                 );

@@ -46,10 +46,10 @@ class RuleImportAsset extends DbTestCase
     private $rules_id;
     private $ports_id;
 
-    public function beforeTestMethod($method)
+    public function setUp(): void
     {
-        parent::beforeTestMethod($method);
-       //reset local values
+        parent::setUp();
+        //reset local values
         $this->items_id = null;
         $this->itemtype = null;
         $this->rules_id = null;

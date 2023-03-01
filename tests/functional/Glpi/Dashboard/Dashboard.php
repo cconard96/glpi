@@ -43,11 +43,11 @@ class Dashboard extends DbTestCase
 {
     private $dashboard = null;
 
-    public function beforeTestMethod($method)
+    public function setUp(): void
     {
         $this->dashboard = new \Glpi\Dashboard\Dashboard('test_dashboard');
 
-        parent::beforeTestMethod($method);
+        parent::setUp();
     }
 
     public function testLoad()

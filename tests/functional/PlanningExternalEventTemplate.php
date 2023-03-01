@@ -41,9 +41,9 @@ class PlanningExternalEventTemplate extends \AbstractPlanningEvent
 {
     protected $myclass = "\PlanningExternalEventTemplate";
 
-    public function beforeTestMethod($method)
+    public function setUp(): void
     {
-        parent::beforeTestMethod($method);
+        parent::setUp();
 
         $this->input = array_merge($this->input, [
             '_planningrecall' => [

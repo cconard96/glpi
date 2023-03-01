@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f3de0294e112165d725ea5e6d949cc0f",
+    "content-hash": "f6599af851a799f0a2da553a0adbf6a2",
     "packages": [
         {
             "name": "apereo/phpcas",
@@ -7923,7 +7923,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "cjdevstudios/atoum-phpunit-shim": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

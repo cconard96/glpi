@@ -169,7 +169,7 @@ class StatusChecker extends DbTestCase
         $this->string($status['crontasks']['status'])->isEqualTo(GlpiStatusChecker::STATUS_PROBLEM);
         $this->array($status['crontasks']['stuck'])->size->isEqualTo(2);
 
-       // afterTestMethod will rollback the DB changes for us
+       // tearDown will rollback the DB changes for us
     }
 
     protected function getCalculatedGlobalStatusProvider()

@@ -45,9 +45,9 @@ use Ticket;
 
 class Impact extends \DbTestCase
 {
-    public function beforeTestMethod($method)
+    public function setUp(): void
     {
-        parent::beforeTestMethod($method);
+        parent::setUp();
 
         foreach ($this->nodes as $node) {
             $id = $node['id'];

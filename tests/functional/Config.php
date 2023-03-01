@@ -512,9 +512,8 @@ class Config extends DbTestCase
         if (is_a($itemtype, 'CommonDropdown', true)) {
             $this->boolean($item->isUsed())->isFalse();
         }
-        $this->array(\Config::getConfigurationValues('core', [$key]))
-         ->hasKey($key)
-         ->variable[$key]->isEqualTo(0);
+        $this->array(\Config::getConfigurationValues('core', [$key]))->hasKey($key);
+        $this->variable(\Config::getConfigurationValues('core', [$key])['key'])->isEqualTo(0);
 
        // Case 2: unused item is cleaned without effect
         $item = new $itemtype();

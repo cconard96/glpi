@@ -45,9 +45,9 @@ abstract class AbstractPlanningEvent extends \DbTestCase
     protected $exdate1   = "";
     protected $exdate2   = "";
 
-    public function beforeTestMethod($method)
+    public function setUp(): void
     {
-        parent::beforeTestMethod($method);
+        parent::setUp();
 
         $this->now      = time();
         $this->duration = 2 * \HOUR_TIMESTAMP;

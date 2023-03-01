@@ -80,9 +80,8 @@ class Cartridge extends DbTestCase
         $this->boolean($cartridge->install($pid, $ciid))->isTrue();
        //check install
         $this->boolean($cartridge->getFromDB($cid))->isTrue();
-        $this->array($cartridge->fields)
-         ->variable['printers_id']->isEqualTo($pid)
-         ->string['date_use']->matches('#\d{4}-\d{2}-\d{2}$#');
+        $this->variable($cartridge->fields['printers_id'])->isEqualTo($pid);
+        $this->string($cartridge->fields['date_use'])->matches('#\d{4}-\d{2}-\d{2}$#');
         $this->variable($cartridge->fields['date_out'])->isNull();
        //already installed
         $this->boolean($cartridge->install($pid, $ciid))->isFalse();
