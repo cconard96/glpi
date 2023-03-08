@@ -1345,7 +1345,7 @@ HTML;
             'config' => [
                 'title' => __('Setup'),
                 'types' => [
-                    'CommonDropdown', 'CommonDevice', 'Notification',
+                    'CommonDropdown', 'CommonDevice', 'Notification', 'Webhook',
                     'SLM', 'Config', 'FieldUnicity', 'CronTask', 'Auth',
                     'MailCollector', 'Link', 'Plugin', 'OAuthClient'
                 ],
