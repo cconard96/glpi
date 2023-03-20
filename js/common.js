@@ -1152,23 +1152,29 @@ function onTinyMCEChange(e) {
 }
 
 function relativeDate(str) {
-    var s = ( +new Date() - Date.parse(str) ) / 1e3,
-        m = s / 60,
-        h = m / 60,
-        d = h / 24,
-        y = d / 365.242199,
-        tmp;
+    const s = ( +new Date() - Date.parse(str) ) / 1e3;
+    const m = s / 60;
+    const h = m / 60;
+    const d = h / 24;
 
-    return (tmp = Math.round(s)) === 1 ? __('just now')
-        : m < 1.01 ? '%s seconds ago'.replace('%s', tmp)
-            : (tmp = Math.round(m)) === 1 ? __('a minute ago')
-                : h < 1.01 ? '%s minutes ago'.replace('%s', tmp)
-                    : (tmp = Math.round(h)) === 1 ? __('an hour ago')
-                        : d < 1.01 ? '%s hours ago'.replace('%s', tmp)
-                            : (tmp = Math.round(d)) === 1 ? __('yesterday')
-                                : y < 1.01 ? '%s days ago'.replace('%s', tmp)
-                                    : (tmp = Math.round(y)) === 1 ? __('a year ago')
-                                        : '%s years ago'.replace('%s', tmp);
+    // return a string with the relative date such as n weeks ago
+    let relative_date = str;
+    if (s < 60) {
+        __('just now');
+    } else if (m < 60) {
+        relative_date = __('%s minutes ago').replace('%s', Math.floor(m));
+    } else if (h < 24) {
+        relative_date = __('%s hours ago').replace('%s', Math.floor(h));
+    } else if (d === 1) {
+        relative_date = __('yesterday');
+    } else if (d < 14) {
+        relative_date = __('%s days ago').replace('%s', Math.floor(d));
+    } else if (d < 31) {
+        relative_date = __('%s weeks ago').replace('%s', Math.floor(d / 7));
+    } else if (d < 60) {
+        relative_date = __('last month');
+    }
+    return relative_date;
 }
 
 /**
