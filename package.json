@@ -69,7 +69,8 @@
     "scripts": {
         "build:pack": "webpack --config .webpack.config.js",
         "build": "npm run build:pack",
-        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --colors --forceExit --config tests/js/jest.config.js ./tests/js/**"
+        "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --colors --forceExit --config tests/js/jest.config.js ./tests/js/**",
+        "test:e2e": "cypress open --project tests"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "^5.16.5",
@@ -77,6 +78,7 @@
         "copy-webpack-plugin": "^11.0.0",
         "css-loader": "^6.7.3",
         "csso-cli": "^4.0.2",
+        "cypress": "^12.8.1",
         "eslint": "^8.35.0",
         "exports-loader": "^4.0.0",
         "glob": "^9.1.0",
@@ -84,6 +86,7 @@
         "jest-environment-jsdom": "^29.4.3",
         "jest-extended": "^3.2.4",
         "mini-css-extract-plugin": "^2.7.2",
+        "playwright-webkit": "^1.31.2",
         "script-loader": "^0.7.2",
         "strip-sourcemap-loader": "^0.0.1",
         "stylelint": "^14.16.1",
