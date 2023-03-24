@@ -47,7 +47,6 @@ TESTS_SUITES=(
   "install"
   "update"
   "units"
-  "functionnal"
   "functional"
   "cache"
   "ldap"
@@ -240,8 +239,8 @@ do
          docker-compose exec -T app .github/actions/test_tests-units.sh \
       || LAST_EXIT_CODE=$?
       ;;
-    "functionnal" | "functional")
-         docker-compose exec -T app .github/actions/test_tests-functionnal.sh \
+    "functional")
+         docker-compose exec -T app .github/actions/test_tests-functional.sh \
       || LAST_EXIT_CODE=$?
       ;;
     "cache")
