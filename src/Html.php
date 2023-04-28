@@ -1819,6 +1819,7 @@ HTML;
 
         TemplateRenderer::getInstance()->display('layout/parts/page_footer.html.twig', $tpl_vars);
 
+        \Glpi\Debug\Profiler::stop('php_request');
         (new Glpi\Debug\Toolbar())->show();
 
         if (!$keepDB && function_exists('closeDBConnections')) {

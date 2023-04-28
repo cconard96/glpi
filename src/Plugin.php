@@ -1596,6 +1596,7 @@ class Plugin extends CommonDBTM
     {
         global $PLUGIN_HOOKS;
 
+        \Glpi\Debug\Profiler::start($name, 'plugins');
         if ($param == null) {
             $data = func_get_args();
         } else {
@@ -1633,6 +1634,7 @@ class Plugin extends CommonDBTM
                 }
             }
         }
+        \Glpi\Debug\Profiler::stop($name);
        /* Variable-length argument lists have a slight problem when */
        /* passing values by reference. Pity. This is a workaround.  */
         return $data;
