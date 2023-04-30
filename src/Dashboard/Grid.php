@@ -1572,7 +1572,7 @@ HTML;
         if (strlen($default)) {
             $dasboard = new Dashboard($default);
 
-            if ($dasboard->load() && $dasboard->canViewCurrent()) {
+            if ($dasboard->canViewCurrent()) {
                 return $default;
             }
         }
