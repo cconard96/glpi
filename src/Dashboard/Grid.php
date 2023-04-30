@@ -1572,16 +1572,19 @@ HTML;
         if (strlen($default)) {
             $dasboard = new Dashboard($default);
 
-            if ($dasboard->canViewCurrent()) {
+            if ($dasboard->load() && $dasboard->canViewCurrent()) {
                 return $default;
             }
         }
 
        // if default not found, return first dashboards
         if (!$strict) {
-            self::loadAllDashboards();
+            self::loadAllDashboards(false);
             $first_dashboard = array_shift(self::$all_dashboards);
             if (isset($first_dashboard['key'])) {
+                // set this as the default in the $_SESSION variable to avoid having to load all dashboards again
+                // Since this is used for menu generation mainly, this only really benefits users in debug mode
+                $_SESSION["glpi$config_key"] = $first_dashboard['key'];
                 return $first_dashboard['key'];
             }
         }
