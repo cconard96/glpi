@@ -39,7 +39,6 @@ use DateInterval;
 use DBConnection;
 use Dropdown;
 use Glpi\Application\View\TemplateRenderer;
-use Glpi\Debug\Profiler;
 use Glpi\Plugin\Hooks;
 use Html;
 use Plugin;
