@@ -1287,6 +1287,10 @@ HTML;
         $tpl_vars['js_modules'][] = ['path' => 'js/modules/Search/ResultsView.js'];
         $tpl_vars['js_modules'][] = ['path' => 'js/modules/Search/Table.js'];
 
+        if ($_SESSION['glpi_use_mode'] === Session::DEBUG_MODE) {
+            $tpl_vars['glpi_request_id'] = \Glpi\Debug\Profile::getCurrent()->getID();
+        }
+
         TemplateRenderer::getInstance()->display('layout/parts/head.html.twig', $tpl_vars);
 
         self::glpi_flush();
