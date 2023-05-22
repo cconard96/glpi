@@ -179,6 +179,11 @@ final class Profile
         $debug_info['globals']['session'] = $session;
         $debug_info['globals']['server'] = $_SERVER ?? [];
 
+        $glpi_classes = array_filter(get_declared_classes(), static function ($class) {
+            return is_subclass_of($class, \CommonGLPI::class);
+        });
+        $debug_info['loaded_classes'] = array_values($glpi_classes);
+
         foreach ($this->additional_info as $widget => $data) {
             if (!array_key_exists($widget, $debug_info)) {
                 $debug_info[$widget] = $data;

@@ -67,6 +67,7 @@
  *     }
  * }} sql
  * @property {Object.<string, any>} globals
+ * @property {string[]} loaded_classes
  * @property {ProfilerSection[]} [profiler]
  */
 
@@ -137,6 +138,9 @@ window.GLPI.Debug = new class Debug {
 
     init(initial_request) {
         this.initial_request = initial_request;
+
+        // Empty cache that is only meant to be kept for the current page
+        this.clearDebugCache();
 
         $.each(this.initial_request.sql.queries, (i, query) => {
             this.initial_request.sql.queries[i].query = this.cleanSQLQuery(query.query);
@@ -290,6 +294,14 @@ window.GLPI.Debug = new class Debug {
         });
     }
 
+    /**
+     * Clear any debug data in session cache
+     */
+    clearDebugCache() {
+        window.sessionStorage.removeItem('search_opts_cache');
+        window.sessionStorage.removeItem('db_table_cache');
+    }
+
     cleanSQLQuery(query) {
         const newline_keywords = ['UNION', 'FROM', 'WHERE', 'INNER JOIN', 'LEFT JOIN', 'ORDER BY', 'SORT'];
         const post_newline_keywords = ['UNION'];
@@ -422,6 +434,9 @@ window.GLPI.Debug = new class Debug {
                 break;
             case 'request_summary':
                 this.showRequestSummary(content_area);
+                break;
+            case 'reflection':
+                this.showReflectionInfo(content_area);
                 break;
             default:
                 content_area.empty();
@@ -1381,6 +1396,208 @@ window.GLPI.Debug = new class Debug {
                     });
                     canvas_el.trigger('render');
                 }
+            }
+        });
+    }
+
+    /**
+     * Convert an object to a table
+     * @param main_header The main header which will span all columns
+     * @param headers The column headers
+     * @param obj The object to display as a table
+     * @returns {*|jQuery|HTMLElement|*[]}
+     */
+    showObjectAsTable(main_header, headers, obj) {
+        let table = $(`
+                <table class='table'>
+                    <thead>
+                        ${main_header !== null ? `<tr><th class="center" colspan='${Object.keys(headers).length}'>${main_header}</th></tr>` : ''}
+                        ${Object.values(headers).map((value) => `<th>${value}</th>`).join('')}
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            `);
+
+        $.each(obj, (okey, oval) => {
+            let row_el = $('<tr></tr>');
+            $.each(headers, (hkey, htext) => {
+                const v = (oval[hkey] || '');
+
+                if (hkey === 'table') {
+                    // Is a table name
+                    //table += "<td>" + v + GlpiDevDBViewer.getDBSchemaButton('table', v) + GlpiDevClassViewer.getClassViewButton('table', v) + "</td>";
+                    row_el.append("<td>" + v + "</td>");
+                } else if (hkey === 'massiveaction' || hkey === 'Unique' || hkey === 'Null') {
+                    row_el.append("<td>" + (v === 1 || v === true ? 'Yes' : 'No') + "</td>");
+                } else if (typeof v === 'string' && (/._id$/.test(v) || /._id_/.test(v))) {
+                    if (v === 'items_id') {
+                        const info_text = 'Refers to the ID field in any one of multiple tables. It is a polymorphic relationship.' +
+                            ' Typically the itemtype it refers to is specified in the `itemtype` field.';
+                        row_el.append("<td>" + v + "<i class='info fas fa-info-circle' title='" + info_text + "'></i></td>");
+                    } else {
+                        //table += "<td>" + v + GlpiDevDBViewer.getDBSchemaButton('fk', v) + GlpiDevClassViewer.getClassViewButton('fk', v) + "</td>";
+                        row_el.append("<td>" + v + "</td>");
+                    }
+                } else {
+                    row_el.append("<td>" + v + "</td>");
+                }
+            });
+            table.append(row_el);
+        });
+
+        return table;
+    }
+
+    showReflectionInfo(content_area) {
+        content_area.empty();
+
+        const class_info_params = {
+            reflection: {
+                data: 'class_info',
+            }
+        };
+        if (content_area.data('reflection_itemtype') !== undefined) {
+            class_info_params.reflection.itemtype = content_area.data('reflection_itemtype');
+        } else {
+            // No specific itemtype. It will be guessed based on the current page URL
+            class_info_params.reflection.page_url = window.location.pathname;
+        }
+
+        const all_loaded_classes = new Set(this.initial_request.loaded_classes);
+        $.each(this.ajax_requests, (i, request) => {
+            $.each(request.loaded_classes, (i, loaded_class) => {
+                all_loaded_classes.add(loaded_class);
+            });
+        });
+        // Sort the classes alphabetically
+        const all_loaded_classes_sorted = Array.from(all_loaded_classes).sort();
+
+        $.ajax({
+            url: CFG_GLPI.root_doc + '/ajax/debug.php',
+            data: class_info_params
+        }).done((data) => {
+            const itemtype = data['class'];
+            content_area.append(`
+                <div>
+                    <h1>
+                        <span class="current_itemtype">${itemtype}</span>
+                        <select name="loaded_itemtypes" class="form-control form-control-sm w-auto d-none"></select>
+                        <button type="button" name="change_itemtype" class="fs-3 btn border-0" title="${_x('debug', 'Select a different class')}">
+                            <i class="ti ti-switch-horizontal"></i>
+                        </button>
+                    </h1>
+                    <h2><i class="${data['icon']}"></i>Name: ${data['type_name']}/${data['type_name_plural']}</h2>
+                </div>
+                <!-- Nav tabs -->
+                <ul class="nav nav-pills" role="tablist" data-bs-toggle="tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" role="tab" data-bs-toggle="tab" href="#reflection_class_info">${_x('debug', 'Search options')}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" role="tab" data-bs-toggle="tab" href="#reflection_db_table">${_x('debug', 'DB table')}</a>
+                    </li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="reflection_class_info"></div>
+                    <div role="tabpanel" class="tab-pane" id="reflection_db_table"></div>
+                </div>
+            `);
+            const loaded_itemtypes = content_area.find('select[name="loaded_itemtypes"]');
+            loaded_itemtypes.append(all_loaded_classes_sorted.map((itemtype) => `<option value="${itemtype}">${itemtype}</option>`).join(''));
+            loaded_itemtypes.val(data['class']);
+            loaded_itemtypes.on('change', (e) => {
+                content_area.data('reflection_itemtype', $(e.currentTarget).val());
+                this.showReflectionInfo(content_area);
+            });
+            content_area.find('button[name="change_itemtype"]').on('click', () => {
+                content_area.find('span.current_itemtype').addClass('d-none');
+                content_area.find('button[name="change_itemtype"]').addClass('d-none');
+                loaded_itemtypes.removeClass('d-none');
+            });
+
+            const show_session_opts = (data) => {
+                const so_table = this.showObjectAsTable('Search Options', {
+                    searchid: 'Search ID',
+                    table: 'Table',
+                    field: 'Field',
+                    name: 'Name',
+                    linkfield: 'Link field',
+                    datatype: 'Datatype',
+                    massiveaction: 'Massive action'
+                }, data);
+                content_area.find('#reflection_class_info').empty().append(`
+                    <div>
+                        ${so_table[0].outerHTML}
+                    </div>
+                `);
+            };
+
+            const show_db_table = (data) => {
+                const db_fields_table = this.showObjectAsTable('Table columns', {
+                    Field: 'Field',
+                    Type: 'Data Type',
+                    Null: 'Nullable',
+                    Key: 'Key Type',
+                    Default: 'Default Value',
+                    Extra: 'Extra Info'
+                }, data['fields']);
+                const db_index_table = this.showObjectAsTable('Table indexes', {
+                    Key_name: 'Key Name',
+                    Seq_in_index: 'Sequence in Index',
+                    Column_name: 'Column',
+                    Null: 'Nullable',
+                    Unique: 'Unique'
+                }, data['indexes']);
+                content_area.find('#reflection_db_table').empty().append(`
+                    <div>
+                        ${db_fields_table[0].outerHTML}
+                        ${db_index_table[0].outerHTML}
+                    </div>
+                `);
+            };
+
+            const search_opts_cache = JSON.parse(window.sessionStorage.getItem('search_opts_cache') || '{}');
+            if (search_opts_cache[itemtype] !== undefined) {
+                show_session_opts(search_opts_cache[itemtype]);
+            } else {
+                $.ajax({
+                    url: CFG_GLPI.root_doc + '/ajax/debug.php',
+                    data: {
+                        reflection: {
+                            data: 'search_options',
+                            page_url: window.location.pathname
+                        }
+                    }
+                }).done((data) => {
+                    $.each(data, (i, o) => {
+                        o.searchid = i;
+                    });
+                    search_opts_cache[itemtype] = data;
+                    window.sessionStorage.setItem('search_opts_cache', JSON.stringify(search_opts_cache));
+                    show_session_opts(data);
+                });
+            }
+
+            const db_table_cache = JSON.parse(window.sessionStorage.getItem('db_table_cache') || '{}');
+            if (db_table_cache[itemtype] !== undefined) {
+                show_db_table(db_table_cache[itemtype]);
+            } else {
+                $.ajax({
+                    url: CFG_GLPI.root_doc + '/ajax/debug.php',
+                    data: {
+                        reflection: {
+                            data: 'db_table',
+                            page_url: window.location.pathname
+                        }
+                    }
+                }).done((data) => {
+                    db_table_cache[itemtype] = data;
+                    window.sessionStorage.setItem('db_table_cache', JSON.stringify(db_table_cache));
+                    show_db_table(data);
+                });
             }
         });
     }

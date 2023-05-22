@@ -61,5 +61,27 @@ if (isset($_GET['ajax_id'])) {
     die();
 }
 
+if (isset($_GET['reflection'])) {
+    header('Content-Type: application/json');
+    $itemtype = $_GET['reflection']['itemtype'] ?? \Glpi\Debug\Reflection::getInstance()->getItemtypeForPage($_GET['reflection']['page_url']);
+    if ($itemtype === null) {
+        http_response_code(404);
+        die();
+    }
+    if ($_GET['reflection']['data'] === 'class_info') {
+        echo json_encode(\Glpi\Debug\Reflection::getInstance()->getClassInfo($itemtype));
+        die();
+    }
+    if ($_GET['reflection']['data'] === 'search_options') {
+        echo json_encode(\Glpi\Debug\Reflection::getInstance()->getSearchOptions($itemtype));
+        die();
+    }
+    if ($_GET['reflection']['data'] === 'db_table') {
+        $table = getTableForItemType($itemtype);
+        echo json_encode(\Glpi\Debug\Reflection::getInstance()->getTableSchema($table));
+        die();
+    }
+}
+
 http_response_code(400);
 die();
