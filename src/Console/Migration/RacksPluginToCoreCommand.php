@@ -42,6 +42,7 @@ use Datacenter;
 use DB;
 use DCRoom;
 use Glpi\Console\AbstractCommand;
+use Glpi\DBAL\QueryExpression;
 use Item_Rack;
 use Monitor;
 use MonitorModel;
@@ -404,7 +405,7 @@ class RacksPluginToCoreCommand extends AbstractCommand
         ];
 
         foreach ($core_tables as $table) {
-            $result = $this->db->doQuery('TRUNCATE ' . $this->db->quoteName($table));
+            $result = $this->db->truncate($table);
 
             if (!$result) {
                 throw new \Symfony\Component\Console\Exception\RuntimeException(

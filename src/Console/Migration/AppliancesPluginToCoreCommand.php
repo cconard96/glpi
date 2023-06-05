@@ -45,6 +45,8 @@ use Contract_Item;
 use Document_Item;
 use Domain;
 use Glpi\Console\AbstractCommand;
+use Glpi\DBAL\QueryExpression;
+use Glpi\DBAL\QueryFunction;
 use Infocom;
 use Item_Problem;
 use Item_Project;
@@ -229,7 +231,7 @@ class AppliancesPluginToCoreCommand extends AbstractCommand
         ];
 
         foreach ($core_tables as $table) {
-            $result = $this->db->doQuery('TRUNCATE ' . $this->db->quoteName($table));
+            $result = $this->db->truncate($table);
 
             if (!$result) {
                 throw new \Symfony\Component\Console\Exception\RuntimeException(
@@ -287,14 +289,13 @@ class AppliancesPluginToCoreCommand extends AbstractCommand
         );
 
         $table  = Profile::getTable();
-        $result = $this->db->doQuery(
-            sprintf(
-                "UPDATE %s SET helpdesk_item_type = REPLACE(helpdesk_item_type, '%s', '%s')",
-                $this->db->quoteName($table),
-                self::PLUGIN_APPLIANCE_ITEMTYPE,
-                self::CORE_APPLIANCE_ITEMTYPE
+        $result = $this->db->update($table, [
+            'helpdesk_item_type' => QueryFunction::replace(
+                expression: 'helpdesk_item_type',
+                search: self::PLUGIN_APPLIANCE_ITEMTYPE,
+                replace: self::CORE_APPLIANCE_ITEMTYPE
             )
-        );
+        ], [new QueryExpression('true')]);
         if (false === $result) {
             $this->outputImportError(
                 sprintf(__('Unable to update "%s" in profiles.'), __('Associable items to a ticket'))

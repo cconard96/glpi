@@ -2217,4 +2217,15 @@ class DBmysql
 
         return $values;
     }
+
+    /**
+     * Change the maximum length of the result of function GROUP_CONCAT().
+     * Only applicable on MySQL/MariaDB platforms.
+     * @param int $max_len
+     * @return mysqli_result|bool
+     */
+    public function setGroupConcatMaxLen(int $max_len): mysqli_result|bool
+    {
+        return $this->doQuery("SET SESSION group_concat_max_len = {$max_len}");
+    }
 }

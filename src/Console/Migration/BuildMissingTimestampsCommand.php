@@ -37,6 +37,7 @@ namespace Glpi\Console\Migration;
 
 use CommonDBTM;
 use Glpi\Console\AbstractCommand;
+use Glpi\DBAL\QueryExpression;
 use Log;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

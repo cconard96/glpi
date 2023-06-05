@@ -4249,7 +4249,7 @@ final class SQLProvider implements SearchProviderInterface
 
         // Use a ReadOnly connection if available and configured to be used
         $DBread = \DBConnection::getReadConnection();
-        $DBread->doQuery("SET SESSION group_concat_max_len = 8194304;");
+        $DBread->setGroupConcatMaxLen(8194304);
 
         $DBread->execution_time = true;
         $result = $DBread->doQuery($data['sql']['search']);
