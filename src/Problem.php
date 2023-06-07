@@ -47,8 +47,11 @@ class Problem extends CommonITILObject
     protected static $forward_entity_to = ['ProblemCost'];
 
    // From CommonITIL
+    /** @var class-string<CommonITILActor> */
     public $userlinkclass        = 'Problem_User';
+    /** @var class-string<CommonITILActor> */
     public $grouplinkclass       = 'Group_Problem';
+    /** @var class-string<CommonITILActor> */
     public $supplierlinkclass    = 'Problem_Supplier';
 
     public static $rightname            = 'problem';

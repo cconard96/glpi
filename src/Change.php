@@ -47,8 +47,11 @@ class Change extends CommonITILObject
     protected static $forward_entity_to = ['ChangeValidation', 'ChangeCost'];
 
    // From CommonITIL
+    /** @var class-string<CommonITILActor> */
     public $userlinkclass               = 'Change_User';
+    /** @var class-string<CommonITILActor> */
     public $grouplinkclass              = 'Change_Group';
+    /** @var class-string<CommonITILActor> */
     public $supplierlinkclass           = 'Change_Supplier';
 
     public static $rightname                   = 'change';
