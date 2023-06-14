@@ -51,6 +51,7 @@ if (!$DB->tableExists('glpi_webhooks')) {
       `comment` text,
       `itemtype` varchar(255) DEFAULT NULL,
       `event` varchar(255) DEFAULT NULL,
+      `payload` text,
       `url` varchar(255) DEFAULT NULL,
       `secret` text,
       `use_cra_challenge` tinyint NOT NULL DEFAULT '0',
@@ -106,3 +107,24 @@ if (!$DB->tableExists('glpi_queuedwebhooks')) {
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC DEFAULT CHARSET = {$default_charset} COLLATE = {$default_collation};";
     $DB->queryOrDie($query, "add table glpi_webhooks");
 }
+
+// Entity, ID, Webhook, Itemtype, Items ID, URL, Creation date
+$ADDTODISPLAYPREF[QueuedWebhook::class] = [80, 2, 22, 20, 21, 7, 16];
+
+CronTask::register('QueuedWebhook', 'queuedwebhook', MINUTE_TIMESTAMP, [
+    'state' => CronTask::STATE_WAITING,
+    'mode'  => CronTask::MODE_INTERNAL,
+    'hourmin' => 0,
+    'hourmax' => 24,
+    'logs_lifetime' => 30,
+    'param' => 50 // Limit for webhooks to send per cron task run
+]);
+
+CronTask::register('QueuedWebhook', 'queuedwebhookclean', DAY_TIMESTAMP, [
+    'state' => CronTask::STATE_WAITING,
+    'mode'  => CronTask::MODE_INTERNAL,
+    'hourmin' => 0,
+    'hourmax' => 6,
+    'logs_lifetime' => 30,
+    'param' => 30 // webhooks older than 30 days will be deleted
+]);

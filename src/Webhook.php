@@ -33,32 +33,31 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Api\HL\Controller\AdministrationController;
+use Glpi\Api\HL\Controller\AbstractController;
 use Glpi\Api\HL\Controller\AssetController;
-use Glpi\Api\HL\Controller\CoreController;
 use Glpi\Api\HL\Controller\ITILController;
 use Glpi\Api\HL\Controller\ManagementController;
+use Glpi\Api\HL\Doc\Schema;
 use Glpi\Api\HL\Router;
 use Glpi\Http\Request;
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\Search\FilterableInterface;
+use Glpi\Search\FilterableTrait;
 use GuzzleHttp\Client as Guzzle_Client;
 
-class Webhook extends CommonDBTM
+class Webhook extends CommonDBTM implements FilterableInterface
 {
     use Glpi\Features\Clonable;
-
+    use FilterableTrait;
 
     public static $rightname         = 'config';
-
 
     // From CommonDBTM
     public $dohistory                = true;
 
-
     public static $undisclosedFields = [
         'secret'
     ];
-
 
     public function getCloneRelations(): array
     {
@@ -67,18 +66,15 @@ class Webhook extends CommonDBTM
         ];
     }
 
-
     public static function getTypeName($nb = 0)
     {
         return _n('Webhook', 'Webhooks', $nb);
     }
 
-
     public static function canCreate()
     {
         return static::canUpdate();
     }
-
 
     public static function canPurge()
     {
@@ -90,16 +86,22 @@ class Webhook extends CommonDBTM
         return static::canUpdate();
     }
 
-
     public function defineTabs($options = [])
     {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addStandardTab('Log', $ong, $options);
+        $parent_tabs = parent::defineTabs();
+        $tabs = [
+            // Main tab retrieved from parents
+            array_keys($parent_tabs)[0] => array_shift($parent_tabs)
+        ];
 
-        return $ong;
+        $this->addStandardTab(__CLASS__, $tabs, $options);
+        $this->addStandardTab(WebhookTest::class, $tabs, $options);
+        // Add common tabs
+        $tabs = array_merge($tabs, $parent_tabs);
+        $this->addStandardTab('Log', $tabs, $options);
+
+        return $tabs;
     }
-
 
     public function rawSearchOptions()
     {
@@ -108,7 +110,7 @@ class Webhook extends CommonDBTM
 
         $tab[] = [
             'id'                 => '2',
-            'table'              => $this->getTable(),
+            'table'              => self::getTable(),
             'field'              => 'id',
             'name'               => __('ID'),
             'massiveaction'      => false, // implicit field is id
@@ -117,7 +119,7 @@ class Webhook extends CommonDBTM
 
         $tab[] = [
             'id'                 => '3',
-            'table'              => $this->getTable(),
+            'table'              => self::getTable(),
             'field'              => 'is_active',
             'name'               => __('Active'),
             'datatype'           => 'bool'
@@ -125,20 +127,17 @@ class Webhook extends CommonDBTM
 
         $tab[] = [
             'id'                 => '4',
-            'table'              => $this->getTable(),
+            'table'              => self::getTable(),
             'field'              => 'itemtype',
             'name'               => _n('Type', 'Types', 1),
             'massiveaction'      => false,
             'datatype'           => 'specific',
-            'searchtype'         => [
-                'equals',
-                'notequals'
-            ]
+            'searchtype'         => ['equals', 'notequals']
         ];
 
         $tab[] = [
             'id'                 => '5',
-            'table'              => $this->getTable(),
+            'table'              => self::getTable(),
             'field'              => 'event',
             'name'               => _n('Event', 'Events', 1),
             'massiveaction'      => false,
@@ -146,15 +145,11 @@ class Webhook extends CommonDBTM
             'additionalfields'   => [
                 'itemtype'
             ],
-            'searchtype'         => [
-                'equals',
-                'notequals'
-            ]
+            'searchtype'         => ['equals', 'notequals']
         ];
 
         return $tab;
     }
-
 
     public static function getSpecificValueToDisplay($field, $values, array $options = [])
     {
@@ -169,19 +164,17 @@ class Webhook extends CommonDBTM
                 }
                 break;
             case 'event':
-                if (isset($values['itemtype']) && !empty($values['itemtype'])) {
+                if (!empty($values['itemtype'])) {
                     $label = NotificationEvent::getEventName($values['itemtype'], $values[$field]);
-                    if ($label == NOT_AVAILABLE) {
+                    if ($label === NOT_AVAILABLE) {
                         return self::getDefaultEventsListLabel($values[$field]);
-                    } else {
-                        return $label;
                     }
+                    return $label;
                 }
                 break;
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
-
 
     public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
     {
@@ -193,7 +186,7 @@ class Webhook extends CommonDBTM
             case 'itemtype':
                 return Dropdown::showFromArray(
                     $name,
-                    self::getGlpiItemtypes(),
+                    self::getItemtypesDropdownValues(),
                     [
                         'display'             => false,
                         'display_emptychoice' => true,
@@ -201,7 +194,11 @@ class Webhook extends CommonDBTM
                     ]
                 );
             case 'event':
-                $recursive_search = function ($list_itemtype) use (&$recursive_search) {
+                /**
+                 * @var array $list_itemtype
+                 * @phpstan-var array<class-string<CommonDBTM>, string> $list_itemtype
+                 */
+                $recursive_search = static function ($list_itemtype) use (&$recursive_search) {
                     $events = [];
                     foreach ($list_itemtype as $itemtype => $itemtype_label) {
                         if (is_array($itemtype_label)) {
@@ -221,7 +218,7 @@ class Webhook extends CommonDBTM
                     return $events;
                 };
 
-                $events = $recursive_search(self::getGlpiItemtypes());
+                $events = $recursive_search(self::getItemtypesDropdownValues());
                 return Dropdown::showFromArray(
                     $name,
                     $events,
@@ -236,13 +233,14 @@ class Webhook extends CommonDBTM
     }
 
     /**
-    * Return a list of GLPI events switch itemtype.
-    *
-    * @return array
-    */
-    public static function getGlpiEventsList(mixed $itemtype): array
+     * Return a list of GLPI events that are valid for an itemtype.
+     *
+     * @param class-string<CommonDBTM>|null $itemtype
+     * @return array
+     */
+    public static function getGlpiEventsList(?string $itemtype): array
     {
-        if (isset($itemtype) && class_exists($itemtype)) {
+        if ($itemtype !== null && class_exists($itemtype)) {
             return self::getDefaultEventsList();
         } else {
             return [];
@@ -264,10 +262,11 @@ class Webhook extends CommonDBTM
     }
 
     /**
-    * Return default event name.
-    *
-    * @return string
-    */
+     * Return default event name.
+     *
+     * @param string $event_name
+     * @return string
+     */
     public static function getDefaultEventsListLabel($event_name): string
     {
         $events = [
@@ -278,11 +277,9 @@ class Webhook extends CommonDBTM
 
         if (isset($events[$event_name])) {
             return $events[$event_name];
-        } else {
-            return NOT_AVAILABLE;
         }
+        return NOT_AVAILABLE;
     }
-
 
     /**
     * Return a list of default events.
@@ -313,53 +310,115 @@ class Webhook extends CommonDBTM
         }
     }
 
+    private static function getAPIItemtypeData()
+    {
+        global $CFG_GLPI;
+
+        static $supported = null;
+
+        if ($supported === null) {
+            $supported = [
+                AssetController::class => [
+                    'main' => $CFG_GLPI['asset_types']
+                ],
+                ITILController::class => [
+                    'main' => [Ticket::class, Change::class, Problem::class],
+                    'subtypes' => [
+                        TicketTask::class => ['parent' => Ticket::class],
+                        ChangeTask::class => ['parent' => Change::class],
+                        ProblemTask::class => ['parent' => Problem::class],
+                        ITILFollowup::class => [], // All main types can be the parent
+                        Document_Item::class => [],
+                        ITILSolution::class => [],
+                        TicketValidation::class => [],
+                    ]
+                ],
+                ManagementController::class => [
+                    'main' => [
+                        Appliance::class, Budget::class, Certificate::class, Cluster::class, Contact::class,
+                        Contract::class, Database::class, Datacenter::class, Document::class, Domain::class,
+                        SoftwareLicense::class, Line::class, Supplier::class
+                    ]
+                ]
+            ];
+
+            /**
+             * @param class-string<CommonDBTM> $itemtype
+             * @param array $schemas
+             * @return array|null
+             * @phpstan-return array{name: string, schema: array}|null
+             */
+            $fn_get_schema_by_itemtype = static function (string $itemtype, array $schemas) {
+                $match = null;
+                foreach ($schemas as $schema_name => $schema) {
+                    if (isset($schema['x-itemtype']) && $schema['x-itemtype'] === $itemtype) {
+                        $match = [
+                            'name' => $schema_name,
+                            'schema' => $schema
+                        ];
+                        break;
+                    }
+                }
+                return $match;
+            };
+
+            /**
+             * @var AbstractController $controller
+             * @phpstan-var class-string<AbstractController> $controller
+             * @var array $categories
+             */
+            foreach ($supported as $controller => $categories) {
+                $schemas = $controller::getKnownSchemas();
+                foreach ($categories as $category => $itemtypes) {
+                    if ($category === 'main') {
+                        foreach ($itemtypes as $i => $supported_itemtype) {
+                            $schema = $fn_get_schema_by_itemtype($supported_itemtype, $schemas);
+                            if ($schema) {
+                                $supported[$controller][$category][$supported_itemtype] = [
+                                    'name' => $schema['name'],
+                                ];
+                                unset($supported[$controller][$category][$i]);
+                            }
+                        }
+                    } else if ($category === 'subtypes' && $controller === ITILController::class) {
+                        /** @var ITILController $controller */
+                        foreach ($itemtypes as $supported_itemtype => $type_data) {
+                            $supported[$controller][$category][$supported_itemtype]['name'] = $controller::getFriendlyNameForSubtype($supported_itemtype);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $supported;
+    }
+
     /**
     * Return a list of GLPI itemtypes availabel through HL API.
     *
     * @return array
     */
-    public static function getGlpiItemtypes(): array
+    public static function getItemtypesDropdownValues(): array
     {
-        $assets_itemtypes = [];
-        $router = Router::getInstance();
-        foreach ($router->getControllers() as $controller_class) {
-            if (get_class($controller_class) == CoreController::class) {
-                continue;
-            }
+        $values = [];
+        $supported = self::getAPIItemtypeData();
 
-            switch (get_class($controller_class)) {
-                case AssetController::class:
-                    $familly = _n('Asset', 'Assets', Session::getPluralNumber());
-                    break;
-                case ITILController::class:
-                    $familly = __('Assistance');
-                    break;
-                case AdministrationController::class:
-                    $familly = __('Administration');
-                    break;
-                case ManagementController::class:
-                    $familly = __('Management');
-                    break;
-            }
+        $values[__('Assets')] = array_keys($supported[AssetController::class]['main']);
+        $values[__('Assistance')] = array_merge(
+            array_keys($supported[ITILController::class]['main']),
+            array_keys($supported[ITILController::class]['subtypes'])
+        );
+        $values[__('Management')] = array_keys($supported[ManagementController::class]['main']);
 
-            foreach ($controller_class::getKnownSchemas() as $available_itemtype => $value) {
-                //manage namespaced itemtype ex: Glpi\Socket
-                $itemtype = $available_itemtype;
-                if (isset($value['x-itemtype'])) {
-                    $itemtype = $value['x-itemtype'];
-                }
-
-                if (class_exists($itemtype)) {
-                    $assets_itemtypes[$familly][$itemtype] = $itemtype::getTypeName(0);
-                }
-            }
-
-            //add subItem Task / Followup / Solution / Document / Validation / Log for CommonITILObject
-            if (get_class($controller_class) == ITILController::class) {
-                $assets_itemtypes[__('Sub item assistance')] = self::getSubItemForAssistance();
+        // Move leaf values to the keys and make the value the ::getTypeName
+        foreach ($values as $category => $itemtypes) {
+            foreach ($itemtypes as $i => $itemtype) {
+                $values[$category][$itemtype] = $itemtype::getTypeName(1);
+                unset($values[$category][$i]);
             }
         }
-        return $assets_itemtypes;
+
+        return $values;
     }
 
     public static function getSubItemForAssistance(): array
@@ -383,146 +442,118 @@ class Webhook extends CommonDBTM
         return $sub_item;
     }
 
-    public function callAPI(string $path, string $event, string $itemtype)
+    public function getResultForPath(string $path, string $event, bool $raw_output = false): ?string
     {
-        if ($path != '/') {
-            $router = Router::getInstance();
-            $path = rtrim($path, '/');
-            $request = new Request('GET', $path);
-            $request = $request->withHeader('Glpi-Session-Token', $_SESSION['valid_id']);
-            $response = $router->handleRequest($request);
-            $itemtype_data = json_decode($response->getBody()->getContents(), true);
-            $data = [
-                'event' => $event,
-                strtolower($itemtype) => $itemtype_data
-            ];
-            echo json_encode($data, JSON_PRETTY_PRINT);
-        } else {
-            echo __('No route found for this itemtype');
+        $router = Router::getInstance();
+        $path = rtrim($path, '/');
+        $request = new Request('GET', $path);
+        $request = $request->withHeader('Glpi-Session-Token', $_SESSION['valid_id']);
+        $response = $router->handleRequest($request);
+        if ($response->getStatusCode() === 200) {
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            if ($raw_output) {
+                $data['event'] = $event;
+                return json_encode($data, JSON_PRETTY_PRINT);
+            } else {
+                $payload_template = isset($this->fields['payload']) ? $this->fields['payload'] : null;
+                if (!empty($payload_template)) {
+                    try {
+                        $data = [
+                            'item' => $data
+                        ];
+                        //$data = $this->flattenResultsArray($data);
+                        $data['event'] = $event;
+                        $env = new \Twig\Environment(
+                            new \Twig\Loader\ArrayLoader([
+                                'payload' => $payload_template
+                            ])
+                        );
+                        return $env->render('payload', $data);
+                    } catch (Throwable $e) {
+                        return null;
+                    }
+                } else {
+                    return json_encode($data, JSON_PRETTY_PRINT);
+                }
+            }
         }
+        // An error occurred, so return nothing.
+        return null;
     }
 
-    public function getPathByItem(CommonDBTM $item): string
+    public function getApiPath(CommonDBTM $item): string
     {
+        $itemtype = $item->getType();
+        $id = $item->getID();
+        $itemtypes = self::getAPIItemtypeData();
 
-        $is_timeline_item = false;
-        $foreign_key = null;
-        //object from timeline need to be computed
-        //see ITILController->getSubitemFriendlyType
-        switch ($item::getType()) {
-            case 'ITILFollowup':
-                $itemtype = 'Followup';
-                $is_timeline_item = true;
+        $controller = null;
+        $api_name = null;
+        $parent_itemtype = null;
+        $parent_name = null;
+        foreach ($itemtypes as $controller_class => $categories) {
+            if (array_key_exists($itemtype, $categories['main'])) {
+                $api_name = $categories['main'][$itemtype]['name'];
+                $controller = $controller_class;
                 break;
-            case 'Document_Item':
-                $itemtype = 'Document';
-                $is_timeline_item = true;
-                break;
-            case 'ITILSolution':
-                $itemtype = 'Solution';
-                $is_timeline_item = true;
-                break;
-            case 'TicketTask':
-                $foreign_key = "tickets_id";
-                $itemtype = 'Task';
-                $is_timeline_item = true;
-                break;
-            case 'ChangeTask':
-                $foreign_key = "changes_task";
-                $itemtype = 'Task';
-                $is_timeline_item = true;
-                break;
-            case 'ProblemTask':
-                $foreign_key = "problems_task";
-                $itemtype = 'Task';
-                $is_timeline_item = true;
-                break;
-            case 'ITILValidation':
-                $itemtype = 'Validation';
-                $is_timeline_item = true;
-                break;
-            default:
-                $itemtype = $item::getType();
-                break;
-        }
+            }
 
-        $path = '/';
-        $router = Router::getInstance();
-
-        //use right function to compute path if timeline item or not
-        $function = $is_timeline_item ? 'getTimelineItem' : 'search';
-
-        //prepare arg to compute API path
-        //default arg ex: Computer
-        // - itemtype => computer
-        // - id       => Computer ID
-        $arg = [
-            'itemtype' => $itemtype,
-            'id' => $item->getID()
-        ];
-
-        if ($is_timeline_item) {
-            //for timeline item ex : Followup
-            // - itemtype     => Ticket
-            // - id           => Ticket ID
-            // - subitem_type => Followup
-            // - subitem_id   => followup ID
-            $arg = [
-                'subitem_type'  => $itemtype ,
-                'subitem_id'    => $item->getID()
-            ];
-
-            //handle CommonITILTask case with foreign key column (ex: tickets_id for TicketTask)
-            //instead of tems_id / itemtype columns for ITILFollowup / ITILValidation / Document_Item / ITILSolution
-            if ($foreign_key != null) {
-                $arg['itemtype'] = getItemtypeForForeignKeyField($foreign_key);
-                $arg['id']       = $item->fields[$foreign_key];
-            } else {
-                $arg['itemtype'] = $item->fields['itemtype'];
-                $arg['id']       = $item->fields['items_id'];
+            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
+                $api_name = $categories['subtypes'][$itemtype]['name'];
+                $controller = $controller_class;
+                // Use the specified parent itemtype or the first main one if none is specified (all work)
+                $parent_itemtype = $categories['subtypes'][$itemtype]['parent'] ?? array_key_first($categories['main']);
+                break;
             }
         }
 
-        //go through the controllers to find the one corresponding to the itemtype
-        foreach ($router->getControllers() as $controller_class) {
-            //itemtype can be found from standard key or from subkey (x-itemtype)
-            // standard key
-            //[Computer] => Array
-            //(
-            //    [type] => object
-            //)
+        if ($parent_itemtype !== null) {
+            $parent_name = $itemtypes[$controller]['main'][$parent_itemtype]['name'];
+        }
 
-            // subkey
-            //[RecurringTicket] => Array
-            //(
-            //    [x-itemtype] => TicketRecurrent
-            //    [type] => object
-            //)
+        $path = match ($controller) {
+            AssetController::class => '/Assets/',
+            ITILController::class => '/Assistance/',
+            ManagementController::class => '/Management/',
+            default => '/_404/' // Nonsense path to trigger a 404
+        };
 
-            foreach ($controller_class::getKnownSchemas() as $key => $value) {
-                $doIt = false;
-                if ($key == $itemtype) {
-                    $doIt = true;
-                } elseif (isset($value['x-itemtype']) && $value['x-itemtype'] == $itemtype) {
-                    //replace by internal API key (ex TicketRecurrent : => RecurringTicket)
-                    $arg['itemtype'] = $key;
-                    $doIt = true;
+        if ($parent_name !== null) {
+            if ($item instanceof CommonDBChild) {
+                $itemtype_field = $item::$itemtype;
+                if ($itemtype_field === 'itemtype') {
+                    $itemtype_value = $item->fields[$itemtype_field];
+                } else {
+                    $itemtype_value = $itemtype_field;
                 }
-
-                //compute path with arg
-                if ($doIt) {
-                    Toolbox::logDebug($arg);
-                    $path = $controller_class::getAPIPathForRouteFunction(
-                        get_class($controller_class),
-                        $function,
-                        $arg
-                    );
-                    if ($path != '/') {
-                        return $path;
-                    }
+                $parent_name = $itemtypes[$controller]['main'][$itemtype_value]['name'];
+                $parent_id = $item->fields[$item::$items_id];
+            } else if ($item instanceof CommonDBRelation) {
+                $itemtype_field = $item::$itemtype_2;
+                if ($itemtype_field === 'itemtype') {
+                    $itemtype_value = $item->fields[$itemtype_field];
+                } else {
+                    $itemtype_value = $itemtype_field;
                 }
+                $items_id_value = $item->fields[$item::$items_id_2];
+                $parent_name = $itemtypes[$controller]['main'][$itemtype_value]['name'];
+                $parent_id = $items_id_value;
+            } else if ($item instanceof CommonITILTask) {
+                $parent_itemtype = $item->getItilObjectItemType();
+                $parent_name = $itemtypes[$controller]['main'][$parent_itemtype]['name'];
+                $parent_id = $item->fields[$parent_itemtype::getForeignKeyField()];
+            }
+
+            $path .= $parent_name . '/' . ($parent_id ?? 0) . '/';
+
+            if ($controller === ITILController::class) {
+                $path .= 'Timeline/';
             }
         }
+
+        $path .= $api_name . '/' . $id;
+
         return $path;
     }
 
@@ -548,9 +579,89 @@ class Webhook extends CommonDBTM
             'item' => $this,
             'secret_already_used' => $this->getWebhookWithSameSecret()
         ]);
+
         return true;
     }
 
+    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+    {
+        return [
+            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType())
+        ];
+    }
+
+    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
+    {
+        if ((int) $tabnum === 1) {
+            $item->showPayloadEditor();
+            return true;
+        }
+        return false;
+    }
+
+    public function showPayloadEditor()
+    {
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
+            'item' => $this,
+            'params' => [
+                'canedit' => $this->canUpdateItem(),
+                'candel' => false
+            ]
+        ]);
+        $itemtype = $this->fields['itemtype'];
+        $parameters = [
+            [
+                'type' => 'AttributeParameter',
+                'key' => 'event',
+                'label' => __('Event'),
+                'filter' => ''
+            ]
+        ];
+
+        /** @var class-string<AbstractController> $controller_class */
+        $controller_class = null;
+        $schema_name = null;
+        $supported = self::getAPIItemtypeData();
+
+        foreach ($supported as $controller => $categories) {
+            if (array_key_exists($itemtype, $categories['main'])) {
+                $schema_name = $categories['main'][$itemtype]['name'];
+                $controller_class = $controller;
+                break;
+            }
+
+            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
+                $schema_name = $categories['subtypes'][$itemtype]['name'];
+                $controller_class = $controller;
+                break;
+            }
+        }
+
+        $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
+        $props = Schema::flattenProperties($schema['properties'], 'item.');
+
+        foreach ($props as $prop_name => $prop_data) {
+            $type = $prop_data['type'] ?? Schema::TYPE_STRING;
+            $format = $prop_data['format'] ?? Schema::getDefaultFormatForType($type);
+            $filter = '';
+            if ($format === Schema::FORMAT_STRING_DATE) {
+                $filter = 'date("Y-m-d")';
+            } else if ($format === Schema::FORMAT_STRING_DATE_TIME) {
+                $filter = 'date("Y-m-d H:i:s")';
+            }
+            $parameters[] = [
+                'type' => 'AttributeParameter',
+                'key' => $prop_name,
+                'label' => $prop_name,
+                'filter' => $filter
+            ];
+        }
+
+        Html::activateUserTemplateAutocompletion(
+            'textarea[name=payload]',
+            $parameters
+        );
+    }
 
     /**
      * Check if secret is already use dby another webhook
@@ -582,12 +693,11 @@ class Webhook extends CommonDBTM
         }
     }
 
-
     public static function signWebhookRequest($body, $secret)
     {
         $body = json_encode($body);
         $timestamp = time();
-        $signature = self::getSignature($body, $secret);
+        $signature = self::getSignature($body . $timestamp, $secret);
         header("X-GLPI-signature: " . $signature);
         header("X-GLPI-timestamp: " . $timestamp);
         echo $body;
@@ -673,13 +783,92 @@ class Webhook extends CommonDBTM
         return $challenge_response;
     }
 
+    /**
+     * Raise an event for an item to trigger related outgoing webhooks
+     * @param string $event The event being raised
+     * @param CommonDBTM $item The item the event is being raised for
+     * @return void
+     */
+    public static function raise(string $event, CommonDBTM $item): void
+    {
+        global $DB;
 
+        // Ignore raising if the table doesn't exist (happens during install/update)
+        if (!$DB->tableExists(self::getTable())) {
+            return;
+        }
+
+        $supported = self::getAPIItemtypeData();
+        $supported_types = [];
+        foreach ($supported as $categories) {
+            foreach ($categories as $types) {
+                $supported_types = array_merge($supported_types, array_keys($types));
+            }
+        }
+
+        // Ignore raising if the item type is not supported
+        if (!in_array($item->getType(), $supported_types, true)) {
+            return;
+        }
+
+        $it = $DB->request([
+            'SELECT' => ['id'],
+            'FROM' => self::getTable(),
+            'WHERE' => [
+                'event' => $event,
+                'itemtype' => $item->getType(),
+                'is_active' => 1
+            ]
+        ]);
+        if ($it->count() === 0) {
+            return;
+        }
+
+        // Get data from the API once for all the webhooks
+        $webhook = new self();
+        $path = $webhook->getApiPath($item);
+        $body = $webhook->getResultForPath($path, $event);
+
+        foreach ($it as $webhook_data) {
+            $webhook->getFromDB($webhook_data['id']);
+            // Check if the item matches the webhook filters
+            if (!$webhook->itemMatchFilter($item)) {
+                continue;
+            }
+            $timestamp = time();
+            $headers = [
+                'X-GLPI-signature' => self::getSignature($body . $timestamp, $webhook->fields['secret']),
+                'X-GLPI-timestamp' => $timestamp
+            ];
+            $data = $webhook->fields;
+            $data['items_id'] = $item->getID();
+            $data['body'] = $body;
+            $data['headers'] = json_encode($headers);
+            self::send($data);
+        }
+    }
+
+    /**
+     * Send a webhook to the queue
+     * @param array $data The data for the webhook
+     * @return void
+     */
     public static function send(array $data)
     {
-        global $CFG_GLPI, $DB;
-
-        $processed = [];
-        foreach ($data as $row) {
+        $queued_webhook = new QueuedWebhook();
+        $queued_webhooks_id = $queued_webhook->add([
+            'itemtype' => $data['itemtype'],
+            'items_id' => $data['items_id'],
+            'entities_id' => $data['entities_id'],
+            'webhooks_id' => $data['id'],
+            'url' => $data['url'],
+            'body' => $data['body'],
+            'event' => $data['event'],
+            'headers' => $data['headers'],
+        ]);
+        // Try sending the webhook immediately
+        if ($queued_webhooks_id !== false) {
+            QueuedWebhook::sendById($queued_webhooks_id);
         }
     }
 
@@ -687,7 +876,6 @@ class Webhook extends CommonDBTM
     {
         return $this->handleInput($input);
     }
-
 
     public function prepareInputForUpdate($input)
     {
@@ -698,7 +886,6 @@ class Webhook extends CommonDBTM
     {
         return Toolbox::getRandomString(40);
     }
-
 
     public function handleInput($input)
     {
@@ -723,7 +910,6 @@ class Webhook extends CommonDBTM
         return $input;
     }
 
-
     public function post_getEmpty()
     {
         $this->fields['is_cra_challenge_valid']                        = 0;
@@ -741,11 +927,6 @@ class Webhook extends CommonDBTM
             $menu['links']['search'] = '/front/webhook.php';
             $menu['links']['add'] = '/front/webhook.form.php';
 
-            $mp_icon     = WebhookTest::getIcon();
-            $mp_title    = WebhookTest::getTypeName();
-            $webhook_test = "<i class='$mp_icon pointer' title='$mp_title'></i><span class='d-none d-xxl-block'>$mp_title</span>";
-            $menu['links'][$webhook_test] = '/front/webhooktest.php';
-
             $mp_icon     = QueuedWebhook::getIcon();
             $mp_title    = QueuedWebhook::getTypeName();
             $queuedwebhook = "<i class='$mp_icon pointer' title='$mp_title'></i><span class='d-none d-xxl-block'>$mp_title</span>";
@@ -757,9 +938,28 @@ class Webhook extends CommonDBTM
         return false;
     }
 
-
     public static function getIcon()
     {
         return "ti ti-webhook";
+    }
+
+    public function getItemtypeToFilter(): string
+    {
+        return $this->fields['itemtype'];
+    }
+
+    public function getItemtypeField(): ?string
+    {
+        return 'itemtype';
+    }
+
+    public function getInfoTitle(): string
+    {
+        return __('Webhook target filter');
+    }
+
+    public function getInfoDescription(): string
+    {
+        return __("Webhooks will only be sent for items that match the defined filter.");
     }
 }

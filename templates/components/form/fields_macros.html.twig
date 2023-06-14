@@ -218,7 +218,8 @@
       'enable_fileupload': false,
       'enable_mentions': false,
       'entities_id': session('glpiactive_entity'),
-      'uploads': []
+      'uploads': [],
+      'rows': 3,
    }|merge(options) %}
 
    {% if options.fields_template.isMandatoryField(name) %}
@@ -231,7 +232,7 @@
 
    {% set field %}
       {# 100% width is here to prevent width issues with tinymce #}
-      <textarea class="form-control {{ options.input_addclass }}" id="{{ id }}" name="{{ name }}" rows="3"
+      <textarea class="form-control {{ options.input_addclass }}" id="{{ id }}" name="{{ name }}" rows="{{ options.rows }}"
                 style="width: 100%;"
                 {{ options.disabled ? 'disabled' : '' }}
                 {{ options.readonly ? 'readonly' : '' }}

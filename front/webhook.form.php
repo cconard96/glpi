@@ -79,7 +79,7 @@ if (isset($_POST["add"])) {
         //TRANS: %s is the user login
         sprintf(__('%s restores an item'), $_SESSION["glpiname"])
     );
-    $app->redirectToList();
+    $webhook->redirectToList();
 } else if (isset($_POST["purge"])) {
     $webhook->check($_POST["id"], PURGE);
     $webhook->delete($_POST, 1);

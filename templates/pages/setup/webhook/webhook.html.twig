@@ -43,7 +43,7 @@
     {{ fields.dropdownArrayField(
         'itemtype',
         item.fields['itemtype'],
-        item.getGlpiItemtypes(),
+        item.getItemtypesDropdownValues(),
         __('Itemtype'),
         field_options|merge({
             display_emptychoice: true,

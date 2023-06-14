@@ -55,12 +55,14 @@ class WebhookTest extends CommonGLPI
     public function showForm($id, array $options = [])
     {
         $webhook = new Webhook();
+        $webhook->getFromDB($options['webhook_id']);
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhooktest.html.twig', [
-            'webhook' => $webhook
+            'webhook' => $webhook,
+            'itemtype' => $options['itemtype'] ?? null,
+            'event' => $options['event'] ?? null,
         ]);
         return true;
     }
-
 
     public static function getMenuContent()
     {
@@ -85,9 +87,25 @@ class WebhookTest extends CommonGLPI
         return [];
     }
 
-
     public static function getIcon()
     {
         return "ti ti-webhook";
+    }
+
+    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+    {
+        return self::createTabEntry(self::getTypeName(1));
+    }
+
+    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
+    {
+        if (!($item instanceof Webhook)) {
+            return false;
+        }
+        return (new self())->showForm(0, [
+            'itemtype' => $item->fields['itemtype'],
+            'event' => $item->fields['event'],
+            'webhook_id' => $item->getID(),
+        ]);
     }
 }

@@ -60,6 +60,7 @@ switch ($action) {
             $values = [];
             foreach ($data as $items_id => $items_data) {
                 if (is_a($object::getType(), CommonITILTask::class, true)) {
+                    $foreign_key = null;
                     switch ($object::getType()) {
                         case TicketTask::class:
                             $foreign_key = "tickets_id";
@@ -71,7 +72,9 @@ switch ($action) {
                             $foreign_key = "problems_id";
                             break;
                     }
-                    $values[$items_id] = getItemtypeForForeignKeyField($foreign_key)::getType() . " " . $items_data[$foreign_key] . " => " . $object::getTypeName(0) . " " . $items_id;
+                    if ($foreign_key !== null) {
+                        $values[$items_id] = getItemtypeForForeignKeyField($foreign_key)::getType() . " " . $items_data[$foreign_key] . " => " . $object::getTypeName(0) . " " . $items_id;
+                    }
                 } else {
                     $values[$items_id] = $items_data['itemtype']::getTypeName(0) . " " . $items_data['items_id'] . " => " . $object::getTypeName(0) . " " . $items_id;
                 }
@@ -105,6 +108,11 @@ switch ($action) {
         $itemtype = $_POST['itemtype'];
         $items_id =  $_POST['items_id'];
         $event =  $_POST['event'];
+        $raw_output = $_POST['raw_output'] ?? false;
+
+        if (isset($_POST['webhook_id'])) {
+            $webhook->getFromDB($_POST['webhook_id']);
+        }
 
         $error = [];
         if (!$itemtype) {
@@ -125,8 +133,8 @@ switch ($action) {
         } else {
             $obj = new $itemtype();
             $obj->getFromDB($items_id);
-            $path = $webhook->getPathByItem($obj);
-            echo $webhook->callAPI($path, $event, $itemtype);
+            $path = $webhook->getApiPath($obj);
+            echo $webhook->getResultForPath($path, $event, $raw_output);
         }
 
         break;

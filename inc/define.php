@@ -601,7 +601,8 @@ $CFG_GLPI['javascript'] = [
         'plugin' => [
             'marketplace' => ['marketplace']
         ],
-        'config' => ['clipboard']
+        'config' => ['clipboard'],
+        'webhook' => ['tinymce']
     ],
     'admin'        => ['clipboard', 'sortable'],
     'preference'   => ['clipboard'],

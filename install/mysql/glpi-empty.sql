@@ -9614,6 +9614,7 @@ CREATE TABLE `glpi_webhooks` (
   `comment` text,
   `itemtype` varchar(255) DEFAULT NULL,
   `event` varchar(255) DEFAULT NULL,
+  `payload` text,
   `url` varchar(255) DEFAULT NULL,
   `secret` text,
   `use_cra_challenge` tinyint NOT NULL DEFAULT '0',

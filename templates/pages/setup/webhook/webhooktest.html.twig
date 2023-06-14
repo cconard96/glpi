@@ -47,23 +47,25 @@
 
                             {{ fields.dropdownArrayField(
                                 'itemtype',
-                                webhook.fields['itemtype'],
-                                webhook.getGlpiItemtypes(),
+                                itemtype,
+                                webhook.getItemtypesDropdownValues(),
                                 __('Itemtype'),
                                 field_options|merge({
                                     display_emptychoice: true,
                                     rand: rand_field,
+                                    disabled: true,
                                 })
                             ) }}
 
                             {{ fields.dropdownArrayField(
                                 'event',
-                                webhook.fields['event'],
-                                webhook.getGlpiEventsList(item.fields['itemtype']),
+                                event,
+                                webhook.getGlpiEventsList(itemtype),
                                 _n('Event', 'Events', 1),
                                 field_options|merge({
                                     display_emptychoice: true,
                                     container_id: 'show_event_field',
+                                    disabled: true,
                                 })
                             ) }}
 
@@ -77,16 +79,6 @@
                                     container_id: 'show_items_field',
                                 })
                             ) }}
-
-                            {% do call('Ajax::updateItemOnSelectEvent', [
-                                'dropdown_itemtype' ~ rand_field,
-                                'show_event_field',
-                                config('root_doc') ~ '/ajax/webhook.php',
-                                {
-                                'itemtype': '__VALUE__',
-                                'action': 'get_events_from_itemtype'
-                                }
-                            ]) %}
 
                             {% do call('Ajax::updateItemOnSelectEvent', [
                                 'dropdown_itemtype' ~ rand_field,
@@ -114,35 +106,79 @@
                                 field_options
                             ) }}
 
-                            <div class="row flex-row justify-content-center">
-                                <div class="tab-content p-2 flex-grow-1 card" style="max-width: 80%">
-                                    <pre class="bg-white text-dark" name="webhook_result">
-                                    </pre>
+                            {% set raw_output_field %}
+                                <div class="row flex-row justify-content-center">
+                                    <div class="tab-content p-2 flex-grow-1 card" style="max-width: 80%">
+                                        <pre class="bg-white text-dark" name="webhook_result"></pre>
+                                    </div>
                                 </div>
-                            </div>
+                            {% endset %}
+                            {{ fields.nullField() }}
+                            {{ fields.htmlField(
+                                '',
+                                raw_output_field,
+                                __('Raw output'),
+                                {
+                                    full_width: true,
+                                }
+                            ) }}
+
+                            {% set payload_output_field %}
+                                <div class="row flex-row justify-content-center">
+                                    <div class="tab-content p-2 flex-grow-1 card" style="max-width: 80%">
+                                        <pre class="bg-white text-dark" name="webhook_payload_result"></pre>
+                                    </div>
+                                </div>
+                            {% endset %}
+                            {{ fields.nullField() }}
+                            {{ fields.htmlField(
+                                '',
+                                payload_output_field,
+                                __('Payload output'),
+                                {
+                                    full_width: true,
+                                }
+                            ) }}
 
                             <script>
-
-                            $('button[name="get_webhook_response"]').click(function () {
-                                itemtype = $('select[name="itemtype"]').val();
-                                items_id = $('select[name="items_id"]').val();
-                                event = $('select[name="event"]').val();
-
-                                $.ajax({
-                                    type: 'POST',
-                                    url: '{{ path('/ajax/webhook.php') }}',
-                                    data: {
-                                        action: 'get_webhook_body',
-                                        itemtype : itemtype,
-                                        items_id: items_id,
-                                        event: event
-                                    },
-                                    success: function(response) {
-                                        $('pre[name="webhook_result"]').html(response);
-                                    },
+                                $(() => {
+                                    $('select[name="itemtype"]').trigger('change');
                                 });
+                                $('button[name="get_webhook_response"]').click(() => {
+                                    const itemtype = $('select[name="itemtype"]').val();
+                                    const items_id = $('select[name="items_id"]').val();
+                                    const event = $('select[name="event"]').val();
 
-                            });
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '{{ path('/ajax/webhook.php') }}',
+                                        data: {
+                                            action: 'get_webhook_body',
+                                            itemtype : itemtype,
+                                            items_id: items_id,
+                                            event: event,
+                                            raw_output: true
+                                        },
+                                        success: function(response) {
+                                            $('pre[name="webhook_result"]').html(response);
+                                        },
+                                    });
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '{{ path('/ajax/webhook.php') }}',
+                                        data: {
+                                            action: 'get_webhook_body',
+                                            itemtype : itemtype,
+                                            items_id: items_id,
+                                            event: event,
+                                            webhook_id: {{ webhook.fields['id'] }},
+                                        },
+                                        success: function(response) {
+                                            $('pre[name="webhook_payload_result"]').html(response);
+                                        },
+                                    });
+                                });
                             </script>
                         </div>
                     </div>
