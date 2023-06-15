@@ -49,6 +49,7 @@ use Contract;
 use Database;
 use Datacenter;
 use Document;
+use Document_Item;
 use Domain;
 use Entity;
 use Glpi\Api\HL\Doc as Doc;
@@ -202,6 +203,36 @@ final class ManagementController extends AbstractController
             }
         }
 
+        $schemas['Document']['properties']['filename'] = ['type' => Doc\Schema::TYPE_STRING];
+        $schemas['Document']['properties']['filepath'] = [
+            'type' => Doc\Schema::TYPE_STRING,
+            'x-mapped-from' => 'id',
+            'x-mapper' => static function ($v) use ($CFG_GLPI) {
+                return $CFG_GLPI["root_doc"] . "/front/document.send.php?docid=" . $v;
+            }
+        ];
+        $schemas['Document']['properties']['mime'] = ['type' => Doc\Schema::TYPE_STRING];
+        $schemas['Document']['properties']['sha1sum'] = ['type' => Doc\Schema::TYPE_STRING];
+        $schemas['Document_Item'] = [
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => Document_Item::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'x-readonly' => true,
+                ],
+                'itemtype' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'x-readonly' => true,
+                ],
+                'items_id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'x-readonly' => true,
+                ],
+            ]
+        ];
         return $schemas;
     }
 
