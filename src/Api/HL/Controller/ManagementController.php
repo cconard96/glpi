@@ -226,7 +226,7 @@ final class ManagementController extends AbstractController
     )]
     public function getBudget(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Budget'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Budget'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Budget', methods: ['POST'])]
@@ -283,7 +283,7 @@ final class ManagementController extends AbstractController
     )]
     public function getLicense(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('License'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('License'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/License', methods: ['POST'])]
@@ -340,7 +340,7 @@ final class ManagementController extends AbstractController
     )]
     public function getSupplier(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Supplier'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Supplier'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Supplier', methods: ['POST'])]
@@ -405,7 +405,7 @@ final class ManagementController extends AbstractController
     )]
     public function getContact(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Contact'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Contact'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Contact', methods: ['POST'])]
@@ -462,7 +462,7 @@ final class ManagementController extends AbstractController
     )]
     public function getContract(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Contract'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Contract'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Contract', methods: ['POST'])]
@@ -519,7 +519,7 @@ final class ManagementController extends AbstractController
     )]
     public function getDocument(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Document'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Document'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Document', methods: ['POST'])]
@@ -576,7 +576,7 @@ final class ManagementController extends AbstractController
     )]
     public function getLine(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Line'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Line'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Line', methods: ['POST'])]
@@ -633,7 +633,7 @@ final class ManagementController extends AbstractController
     )]
     public function getCertificate(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Certificate'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Certificate'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Certificate', methods: ['POST'])]
@@ -690,7 +690,7 @@ final class ManagementController extends AbstractController
     )]
     public function getDataCenter(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('DataCenter'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('DataCenter'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/DataCenter', methods: ['POST'])]
@@ -747,7 +747,7 @@ final class ManagementController extends AbstractController
     )]
     public function getCluster(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Cluster'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Cluster'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Cluster', methods: ['POST'])]
@@ -804,7 +804,7 @@ final class ManagementController extends AbstractController
     )]
     public function getDomain(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Domain'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Domain'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Domain', methods: ['POST'])]
@@ -861,7 +861,7 @@ final class ManagementController extends AbstractController
     )]
     public function getAppliance(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Appliance'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Appliance'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Appliance', methods: ['POST'])]
@@ -918,7 +918,7 @@ final class ManagementController extends AbstractController
     )]
     public function getDatabase(Request $request): Response
     {
-        return $this->getOneBySchema($this->getKnownSchema('Database'), $request->getAttributes(), $request->getParameters());
+        return Search::getOneBySchema($this->getKnownSchema('Database'), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Database', methods: ['POST'])]
