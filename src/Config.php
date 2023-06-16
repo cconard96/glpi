@@ -2366,6 +2366,10 @@ HTML;
                 'name'  => 'thenetworg/oauth2-azure',
                 'check' => 'TheNetworg\\OAuth2\\Client\\Provider\\Azure'
             ],
+            [
+                'name'  => 'ralouphie/getallheaders',
+                'check' => 'getallheaders'
+            ],
         ];
         if (Toolbox::canUseCAS()) {
             $deps[] = [

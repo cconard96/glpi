@@ -103,6 +103,9 @@ let config = {
         new MiniCssExtractPlugin(), // Extract styles into CSS files
     ],
     resolve: {
+        fallback: {
+            "path": require.resolve("path-browserify"),
+        },
         // Use only main file in requirement resolution as we do not yet handle modules correctly
         mainFields: [
             'main',
