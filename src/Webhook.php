@@ -613,7 +613,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
             [
                 'type' => 'AttributeParameter',
                 'key' => 'event',
-                'label' => __('Event'),
+                'label' => _n('Event', 'Events', 1),
                 'filter' => ''
             ]
         ];

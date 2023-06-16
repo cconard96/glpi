@@ -259,7 +259,7 @@ class QueuedWebhook extends CommonDBTM
             'id'                 => '12',
             'table'              => self::getTable(),
             'field'              => 'body',
-            'name'               => __('Payload'),
+            'name'               => _n('Payload', 'Payloads', 1),
             'datatype'           => 'text',
             'massiveaction'      => false,
             'htmltext'           => true
