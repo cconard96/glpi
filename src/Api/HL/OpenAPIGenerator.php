@@ -410,7 +410,7 @@ EOT;
             ];
         }
 
-        if ($route_path->getRouteSecurityLevel() === Route::SECURITY_AUTHENTICATED) {
+        if ($route_path->getRouteSecurityLevel() !== Route::SECURITY_NONE) {
             return [
                 [
                     'sessionTokenAuth' => []
