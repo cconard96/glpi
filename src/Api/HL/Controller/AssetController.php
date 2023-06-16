@@ -40,6 +40,7 @@ use CommonDBTM;
 use Computer;
 use Entity;
 use Glpi\Api\HL\Doc as Doc;
+use Glpi\Api\HL\Middleware\ResultFormatterMiddleware;
 use Glpi\Api\HL\Route;
 use Glpi\Api\HL\Search;
 use Glpi\Http\JSONResponse;
@@ -617,7 +618,7 @@ final class AssetController extends AbstractController
         return $classes_only ? array_keys($assets) : $assets;
     }
 
-    #[Route(path: '/', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get all available asset types',
         methods: ['GET'],
@@ -695,13 +696,15 @@ final class AssetController extends AbstractController
         ];
     }
 
-    #[Route(path: '/Global', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Global', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     public function searchAll(Request $request): Response
     {
         return Search::searchBySchema($this->getGlobalAssetSchema(), $request->getParameters());
     }
 
-    #[Route(path: '/{itemtype}', methods: ['GET'], requirements: ['itemtype' => [self::class, 'getAssetTypes']], tags: ['Assets'])]
+    #[Route(path: '/{itemtype}', methods: ['GET'], requirements: [
+        'itemtype' => [self::class, 'getAssetTypes']
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search assets of a specific type'
     )]
@@ -714,7 +717,7 @@ final class AssetController extends AbstractController
     #[Route(path: '/{itemtype}/{id}', methods: ['GET'], requirements: [
         'itemtype' => [self::class, 'getAssetTypes'],
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get an asset of a specific type by ID',
     )]
@@ -762,7 +765,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema($itemtype), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Cartridge', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Cartridge', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search cartridges models'
     )]
@@ -773,7 +776,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Cartridge/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a cartridge model by ID',
     )]
@@ -815,7 +818,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Cartridge/{cartridgeitems_id}/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a cartridge by ID',
     )]
@@ -855,7 +858,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('Cartridge'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Consumable', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Consumable', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search consumables models'
     )]
@@ -866,7 +869,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Consumable/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a consumable model by ID',
     )]
@@ -908,7 +911,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Consumable/{consumableitems_id}/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a consumable by ID',
     )]
@@ -948,7 +951,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('Consumable'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Software', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Software', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search software'
     )]
@@ -959,7 +962,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Software/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a software by ID',
     )]
@@ -999,7 +1002,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('Software'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Rack', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Rack', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search racks'
     )]
@@ -1010,7 +1013,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Rack/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a rack by ID',
     )]
@@ -1050,7 +1053,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('Rack'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Enclosure', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Enclosure', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search enclosure'
     )]
@@ -1061,7 +1064,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Enclosure/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a enclosure by ID',
     )]
@@ -1101,7 +1104,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('Enclosure'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/PDU', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/PDU', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search PDUs'
     )]
@@ -1112,7 +1115,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/PDU/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a PDU by ID',
     )]
@@ -1152,7 +1155,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('PDU'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/PassiveDCEquipment', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/PassiveDCEquipment', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search passive DC equipment'
     )]
@@ -1163,7 +1166,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/PassiveDCEquipment/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a passive DC equipment by ID',
     )]
@@ -1203,7 +1206,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('PassiveDCEquipment'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Cable', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Cable', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search cables'
     )]
@@ -1214,7 +1217,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Cable/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a cable by ID',
     )]
@@ -1254,7 +1257,7 @@ final class AssetController extends AbstractController
         return Search::deleteBySchema($this->getKnownSchema('Cable'), $request->getAttributes(), $request->getParameters());
     }
 
-    #[Route(path: '/Socket', methods: ['GET'], tags: ['Assets'])]
+    #[Route(path: '/Socket', methods: ['GET'], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search sockets'
     )]
@@ -1265,7 +1268,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Socket/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a socket by ID',
     )]
@@ -1307,7 +1310,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/Software/{software_id}/Version', methods: ['GET'], requirements: [
         'software_id' => '\d+',
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'List or search software versions'
     )]
@@ -1318,7 +1321,7 @@ final class AssetController extends AbstractController
 
     #[Route(path: '/SoftwareVersion/{id}', methods: ['GET'], requirements: [
         'id' => '\d+'
-    ], tags: ['Assets'])]
+    ], tags: ['Assets'], middlewares: [ResultFormatterMiddleware::class])]
     #[Doc\Route(
         description: 'Get a software version by ID',
     )]
