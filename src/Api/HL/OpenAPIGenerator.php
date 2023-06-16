@@ -237,7 +237,7 @@ EOT;
             $paths = array_merge_recursive($paths, $this->getPathSchemas($route_path));
         }
 
-        $schema['paths'] = $paths;
+        $schema['paths'] = $this->expandGenericPaths($paths);
 
         // Clean vendor extensions
         if ($_SESSION['glpi_use_mode'] !== \Session::DEBUG_MODE) {
@@ -245,6 +245,40 @@ EOT;
         }
 
         return $schema;
+    }
+
+    /**
+     * Replace any generic paths like `/Assets/{itemtype}` with the actual paths for each itemtype as long as the parameter pattern(s) are explicit lists.
+     * Example: "Computer|Monitor|NetworkEquipment".
+     * This method currently only expands paths based on the first parameter that can be expanded.
+     * @param array $paths
+     * @return array
+     */
+    private function expandGenericPaths(array $paths): array
+    {
+        $expanded = [];
+        foreach ($paths as $path_url => $path) {
+            foreach ($path as $method => $route) {
+                $is_expanded = false;
+                foreach ($route['parameters'] as $param) {
+                    if (isset($param['schema']['pattern']) && preg_match('/^[\w+|]+$/', $param['schema']['pattern'])) {
+                        $itemtypes = explode('|', $param['schema']['pattern']);
+                        foreach ($itemtypes as $itemtype) {
+                            $new_url = str_replace('{itemtype}', $itemtype, $path_url);
+                            // Check there isn't already a route for this URL
+                            if (!isset($paths[$new_url][$method])) {
+                                $expanded[$new_url][$method] = $route;
+                                $is_expanded = true;
+                            }
+                        }
+                    }
+                }
+                if (!$is_expanded) {
+                    $expanded[$path_url][$method] = $route;
+                }
+            }
+        }
+        return $expanded;
     }
 
     /**
@@ -376,7 +410,7 @@ EOT;
             ];
         }
 
-        if ($route_path->getRouteSecurityLevel() === Route::SECURITY_AUTHENTICATED) {
+        if ($route_path->getRouteSecurityLevel() !== Route::SECURITY_NONE) {
             return [
                 [
                     'sessionTokenAuth' => []
@@ -401,14 +435,24 @@ EOT;
             } else {
                 $resolved_schema = $response->getSchema()->toArray();
             }
+            $response_media_type = $response->getMediaType();
             $response_schema = [
                 'description' => $response->getDescription(),
                 'content' => [
-                    $response->getMediaType() => [
+                    $response_media_type => [
                         'schema' => $resolved_schema
                     ]
                 ]
             ];
+            if ($response_media_type === 'application/json') {
+                // add csv and xml
+                $response_schema['content']['text/csv'] = [
+                    'schema' => $resolved_schema
+                ];
+                $response_schema['content']['application/xml'] = [
+                    'schema' => $resolved_schema
+                ];
+            }
             $response_schemas[$response->getStatusCode()] = $response_schema;
         }
         return $response_schemas;
@@ -426,14 +470,17 @@ EOT;
         foreach ($route_methods as $route_method) {
             $route_doc = $route_path->getRouteDoc($route_method);
             $method = strtolower($route_method);
+            $response_schema = $this->getPathResponseSchemas($route_path, $route_method);
             $path_schema = [
                 'tags' => $route_path->getRouteTags(),
-                'responses' => $this->getPathResponseSchemas($route_path, $route_method),
+                'responses' => $response_schema,
             ];
             if (!isset($path_schema['responses']['200'])) {
                 $path_schema['responses']['200'] = [
                     'description' => 'Success'
                 ];
+            } else {
+                $path_schema['responses']['200']['produces'] = array_keys($response_schema[200]['content']);
             }
             if (!isset($path_schema['responses']['500'])) {
                 $path_schema['responses']['500'] = [

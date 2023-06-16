@@ -36,6 +36,7 @@
 namespace Glpi\Api\HL;
 
 use Glpi\Api\HL\Controller\AbstractController;
+use Glpi\Api\HL\Middleware\AbstractMiddleware;
 use Glpi\Http\Request;
 use Glpi\Http\Response;
 use ReflectionClass;
@@ -173,7 +174,10 @@ final class RoutePath
     {
         $path = $this->getRoutePath();
         foreach ($params as $key => $value) {
-            $path = str_replace('{' . $key . '}', $value, $path);
+            // Ignore arrays/objects
+            if (!is_array($value) && !is_object($value)) {
+                $path = str_replace('{' . $key . '}', $value, $path);
+            }
         }
         return $path;
     }
@@ -314,6 +318,14 @@ final class RoutePath
     }
 
     /**
+     * @return AbstractMiddleware[]
+     */
+    public function getMiddlewares(): array
+    {
+        return $this->getRoute()->middlewares;
+    }
+
+    /**
      * Combine data from the class Route attribute (if present) with the method's own attribute
      *
      * Must be called during or after hydration only.
@@ -335,6 +347,10 @@ final class RoutePath
             if ($controller_route->priority !== Route::DEFAULT_PRIORITY && $this->route->priority === Route::DEFAULT_PRIORITY) {
                 $this->setPriority($controller_route->priority);
             }
+
+            // Merge middlewares
+            $this->route->middlewares = array_merge($controller_route->middlewares, $this->route->middlewares);
+
             // None of the other properties have meaning when on a class
         }
     }
