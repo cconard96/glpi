@@ -586,7 +586,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         return [
-            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType())
+            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots')
         ];
     }
 
@@ -601,23 +601,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
     public function showPayloadEditor()
     {
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
-            'item' => $this,
-            'params' => [
-                'canedit' => $this->canUpdateItem(),
-                'candel' => false
-            ]
-        ]);
         $itemtype = $this->fields['itemtype'];
-        $parameters = [
-            [
-                'type' => 'AttributeParameter',
-                'key' => 'event',
-                'label' => _n('Event', 'Events', 1),
-                'filter' => ''
-            ]
-        ];
-
         /** @var class-string<AbstractController> $controller_class */
         $controller_class = null;
         $schema_name = null;
@@ -629,7 +613,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 $controller_class = $controller;
                 break;
             }
-
             if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
                 $schema_name = $categories['subtypes'][$itemtype]['name'];
                 $controller_class = $controller;
@@ -639,28 +622,57 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
         $props = Schema::flattenProperties($schema['properties'], 'item.');
+        $default_payload = [
+            'event' => '{{ event }}',
+            'item' => []
+        ];
+        $response_schema = [
+            [
+                'name' => 'event',
+                'type' => 'Variable'
+            ]
+        ];
 
         foreach ($props as $prop_name => $prop_data) {
-            $type = $prop_data['type'] ?? Schema::TYPE_STRING;
-            $format = $prop_data['format'] ?? Schema::getDefaultFormatForType($type);
-            $filter = '';
-            if ($format === Schema::FORMAT_STRING_DATE) {
-                $filter = 'date("Y-m-d")';
-            } else if ($format === Schema::FORMAT_STRING_DATE_TIME) {
-                $filter = 'date("Y-m-d H:i:s")';
-            }
-            $parameters[] = [
-                'type' => 'AttributeParameter',
-                'key' => $prop_name,
-                'label' => $prop_name,
-                'filter' => $filter
+            $response_schema[] = [
+                'name' => $prop_name,
+                'type' => 'Variable'
             ];
         }
+        // default payload should follow the same nested structure as the original $schema['properties'] but the values should be replaced with a twig tag of the key
+        $fn_append_properties = function ($schema_arr, $prefix_keys = []) use (&$fn_append_properties) {
+            $result = [];
+            foreach ($schema_arr as $key => $value) {
+                $new_prefix_keys = array_merge($prefix_keys, [$key]);
+                if ($value['type'] === Schema::TYPE_OBJECT) {
+                    $result = array_merge($result, $fn_append_properties($value['properties'], $new_prefix_keys));
+                } else {
+                    // walk through the result array for each prefix key (creating if needed) and set the value to the twig tag
+                    $current = &$result;
+                    foreach ($prefix_keys as $prefix_key) {
+                        if (!isset($current[$prefix_key])) {
+                            $current[$prefix_key] = [];
+                        }
+                        $current = &$current[$prefix_key];
+                    }
+                    $current[$key] = "{{ " . implode('.', $new_prefix_keys) . " }}";
+                }
+            }
+            return $result;
+        };
+        $default_payload['item'] = $fn_append_properties($schema['properties']);
 
-        Html::activateUserTemplateAutocompletion(
-            'textarea[name=payload]',
-            $parameters
-        );
+        $default_payload_str = json_encode($default_payload, JSON_PRETTY_PRINT);
+
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
+            'item' => $this,
+            'params' => [
+                'canedit' => $this->canUpdateItem(),
+                'candel' => false
+            ],
+            'response_schema' => $response_schema,
+            'default_payload' => $default_payload_str
+        ]);
     }
 
     /**
@@ -827,10 +839,11 @@ class Webhook extends CommonDBTM implements FilterableInterface
         // Get data from the API once for all the webhooks
         $webhook = new self();
         $path = $webhook->getApiPath($item);
-        $body = $webhook->getResultForPath($path, $event);
 
         foreach ($it as $webhook_data) {
             $webhook->getFromDB($webhook_data['id']);
+            $body = $webhook->getResultForPath($path, $event);
+
             // Check if the item matches the webhook filters
             if (!$webhook->itemMatchFilter($item)) {
                 continue;
