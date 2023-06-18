@@ -32,28 +32,69 @@
  #}
 
 {% import 'components/form/fields_macros.html.twig' as fields %}
-{% set params  = params ?? [] %}
-{% set rand_field = rand|default(random()) %}
 
-<form method="post" action="{{ item.getFormURL() }}">
-   <div class="d-flex row">
-      <div class="col-12">
-         {{ fields.hiddenField('id', item.fields['id']) }}
-         {{ fields.textareaField(
-            'payload',
-            item.fields['payload'],
-            _n('Payload', 'Payloads', 1),
-            {
-               full_width: true,
-               full_width_adapt_column: false,
-               is_horizontal: false,
-               enable_richtext: field['enable_richtext'] is defined ? field['enable_richtext'] : true,
-               enable_images: false,
-            }
-         ) }}
-      </div>
-      <div class="col-12">
-         {{ include('components/form/buttons.html.twig') }}
-      </div>
+<div>
+   <button name="toggle_default_payload" class="btn btn-secondary">{{ __('Toggle default payload') }}</button>
+</div>
+<div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
+   <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
+      <button name="editor_save" class="btn btn-icon btn-ghost-secondary">
+         <i class="fas fa-save" title="{{ _x('button', 'Save') }}"></i>
+      </button>
+      <button name="editor_find" class="btn btn-icon btn-ghost-secondary">
+         <i class="fas fa-fw fa-search" title="{{ __('Search') }}"></i>
+      </button>
    </div>
-</form>
+   <div id="payload" class="webhook-payload-editor" style="height: 350px"></div>
+   <div id="default_payload" class="d-none">
+      {{ fields.textareaField('default_payload', default_payload, '', {
+         readonly: 'readonly',
+         input_class: 'col-12',
+         field_class: 'col-12',
+         rows: 10,
+      }) }}
+   </div>
+</div>
+<script>
+    $(() => {
+        {% set payload = item.fields['payload']|default(default_payload)|escape('js') %}
+        const monaco = new GLPI.MonacoEditor('payload', 'twig', "{{ payload }}", {{ response_schema|json_encode|raw }});
+        $("#webhook-payload-editor-container button[name='editor_find']").on('click', function() {
+            monaco.editor.getAction('actions.find').run();
+        });
+        $("#webhook-payload-editor-container button[name='editor_save']").on('click', function() {
+            let payload_template = '';
+            let reload_page = false;
+            if ($('#payload').hasClass('d-none')) {
+                payload_template = $('#default_payload textarea').val();
+                reload_page = true;
+            } else {
+                payload_template = monaco.editor.getValue();
+            }
+            $.ajax({
+                url: CFG_GLPI['root_doc'] + '/ajax/webhook.php',
+                type: 'POST',
+                data: {
+                    action: 'update_payload_template',
+                    webhook_id: $("#webhook-payload-editor-container").data('webhook-id'),
+                    payload_template: payload_template,
+                }
+            }).done(function() {
+                if (reload_page) {
+                   window.location.reload();
+                } else {
+                   glpi_toast_info(__('Saved'));
+                }
+            });
+        });
+        $('button[name="toggle_default_payload"]').on('click', () => {
+           $('#webhook-payload-editor-toolbar button').toggleClass('d-none');
+           // Force save button to be visible
+           $('#webhook-payload-editor-toolbar button:first').removeClass('d-none');
+           // Toggle the custom payload input
+           $('#payload').toggleClass('d-none');
+           // Toggle the default payload textarea
+           $('#default_payload').toggleClass('d-none');
+        });
+    });
+</script>

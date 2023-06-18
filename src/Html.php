@@ -1255,6 +1255,12 @@ HTML;
             if (in_array('cable', $jslibs)) {
                 Html::requireJs('cable');
             }
+
+            if (in_array('monaco', $jslibs)) {
+                Html::requireJs('monaco');
+                $tpl_vars['js_modules'][] = ['path' => 'js/modules/Monaco/MonacoEditor.js'];
+                $tpl_vars['css_files'][] = ['path' => 'public/lib/monaco.css'];
+            }
         }
 
         if (Session::getCurrentInterface() == "helpdesk") {
@@ -6403,6 +6409,9 @@ HTML;
                 break;
             case 'cable':
                 $_SESSION['glpi_js_toload'][$name][] = 'js/cable.js';
+                break;
+            case 'monaco':
+                $_SESSION['glpi_js_toload'][$name][] = 'public/lib/monaco.js';
                 break;
             default:
                 $found = false;

@@ -42,7 +42,7 @@ class WebhookTest extends CommonGLPI
 
     public static function getTypeName($nb = 0)
     {
-        return _n('Webhook test', 'Webhooks test', $nb);
+        return _n('Test', 'Test', $nb);
     }
 
 
@@ -89,7 +89,7 @@ class WebhookTest extends CommonGLPI
 
     public static function getIcon()
     {
-        return "ti ti-webhook";
+        return "ti ti-eye-exclamation";
     }
 
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
