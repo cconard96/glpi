@@ -138,4 +138,19 @@ switch ($action) {
         }
 
         break;
+    case 'update_payload_template':
+        $webhook_id = $_POST['webhook_id'];
+        $payload_template = $_POST['payload_template'] ?? '';
+        $webhook = new Webhook();
+        if ($webhook->getFromDB($webhook_id)) {
+            if (!$webhook->canUpdateItem()) {
+                die(403);
+            }
+            $webhook->update([
+                'id' => $webhook_id,
+                'payload' => $payload_template
+            ]);
+        } else {
+            die(404);
+        }
 }

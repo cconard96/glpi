@@ -604,66 +604,49 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
     public function showPayloadEditor()
     {
+        $itemtype = $this->fields['itemtype'];
+        /** @var class-string<AbstractController> $controller_class */
+        $controller_class = null;
+        $schema_name = null;
+        $supported = self::getAPIItemtypeData();
+
+        foreach ($supported as $controller => $categories) {
+            if (array_key_exists($itemtype, $categories['main'])) {
+                $schema_name = $categories['main'][$itemtype]['name'];
+                $controller_class = $controller;
+                break;
+            }
+            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
+                $schema_name = $categories['subtypes'][$itemtype]['name'];
+                $controller_class = $controller;
+                break;
+            }
+        }
+
+        $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
+        $props = Schema::flattenProperties($schema['properties'], 'item.');
+        $response_schema = [
+            [
+                'name' => 'event',
+                'type' => 'Variable'
+            ]
+        ];
+
+        foreach ($props as $prop_name => $prop_data) {
+            $response_schema[] = [
+                'name' => $prop_name,
+                'type' => 'Variable'
+            ];
+        }
+
         TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
             'item' => $this,
             'params' => [
                 'canedit' => $this->canUpdateItem(),
                 'candel' => false
-            ]
+            ],
+            'response_schema' => $response_schema,
         ]);
-//        $itemtype = $this->fields['itemtype'];
-//        $parameters = [
-//            [
-//                'type' => 'AttributeParameter',
-//                'key' => 'event',
-//                'label' => _n('Event', 'Events', 1),
-//                'filter' => ''
-//            ]
-//        ];
-//
-//        /** @var class-string<AbstractController> $controller_class */
-//        $controller_class = null;
-//        $schema_name = null;
-//        $supported = self::getAPIItemtypeData();
-//
-//        foreach ($supported as $controller => $categories) {
-//            if (array_key_exists($itemtype, $categories['main'])) {
-//                $schema_name = $categories['main'][$itemtype]['name'];
-//                $controller_class = $controller;
-//                break;
-//            }
-//
-//            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
-//                $schema_name = $categories['subtypes'][$itemtype]['name'];
-//                $controller_class = $controller;
-//                break;
-//            }
-//        }
-//
-//        $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
-//        $props = Schema::flattenProperties($schema['properties'], 'item.');
-//
-//        foreach ($props as $prop_name => $prop_data) {
-//            $type = $prop_data['type'] ?? Schema::TYPE_STRING;
-//            $format = $prop_data['format'] ?? Schema::getDefaultFormatForType($type);
-//            $filter = '';
-//            if ($format === Schema::FORMAT_STRING_DATE) {
-//                $filter = 'date("Y-m-d")';
-//            } else if ($format === Schema::FORMAT_STRING_DATE_TIME) {
-//                $filter = 'date("Y-m-d H:i:s")';
-//            }
-//            $parameters[] = [
-//                'type' => 'AttributeParameter',
-//                'key' => $prop_name,
-//                'label' => $prop_name,
-//                'filter' => $filter
-//            ];
-//        }
-//
-//        Html::activateUserTemplateAutocompletion(
-//            'textarea[name=payload]',
-//            $parameters
-//        );
     }
 
     /**

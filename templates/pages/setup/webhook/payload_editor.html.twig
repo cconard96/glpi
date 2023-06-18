@@ -35,25 +35,19 @@
 {% set params  = params ?? [] %}
 {% set rand_field = rand|default(random()) %}
 
-<form method="post" action="{{ item.getFormURL() }}">
-   <div class="d-flex row">
-      <div class="col-12">
-         {{ fields.hiddenField('id', item.fields['id']) }}
-         {{ fields.textareaField(
-            'payload',
-            item.fields['payload'],
-            _n('Payload', 'Payloads', 1),
-            {
-               full_width: true,
-               full_width_adapt_column: false,
-               is_horizontal: false,
-               enable_richtext: false,
-               enable_images: false,
-            }
-         ) }}
-      </div>
-      <div class="col-12">
-         {{ include('components/form/buttons.html.twig') }}
-      </div>
+<div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
+   <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
+      <button class="btn btn-icon btn-ghost-secondary">
+         <i class="fas fa-save editor_save" title="{{ _x('button', 'Save') }}"></i>
+      </button>
+      <button class="btn btn-icon btn-ghost-secondary">
+         <i class="fas fa-fw fa-search editor_find" title="{{ __('Search') }}"></i>
+      </button>
    </div>
-</form>
+   <div id="payload2" class="webhook-payload-editor" style="height: 350px"></div>
+</div>
+<script>
+    $(() => {
+        new GLPI.MonacoEditor('payload2', 'twig', "{{ item.fields['payload']|escape }}", {{ response_schema|json_encode|raw }});
+    });
+</script>
