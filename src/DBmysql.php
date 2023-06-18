@@ -363,7 +363,8 @@ class DBmysql
      */
     public function query($query)
     {
-        trigger_error('Executing direct queries is not allowed!', E_USER_ERROR);
+        return $this->doQuery($query);
+        //trigger_error('Executing direct queries is not allowed!', E_USER_ERROR);
     }
 
     /**

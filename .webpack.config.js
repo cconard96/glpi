@@ -35,6 +35,7 @@ const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const { globSync } = require('glob');
 const path = require('path');
@@ -111,6 +112,9 @@ let config = {
         ],
     },
     plugins: [
+        new webpack.optimize.LimitChunkCountPlugin({
+            maxChunks: 1,
+        }),
         new webpack.ProvidePlugin(
             {
                 process: 'process/browser', // required by some libs (including `popper.js`)
@@ -125,6 +129,10 @@ let config = {
             }
         ), // Clean lib dir content
         new MiniCssExtractPlugin(), // Extract styles into CSS files
+        new MonacoWebpackPlugin({
+            'languages': ['html'],
+            'publicPath': '/'
+        }),
     ],
     resolve: {
         fallback: {

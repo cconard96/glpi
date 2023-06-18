@@ -47,10 +47,22 @@
                full_width: true,
                full_width_adapt_column: false,
                is_horizontal: false,
-               enable_richtext: field['enable_richtext'] is defined ? field['enable_richtext'] : true,
+               enable_richtext: true,
                enable_images: false,
             }
          ) }}
+
+         {{ fields.textareaField('payload2', '', 'Monaco Test', {
+            full_width: true,
+            full_width_adapt_column: false,
+            is_horizontal: false,
+            enable_richtext: false,
+         }) }}
+         <script>
+            $(() => {
+                new GLPI.MonacoEditor($('textarea[name="payload2"]').attr('id'), 'html');
+            });
+         </script>
       </div>
       <div class="col-12">
          {{ include('components/form/buttons.html.twig') }}
