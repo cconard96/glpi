@@ -1340,6 +1340,7 @@ class CommonDBTM extends CommonGLPI
 
             if ($this->checkUnicity(true, $options)) {
                 if ($this->addToDB() !== false) {
+                    Webhook::raise('new', $this);
                     $this->post_addItem();
                     if ($this instanceof CacheableListInterface) {
                         $this->invalidateListCache();
@@ -1744,6 +1745,7 @@ class CommonDBTM extends CommonGLPI
                     $this->clearSavedInput();
                 }
 
+                Webhook::raise('update', $this);
                 $this->post_updateItem($history);
                 if ($this instanceof CacheableListInterface) {
                     $this->invalidateListCache();
@@ -2098,6 +2100,7 @@ class CommonDBTM extends CommonGLPI
 
         if ($this->pre_deleteItem()) {
             if ($this->deleteFromDB($force)) {
+                Webhook::raise('delete', $this);
                 if ($force) {
                     $this->addMessageOnPurgeAction();
                     $this->post_purgeItem();
