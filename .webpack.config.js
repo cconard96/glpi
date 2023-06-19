@@ -131,7 +131,7 @@ let config = {
         new MiniCssExtractPlugin(), // Extract styles into CSS files
         new MonacoWebpackPlugin({
             'languages': ['html'],
-            'publicPath': '/'
+            'publicPath': '/public/lib/'
         }),
     ],
     resolve: {
