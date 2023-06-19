@@ -568,10 +568,7 @@ class Search
        /// Get the items to display
        // Add searched items
 
-        $forcetoview = false;
-        if (is_array($forcedisplay) && count($forcedisplay)) {
-            $forcetoview = true;
-        }
+        $forcetoview = (is_array($forcedisplay) && count($forcedisplay)) || isset($p['forcetoview']);
         $data['search']['all_search']  = false;
         $data['search']['view_search'] = false;
        // If no research limit research to display item and compute number of item using simple request
@@ -588,7 +585,7 @@ class Search
                 }
             }
         } else {
-            $data['toview'] = array_merge($data['toview'], $forcedisplay);
+            $data['toview'] = array_merge($data['toview'], ($p['forcetoview'] ?? []), $forcedisplay);
         }
 
         if (count($p['criteria']) > 0) {
@@ -2589,7 +2586,7 @@ class Search
             $main_block_class = "sub_criteria";
             $card_class = 'border d-inline-block ms-1';
         }
-        $display = $_SESSION['glpifold_search'] ? 'style="display: none;"' : '';
+        $display = ($_SESSION['glpifold_search'] && !$p['hide_controls']) ? 'style="display: none;"' : '';
         echo "<div class='$card_class' $display>";
 
         echo "<div id='searchcriteria$rand_criteria' class='$main_block_class' >";

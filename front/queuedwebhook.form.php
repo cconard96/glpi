@@ -51,44 +51,46 @@ $queuedwebhook = new QueuedWebhook();
 
 if (isset($_POST["delete"])) {
     $queuedwebhook->check($_POST["id"], DELETE);
-    $queuedwebhook->delete($_POST);
-
-    Event::log(
-        $_POST["id"],
-        QueuedWebhook::class,
-        4,
-        "webhook",
-        //TRANS: %s is the user login
-        sprintf(__('%s deletes an item'), $_SESSION["glpiname"])
-    );
+    if ($queuedwebhook->delete($_POST)) {
+        Event::log(
+            $_POST["id"],
+            QueuedWebhook::class,
+            4,
+            "webhook",
+            //TRANS: %s is the user login
+            sprintf(__('%s deletes an item'), $_SESSION["glpiname"])
+        );
+    }
     $queuedwebhook->redirectToList();
 } else if (isset($_POST["restore"])) {
     $queuedwebhook->check($_POST["id"], DELETE);
-    $queuedwebhook->restore($_POST);
+    if ($queuedwebhook->restore($_POST)) {
+        Event::log(
+            $_POST["id"],
+            QueuedWebhook::class,
+            4,
+            "webhook",
+            //TRANS: %s is the user login
+            sprintf(__('%s restores an item'), $_SESSION["glpiname"])
+        );
+    }
 
-    Event::log(
-        $_POST["id"],
-        QueuedWebhook::class,
-        4,
-        "webhook",
-        //TRANS: %s is the user login
-        sprintf(__('%s restores an item'), $_SESSION["glpiname"])
-    );
     $queuedwebhook->redirectToList();
 } else if (isset($_POST["purge"])) {
     $queuedwebhook->check($_POST["id"], PURGE);
-    $queuedwebhook->delete($_POST, 1);
+    if ($queuedwebhook->delete($_POST, 1)) {
+        Event::log(
+            $_POST["id"],
+            QueuedWebhook::class,
+            4,
+            "webhook",
+            //TRANS: %s is the user login
+            sprintf(__('%s purges an item'), $_SESSION["glpiname"])
+        );
+    }
 
-    Event::log(
-        $_POST["id"],
-        QueuedWebhook::class,
-        4,
-        "webhook",
-        //TRANS: %s is the user login
-        sprintf(__('%s purges an item'), $_SESSION["glpiname"])
-    );
     $queuedwebhook->redirectToList();
 } else {
-    $menus = ["config", "queuedwebhook"];
+    $menus = ["config", "webhook"];
     QueuedWebhook::displayFullPageForItem($_GET["id"], $menus, $_GET);
 }

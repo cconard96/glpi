@@ -34,12 +34,14 @@
  */
 
 use Glpi\Application\View\TemplateRenderer;
-use Glpi\DBAL\QueryExpression;
-use Glpi\DBAL\QueryFunction;
+use Glpi\Http\Response;
 
-class QueuedWebhook extends CommonDBTM
+class QueuedWebhook extends CommonDBChild
 {
     public static $rightname = 'config';
+
+    public static $itemtype = Webhook::class;
+    public static $items_id = 'webhooks_id';
 
     public static function getTypeName($nb = 0)
     {
@@ -54,7 +56,13 @@ class QueuedWebhook extends CommonDBTM
 
     public static function canDelete()
     {
-        return static::canUpdate();
+        return Session::haveRight(static::$rightname, UPDATE);
+    }
+
+    public static function canUpdate()
+    {
+        // No standard update is allowed
+        return false;
     }
 
     public static function getForbiddenActionsForMenu()
@@ -107,6 +115,14 @@ class QueuedWebhook extends CommonDBTM
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
 
+    public function prepareBody($input)
+    {
+        if (isset($input['body'])) {
+            $input['body'] = Glpi\Toolbox\Sanitizer::dbEscape($input['body']);
+        }
+        return $input;
+    }
+
     public function prepareInputForAdd($input)
     {
         global $DB;
@@ -131,7 +147,13 @@ class QueuedWebhook extends CommonDBTM
         }
         $input['sent_try'] = 0;
 
+        $input = $this->prepareBody($input);
         return $input;
+    }
+
+    public function prepareInputForUpdate($input)
+    {
+        return $this->prepareBody($input);
     }
 
     /**
@@ -161,30 +183,94 @@ class QueuedWebhook extends CommonDBTM
         }
 
         $webhook = new Webhook();
-        $webhook->getFromDB($queued_webhook->fields['webhooks_id']);
+        if (!$webhook->getFromDB($queued_webhook->fields['webhooks_id'])) {
+            return false;
+        }
+
+        if ($webhook->fields['use_cra_challenge']) {
+            // Send CRA challenge
+            $result = $webhook::validateCRAChallenge($queued_webhook->fields['url'], 'validate_cra_challenge', $webhook->fields['secret']);
+            if ($result === false || $result['status'] !== true) {
+                Toolbox::logInFile('webhook', "CRA challenge failed for webhook {$webhook->fields['name']} ({$webhook->getID()})");
+                return false;
+            }
+        }
+
+        $bearer_token = null;
+        if ($webhook->fields['use_oauth']) {
+            // Send OAuth Client Credentials
+            $client = new \GuzzleHttp\Client($options);
+            try {
+                $response = $client->request('POST', $webhook->fields['oauth_url'], [
+                    \GuzzleHttp\RequestOptions::FORM_PARAMS => [
+                        'grant_type' => 'client_credentials',
+                        'client_id' => $webhook->fields['clientid'],
+                        'client_secret' => $webhook->fields['clientsecret'],
+                        'scope' => '',
+                    ],
+                ]);
+                $response = json_decode((string) $response->getBody(), true);
+                if (isset($response['access_token'])) {
+                    $bearer_token = $response['access_token'];
+                }
+            } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+                Toolbox::logInFile(
+                    "webhook",
+                    "OAuth authentication error for webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
+                );
+            }
+        }
 
         $client = new \GuzzleHttp\Client($options);
         $headers = json_decode($queued_webhook->fields['headers'], true);
+        // Remove headers with empty values
+        $headers = array_filter($headers, static function ($value) {
+            return !empty($value);
+        });
+        if ($bearer_token !== null) {
+            $headers['Authorization'] = 'Bearer ' . $bearer_token;
+        }
+
         try {
-            $response = $client->request($webhook->fields['http_method'], $queued_webhook->fields['url'], [
+            $response = $client->request($queued_webhook->fields['http_method'], $queued_webhook->fields['url'], [
                 \GuzzleHttp\RequestOptions::HEADERS => $headers,
                 \GuzzleHttp\RequestOptions::BODY => $queued_webhook->fields['body'],
             ]);
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-            //TODO log the error
-            $response = null;
+            Toolbox::logInFile(
+                "webhook",
+                "Error sending webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
+            );
+            $response = $e->getResponse();
         }
-        if ($response !== null && $response->getStatusCode() === 200) {
-            $queued_webhook->delete(['id' => $ID]);
-            return true;
-        }
-
-        $queued_webhook->update([
+        $input = [
             'id' => $ID,
             'sent_try' => $queued_webhook->fields['sent_try'] + 1,
             'sent_time' => $_SESSION["glpi_currenttime"],
-        ]);
-        return false;
+        ];
+        if ($response !== null) {
+            $input['last_status_code'] = $response->getStatusCode();
+            if ($queued_webhook->fields['save_response_body']) {
+                $input['response_body'] = (string)$response->getBody();
+            }
+
+            if ($webhook->fields['log_in_item_history']) {
+                /** @var class-string<CommonDBTM> $itemtype */
+                $itemtype = $queued_webhook->fields['itemtype'];
+                $item = new $itemtype();
+                $item->getFromDB($queued_webhook->fields['items_id']);
+                $tabs = $item->defineTabs();
+                $has_history_tab = array_key_exists('Log$1', $tabs);
+
+                if ($has_history_tab) {
+                    Log::history($queued_webhook->fields['items_id'], $queued_webhook->fields['itemtype'], [
+                        30, $queued_webhook->fields['last_status_code'], $response->getStatusCode()
+                    ], $queued_webhook->fields['id'], Log::HISTORY_SEND_WEBHOOK);
+                }
+            }
+        }
+
+        return $queued_webhook->update($input) && $response !== null;
     }
 
     public static function getIcon()
@@ -302,6 +388,16 @@ class QueuedWebhook extends CommonDBTM
         ];
 
         $tab[] = [
+            'id'                => 30,
+            'table'             => self::getTable(),
+            'field'             => 'last_status_code',
+            'name'              => __('Last status code'),
+            'massiveaction'     => false,
+            'datatype'          => 'specific',
+            'additionalfields'  => ['id']
+        ];
+
+        $tab[] = [
             'id'                 => '80',
             'table'              => 'glpi_entities',
             'field'              => 'completename',
@@ -310,7 +406,82 @@ class QueuedWebhook extends CommonDBTM
             'datatype'           => 'dropdown'
         ];
 
+        $tab[] = [
+            'id' => 31,
+            'table' => self::getTable(),
+            'field' => 'http_method',
+            'name' => __('HTTP method'),
+            'massiveaction' => false,
+            'datatype' => 'specific',
+        ];
+
         return $tab;
+    }
+
+    public static function getStatusCodeBadge($value, ?int $id = null): string
+    {
+        $display_value = (int) $value;
+        $badge_class = 'badge bg-orange';
+        if (empty($display_value)) {
+            $display_value = __s('Not sent/no response');
+        } else if ($display_value < 300) {
+            $badge_class = 'badge bg-green';
+        } else {
+            $badge_class = 'badge bg-red';
+        }
+        $badge = '<div class="' . $badge_class . '">' . $display_value . '</div>';
+
+        if ($id === null || (is_numeric($display_value) && (int) $display_value < 300)) {
+            return $badge;
+        }
+        // Add a button to resend the webhook via ajax
+        $btn_id = "resend-webhook-{$id}";
+        $badge .= "<button id='{$btn_id}' type='button' class='btn btn-outline-secondary btn-sm ms-1' data-id='{$id}'><i class='ti ti-send'></i>" . __('Send') . "</button>";
+        $badge .= Html::scriptBlock(<<<JS
+            $("#{$btn_id}").click(function() {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '/ajax/webhook.php',
+                    type: 'POST',
+                    data: {
+                        'action': 'resend',
+                        'id': id
+                    },
+                    beforeSend: () => {
+                        $("#{$btn_id}").prop('disabled', true);
+                    },
+                    success: () => {
+                        glpi_toast_info(__('Retried to send webhook'));
+                    },
+                    error: () => {
+                        glpi_toast_error(__('Failed to send webhook'));
+                    },
+                    complete: () => {
+                        $("#{$btn_id}").prop('disabled', false);
+                        const search_class = $('table.search-results').closest('div.ajax-container.search-display-data').data('js_class');
+                        if (search_class !== undefined) {
+                            search_class.view.refreshResults();
+                        }
+                    }
+                });
+            });
+JS);
+        return $badge;
+    }
+
+    public static function getSpecificValueToDisplay($field, $values, array $options = [])
+    {
+        // For last_status_code field, we want to display a badge element
+        if (!is_array($values)) {
+            $values = [$field => $values];
+        }
+        switch ($field) {
+            case 'last_status_code':
+                return self::getStatusCodeBadge($values[$field], $values['id'] ?? null);
+            case 'http_method':
+                return Webhook::getHttpMethod()[$values[$field]] ?? $values[$field];
+        }
+        return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 
     public function showForm($ID, array $options = [])
@@ -319,11 +490,10 @@ class QueuedWebhook extends CommonDBTM
         $webhook->getFromDB($this->fields['webhooks_id']);
         TemplateRenderer::getInstance()->display('pages/setup/webhook/queuedwebhook.html.twig', [
             'item' => $this,
-            'item_obj' => new ($this->fields['itemtype'])(),
             'webhook' => $webhook,
             'headers' => json_decode($this->fields['headers'], true),
             'params' => [
-                'canedit' => false,
+                'canedit' => true,
                 'candel' => $this->canDeleteItem()
             ]
         ]);
@@ -348,13 +518,37 @@ class QueuedWebhook extends CommonDBTM
         }
 
         $pendings = [];
+        $queued_table = self::getTable();
+        $webhook_table = Webhook::getTable();
+
         $iterator = $DB->request([
-            'SELECT' => ['id'],
-            'FROM'   => self::getTable(),
+            'SELECT' => [$queued_table . '.id'],
+            'FROM'   => $queued_table,
+            'LEFT JOIN' => [
+                $webhook_table => [
+                    'FKEY' => [
+                        $webhook_table => 'id',
+                        $queued_table => 'webhooks_id'
+                    ]
+                ]
+            ],
             'WHERE'  => [
-                    'is_deleted'   => 0,
-                    'send_time'    => ['<', $send_time],
-                ] +  $extra_where,
+                'is_deleted'   => 0,
+                [
+                    'OR' => [
+                        "$queued_table.sent_try" => null,
+                        new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' <= ' . $DB::quoteName($webhook_table . '.sent_try')),
+                    ]
+                ],
+                'send_time'    => ['<', $send_time],
+                [
+                    'OR' => [
+                        // We will retry sending webhooks that never got a response or got any error status code (4xx or 5xx)
+                        ['last_status_code' => null],
+                        ['last_status_code' => ['>=', 400]]
+                    ]
+                ]
+            ] +  $extra_where,
             'ORDER'  => 'send_time ASC',
             'START'  => 0,
             'LIMIT'  => $limit
@@ -409,14 +603,26 @@ class QueuedWebhook extends CommonDBTM
 
         $expiration = $task !== null ? $task->fields['param'] : 30;
 
+        $queued_table = self::getTable();
+        $webhook_table = Webhook::getTable();
         if ($expiration > 0) {
             $secs      = $expiration * DAY_TIMESTAMP;
             $send_time = date("U") - $secs;
             $DB->delete(
-                self::getTable(),
+                $queued_table,
                 [
-                    'is_deleted'   => 1,
-                    new QueryExpression(QueryFunction::unixTimestamp('send_time') . ' < ' . $DB::quoteValue($send_time))
+                    'OR' => [
+                        new QueryExpression('UNIX_TIMESTAMP(' . $DB::quoteName('send_time') . ') < ' . $DB::quoteValue($send_time)),
+                        new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' >= ' . $DB::quoteName($webhook_table . '.sent_try')),
+                    ]
+                ],
+                [
+                    $webhook_table => [
+                        'ON' => [
+                            $queued_table => 'webhooks_id',
+                            $webhook_table => 'id'
+                        ]
+                    ]
                 ]
             );
             $vol = $DB->affectedRows();

@@ -431,7 +431,7 @@
              value="{{ options.is_disclosable ? value : '' }}"
          {{ options.readonly ? 'readonly' : '' }}
          {{ options.disabled ? 'disabled' : '' }}
-         {{ options.required ? 'required' : '' }} />
+         {{ options.required ? 'required' : '' }} {% for name, value in options.add_field_attribs %} {{ name }}="{{ value }}" {% endfor %}/>
    {% endset %}
    {% set btn_group %}
       &nbsp;<i class="far fa-eye pointer disclose" onmousedown="showDisclosablePasswordField('{{ options.id }}')"
@@ -449,7 +449,7 @@
       {% set field = field ~ clear_chk %}
    {% endif %}
 
-   {# Add checkbox if needed to regenerate password (controler side) #}.
+   {# Add checkbox if needed to regenerate password (controler side) #}
    {% if options.can_regenerate %}
       {% set regenerate_chk %}
          <input type="checkbox" name="_regenerate_{{ name }}" id="_regenerate_{{ name }}">&nbsp;<label for="_regenerate_{{ name }}">{{ __('Regenerate') }}</label>
@@ -904,7 +904,7 @@
 
    {# Usefull for Ajax::updateItemOnSelectEvent (DOM to update) #}
    {% if options.container_id is not empty %}
-      {% set container_id = 'id=' ~ options.container_id ~ '' %}
+      {% set container_id = 'id=' ~ options.container_id %}
    {% else %}
       {% set container_id = '' %}
    {% endif %}
@@ -914,7 +914,7 @@
       {% if options.center %}
          {% set flex_class = "d-flex align-items-center" %}
       {% endif %}
-      <div {{ container_id }} class="{{ options.input_class }} {{ flex_class }} field-container {{ container_class }}">
+      <div {{ container_id }} class="{{ options.input_class }} {{ flex_class }} field-container">
          {{ field|raw }}
          {{ add_field_html|raw }}
       </div>

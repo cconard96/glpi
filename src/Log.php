@@ -68,6 +68,8 @@ class Log extends CommonDBTM
     const HISTORY_LOCK_ITEM          = 26;
     const HISTORY_UNLOCK_ITEM        = 27;
 
+    const HISTORY_SEND_WEBHOOK       = 28;
+
    // Plugin must use value starting from
     const HISTORY_PLUGIN             = 1000;
 
@@ -678,6 +680,14 @@ class Log extends CommonDBTM
                         );
                         break;
 
+                    case self::HISTORY_SEND_WEBHOOK:
+                        $tmp['change'] = sprintf(
+                            __('%1$s: %2$s'),
+                            $action_label,
+                            sprintf(__('%1$s (Status %2$s -> %3$s)'), $data["itemtype_link"], $data["old_value"], $data["new_value"])
+                        );
+                        break;
+
                     default:
                         $fct = [$data['itemtype_link'], 'getHistoryEntry'];
                         if (
@@ -1168,6 +1178,10 @@ class Log extends CommonDBTM
 
             case self::HISTORY_UNLOCK_SUBITEM:
                 $label = __('Unlock an item');
+                break;
+
+            case self::HISTORY_SEND_WEBHOOK:
+                $label = __('Send a queued webhook');
                 break;
 
             case self::HISTORY_LOG_SIMPLE_MESSAGE:

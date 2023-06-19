@@ -1614,7 +1614,7 @@ $RELATION = [
         'glpi_networkportwifis' => 'wifinetworks_id',
     ],
     'glpi_webhooks' => [
-        'glpi_queuedwebhooks' => 'webhooks_id',
+        '_glpi_queuedwebhooks' => 'webhooks_id',
     ],
 ];
 

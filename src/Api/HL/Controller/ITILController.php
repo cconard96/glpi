@@ -125,6 +125,10 @@ final class ITILController extends AbstractController
                     'type' => Doc\Schema::TYPE_INTEGER,
                     'enum' => [Ticket::INCIDENT_TYPE, Ticket::DEMAND_TYPE]
                 ];
+                $schemas[$itil_type]['properties']['external_id'] = [
+                    'x-field' => 'externalid',
+                    'type' => Doc\Schema::TYPE_STRING,
+                ];
             }
             $schemas[$itil_type]['x-itemtype'] = $itil_type;
             $schemas[$itil_type]['properties']['status'] = [
@@ -231,15 +235,9 @@ final class ITILController extends AbstractController
                     'x-readonly' => true,
                 ],
                 'requester' => self::getDropdownTypeSchema(User::class),
-                'approver' => self::getDropdownTypeSchema(User::class, 'users_id_validate'),
-                'requested_approver_type' => [
-                    'type' => Doc\Schema::TYPE_STRING,
-                    'x-field' => 'itemtype_target',
-                    'enum' => [User::getType(), Group::getType()]
-                ],
                 'requested_approver_id' => [
                     'type' => Doc\Schema::TYPE_INTEGER,
-                    'x-field' => 'items_id_target',
+                    'x-field' => 'users_id_validate',
                     'format' => Doc\Schema::FORMAT_INTEGER_INT64,
                 ],
                 'submission_comment' => ['type' => Doc\Schema::TYPE_STRING, 'x-field' => 'comment_submission'],
@@ -300,44 +298,6 @@ final class ITILController extends AbstractController
                 'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN],
                 'is_active' => ['type' => Doc\Schema::TYPE_BOOLEAN],
                 'template' => self::getDropdownTypeSchema(TicketTemplate::class),
-                'date_begin' => [
-                    'type' => Doc\Schema::TYPE_STRING,
-                    'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
-                    'x-field' => 'begin_date',
-                ],
-                'date_end' => [
-                    'type' => Doc\Schema::TYPE_STRING,
-                    'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
-                    'x-field' => 'end_date',
-                ],
-                'periodicity' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32],
-                'create_before' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32],
-                'date_next_creation' => [
-                    'type' => Doc\Schema::TYPE_STRING,
-                    'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
-                    'x-field' => 'next_creation_date',
-                ],
-                'calendar' => self::getDropdownTypeSchema(Calendar::class),
-                'ticket_per_item' => ['type' => Doc\Schema::TYPE_BOOLEAN],
-            ]
-        ];
-
-        $schemas['RecurringChange'] = [
-            'x-itemtype' => \RecurrentChange::class,
-            'type' => Doc\Schema::TYPE_OBJECT,
-            'description' => 'Recurring change',
-            'properties' => [
-                'id' => [
-                    'type' => Doc\Schema::TYPE_INTEGER,
-                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
-                    'x-readonly' => true,
-                ],
-                'name' => ['type' => Doc\Schema::TYPE_STRING],
-                'comment' => ['type' => Doc\Schema::TYPE_STRING],
-                'entity' => self::getDropdownTypeSchema(Entity::class),
-                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN],
-                'is_active' => ['type' => Doc\Schema::TYPE_BOOLEAN],
-                'template' => self::getDropdownTypeSchema(ChangeTemplate::class),
                 'date_begin' => [
                     'type' => Doc\Schema::TYPE_STRING,
                     'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
