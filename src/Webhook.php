@@ -43,6 +43,7 @@ use Glpi\Http\Request;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Search\FilterableInterface;
 use Glpi\Search\FilterableTrait;
+use Glpi\Toolbox\Sanitizer;
 use GuzzleHttp\Client as Guzzle_Client;
 
 class Webhook extends CommonDBTM implements FilterableInterface
@@ -56,7 +57,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public $dohistory                = true;
 
     public static $undisclosedFields = [
-        'secret'
+        'secret', 'clientsecret'
     ];
 
     public function getCloneRelations(): array
@@ -64,6 +65,13 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return [
             Notepad::class,
         ];
+    }
+
+    public function cleanDBonPurge()
+    {
+        $this->deleteChildrenAndRelationsFromDb([
+            QueuedWebhook::class
+        ]);
     }
 
     public static function getTypeName($nb = 0)
@@ -91,15 +99,16 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $parent_tabs = parent::defineTabs();
         $tabs = [
             // Main tab retrieved from parents
-            array_keys($parent_tabs)[0] => array_shift($parent_tabs)
+            array_keys($parent_tabs)[0] => array_shift($parent_tabs),
+            array_keys($parent_tabs)[0] => array_shift($parent_tabs),
         ];
 
         $this->addStandardTab(__CLASS__, $tabs, $options);
-        $this->addStandardTab(WebhookTest::class, $tabs, $options);
         // Add common tabs
         $tabs = array_merge($tabs, $parent_tabs);
         $this->addStandardTab('Log', $tabs, $options);
 
+        // Final order of tabs: main, filter, payload editor, queries, test, historical
         return $tabs;
     }
 
@@ -172,6 +181,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
                     return $label;
                 }
                 break;
+            case 'http_method':
+                return self::getHttpMethod()[$values[$field]];
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
@@ -282,10 +293,10 @@ class Webhook extends CommonDBTM implements FilterableInterface
     }
 
     /**
-     * Return a list of default events.
-     *
-     * @return array
-     */
+    * Return a list of HTTP methods.
+    *
+    * @return array
+    */
     public static function getHttpMethod(): array
     {
         return [
@@ -310,7 +321,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         }
     }
 
-    private static function getAPIItemtypeData()
+    private static function getAPIItemtypeData(): array
     {
         global $CFG_GLPI;
 
@@ -330,7 +341,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                         ITILFollowup::class => [], // All main types can be the parent
                         Document_Item::class => [],
                         ITILSolution::class => [],
-                        TicketValidation::class => [],
+                        TicketValidation::class => ['parent' => Ticket::class],
                     ]
                 ],
                 ManagementController::class => [
@@ -431,18 +442,20 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         $itil_types = [Ticket::class, Change::class, Problem::class];
         foreach ($itil_types as $itil_type) {
-            if ($itil_type::getValidationClassInstance() !== null) {
-                $sub_item[$itil_type::getValidationClassInstance()::class] = $itil_type::getValidationClassInstance()::class::getTypeName(0);
+            $validation = $itil_type::getValidationClassInstance();
+            if ($validation !== null) {
+                $sub_item[$validation::class] = $validation::getTypeName(0);
             }
 
-            if ($itil_type::getTaskClass() !== null) {
-                $sub_item[$itil_type::getTaskClass()] = $itil_type::getTaskClass()::getTypeName(0);
+            $task_class = $itil_type::getTaskClass();
+            if ($task_class !== null) {
+                $sub_item[$task_class] = $task_class::getTypeName(0);
             }
         }
         return $sub_item;
     }
 
-    public function getResultForPath(string $path, string $event, bool $raw_output = false): ?string
+    private function getAPIResponse(string $path): ?array
     {
         $router = Router::getInstance();
         $path = rtrim($path, '/');
@@ -450,36 +463,73 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $request = $request->withHeader('Glpi-Session-Token', $_SESSION['valid_id']);
         $response = $router->handleRequest($request);
         if ($response->getStatusCode() === 200) {
-            $data = json_decode($response->getBody()->getContents(), true);
+            $body = (string)$response->getBody();
+            try {
+                $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $data = null;
+            }
+            return $data;
+        }
+        return null;
+    }
 
+    private function getWebhookBody(string $event, array $api_data, bool $raw_output = false): ?string
+    {
+        $data = $api_data;
+        if ($data !== null) {
             if ($raw_output) {
                 $data['event'] = $event;
                 return json_encode($data, JSON_PRETTY_PRINT);
             } else {
                 $payload_template = isset($this->fields['payload']) ? $this->fields['payload'] : null;
+                if ($this->fields['use_default_payload'] === 1) {
+                    $payload_template = null;
+                }
                 if (!empty($payload_template)) {
+                    // run desanitize on all leaf values
+                    $fn_desanitize = static function ($value) use (&$fn_desanitize) {
+                        if (is_array($value)) {
+                            foreach ($value as $k => $v) {
+                                $value[$k] = $fn_desanitize($v);
+                            }
+                        } else if (is_string($value)) {
+                            $value = Sanitizer::decodeHtmlSpecialChars($value);
+                            // slash double quotes
+                            $value = str_replace('"', '\\"', $value);
+                        }
+                        return $value;
+                    };
+                    $data = $fn_desanitize($data);
                     try {
                         $data = [
                             'item' => $data
                         ];
-                        //$data = $this->flattenResultsArray($data);
                         $data['event'] = $event;
                         $env = new \Twig\Environment(
                             new \Twig\Loader\ArrayLoader([
                                 'payload' => $payload_template
                             ])
                         );
+                        $env->addExtension(new \Twig\Extra\Markdown\MarkdownExtension());
                         return $env->render('payload', $data);
                     } catch (Throwable $e) {
                         return null;
                     }
                 } else {
+                    $data['event'] = $event;
                     return json_encode($data, JSON_PRETTY_PRINT);
                 }
             }
         }
         // An error occurred, so return nothing.
         return null;
+    }
+
+    public function getResultForPath(string $path, string $event, bool $raw_output = false): ?string
+    {
+        $data = $this->getAPIResponse($path);
+        return $this->getWebhookBody($event, $data, $raw_output);
     }
 
     public function getApiPath(CommonDBTM $item): string
@@ -531,7 +581,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 $parent_id = $item->fields[$item::$items_id];
             } else if ($item instanceof CommonDBRelation) {
                 $itemtype_field = $item::$itemtype_2;
-                if ($itemtype_field === 'itemtype') {
+                if (str_starts_with($itemtype_field, "itemtype")) {
                     $itemtype_value = $item->fields[$itemtype_field];
                 } else {
                     $itemtype_value = $itemtype_field;
@@ -576,8 +626,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $this->initForm($id, $options);
 
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook.html.twig', [
-            'item' => $this,
-            'secret_already_used' => $this->getWebhookWithSameSecret()
+            'item' => $this
         ]);
 
         return true;
@@ -586,59 +635,92 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         return [
-            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots')
+            1 => self::createTabEntry(__('Security'), 0, $item::getType(), 'ti ti-shield-lock'),
+            2 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
+            3 => self::createTabEntry(_n('Custom header', 'Custom headers', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-code-plus'),
+            4 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward'),
+            5 => self::createTabEntry(__('Preview'), 0, $item::getType(), 'ti ti-eye-exclamation'),
         ];
     }
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
         if ((int) $tabnum === 1) {
+            $item->showSecurityForm();
+            return true;
+        }
+
+        if ((int) $tabnum === 2) {
             $item->showPayloadEditor();
             return true;
         }
+
+        if ((int) $tabnum === 3) {
+            $item->showCustomHeaders();
+            return true;
+        }
+
+        if ((int) $tabnum === 4) {
+            $item->showSentQueries();
+            return true;
+        }
+
+        if ((int) $tabnum === 5) {
+            $item->showPreviewForm();
+            return true;
+        }
+
         return false;
     }
 
-    public function showPayloadEditor()
+    private function showSecurityForm(): void
     {
-        $itemtype = $this->fields['itemtype'];
-        /** @var class-string<AbstractController> $controller_class */
-        $controller_class = null;
-        $schema_name = null;
-        $supported = self::getAPIItemtypeData();
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
+            'item' => $this,
+            'params' => [
+                'candel' => false,
+                'formfooter' => false,
+            ]
+        ]);
+    }
 
-        foreach ($supported as $controller => $categories) {
-            if (array_key_exists($itemtype, $categories['main'])) {
-                $schema_name = $categories['main'][$itemtype]['name'];
-                $controller_class = $controller;
-                break;
-            }
-            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
-                $schema_name = $categories['subtypes'][$itemtype]['name'];
-                $controller_class = $controller;
-                break;
-            }
-        }
+    private function showCustomHeaders(): void
+    {
+        $schema = self::getAPISchemaBySupportedItemtype($this->fields['itemtype']);
+        $item_fields = Schema::flattenProperties($schema['properties'], 'item.');
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_headers.html.twig', [
+            'item' => $this,
+            'item_fields' => $item_fields,
+            'params' => [
+                'candel' => false,
+                'formfooter' => false,
+            ]
+        ]);
+    }
 
-        $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
-        $props = Schema::flattenProperties($schema['properties'], 'item.');
+    private function showPreviewForm(): void
+    {
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhooktest.html.twig', [
+            'item' => $this,
+            'params' => [
+                'canedit' => false,
+                'candel' => false,
+                'formfooter' => false,
+            ]
+        ]);
+    }
+
+    /**
+     * @param array $schema The API schema used to generate the payload
+     * @return string The default payload as a twig template
+     */
+    private function getDefaultPayloadAsTwigTemplate(array $schema): string
+    {
         $default_payload = [
             'event' => '{{ event }}',
             'item' => []
         ];
-        $response_schema = [
-            [
-                'name' => 'event',
-                'type' => 'Variable'
-            ]
-        ];
 
-        foreach ($props as $prop_name => $prop_data) {
-            $response_schema[] = [
-                'name' => $prop_name,
-                'type' => 'Variable'
-            ];
-        }
         // default payload should follow the same nested structure as the original $schema['properties'] but the values should be replaced with a twig tag of the key
         $fn_append_properties = function ($schema_arr, $prefix_keys = []) use (&$fn_append_properties) {
             $result = [];
@@ -655,7 +737,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                         }
                         $current = &$current[$prefix_key];
                     }
-                    $current[$key] = "{{ " . implode('.', $new_prefix_keys) . " }}";
+                    $current[$key] = "{{ item." . implode('.', $new_prefix_keys) . " }}";
                 }
             }
             return $result;
@@ -664,6 +746,62 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         $default_payload_str = json_encode($default_payload, JSON_PRETTY_PRINT);
 
+        return $default_payload_str;
+    }
+
+    /**
+     * @param class-string<CommonDBTM> $itemtype The itemtype to get the schema for
+     * @return array|null
+     */
+    public static function getAPISchemaBySupportedItemtype(string $itemtype): ?array
+    {
+        /** @var class-string<AbstractController> $controller_class */
+        $controller_class = null;
+        $schema_name = null;
+        $supported = self::getAPIItemtypeData();
+
+        foreach ($supported as $controller => $categories) {
+            if (array_key_exists($itemtype, $categories['main'])) {
+                $schema_name = $categories['main'][$itemtype]['name'];
+                $controller_class = $controller;
+                break;
+            }
+            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
+                $schema_name = $categories['subtypes'][$itemtype]['name'];
+                if (isset($categories['subtypes'][$itemtype]['parent'])) {
+                    $schema_name = $categories['main'][$categories['subtypes'][$itemtype]['parent']]['name'] . $schema_name;
+                }
+                $controller_class = $controller;
+                break;
+            }
+        }
+
+        if ($controller_class === null || $schema_name === null) {
+            echo __('This itemtype is not supported by the API. Maybe a plugin is missing/disabled?');
+            return null;
+        }
+        return $controller_class::getKnownSchemas()[$schema_name] ?? null;
+    }
+
+    private function showPayloadEditor(): void
+    {
+        $schema = self::getAPISchemaBySupportedItemtype($this->fields['itemtype']);
+        $props = Schema::flattenProperties($schema['properties'], 'item.');
+
+        $response_schema = [
+            [
+                'name' => 'event',
+                'type' => 'Variable'
+            ]
+        ];
+
+        foreach ($props as $prop_name => $prop_data) {
+            $response_schema[] = [
+                'name' => $prop_name,
+                'type' => 'Variable'
+            ];
+        }
+
         TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
             'item' => $this,
             'params' => [
@@ -671,54 +809,93 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'candel' => false
             ],
             'response_schema' => $response_schema,
-            'default_payload' => $default_payload_str
+            'default_payload' => $this->getDefaultPayloadAsTwigTemplate($schema)
         ]);
+//        $itemtype = $this->fields['itemtype'];
+//        $parameters = [
+//            [
+//                'type' => 'AttributeParameter',
+//                'key' => 'event',
+//                'label' => _n('Event', 'Events', 1),
+//                'filter' => ''
+//            ]
+//        ];
+//
+//        /** @var class-string<AbstractController> $controller_class */
+//        $controller_class = null;
+//        $schema_name = null;
+//        $supported = self::getAPIItemtypeData();
+//
+//        foreach ($supported as $controller => $categories) {
+//            if (array_key_exists($itemtype, $categories['main'])) {
+//                $schema_name = $categories['main'][$itemtype]['name'];
+//                $controller_class = $controller;
+//                break;
+//            }
+//
+//            if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
+//                $schema_name = $categories['subtypes'][$itemtype]['name'];
+//                $controller_class = $controller;
+//                break;
+//            }
+//        }
+//
+//        $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
+//        $props = Schema::flattenProperties($schema['properties'], 'item.');
+//
+//        foreach ($props as $prop_name => $prop_data) {
+//            $type = $prop_data['type'] ?? Schema::TYPE_STRING;
+//            $format = $prop_data['format'] ?? Schema::getDefaultFormatForType($type);
+//            $filter = '';
+//            if ($format === Schema::FORMAT_STRING_DATE) {
+//                $filter = 'date("Y-m-d")';
+//            } else if ($format === Schema::FORMAT_STRING_DATE_TIME) {
+//                $filter = 'date("Y-m-d H:i:s")';
+//            }
+//            $parameters[] = [
+//                'type' => 'AttributeParameter',
+//                'key' => $prop_name,
+//                'label' => $prop_name,
+//                'filter' => $filter
+//            ];
+//        }
+//
+//        Html::activateUserTemplateAutocompletion(
+//            'textarea[name=payload]',
+//            $parameters
+//        );
     }
 
-    /**
-     * Check if secret is already use dby another webhook
-     * @return array of webhook using same secret
-     */
-    public function getWebhookWithSameSecret()
+    private function showSentQueries(): void
     {
-
-        if ($this->isNewID($this->fields['id'])) {
-            return [];
-        } else {
-            //check if secret is already use by another webhook
-            $webhook = new self();
-            $data = $webhook->find([
-                'secret' => $this->fields['secret'],
-                'NOT' => [
-                    'id' => $this->fields['id']
-                ],
-            ]);
-
-            $already_use = [];
-            foreach ($data as $webhook_value) {
-                $webhook->getFromDB($webhook_value['id']);
-                $already_use[$webhook_value['id']] = [
-                    'link' => $webhook->getLink()
-                ];
-            }
-            return $already_use;
-        }
+        // Show embeded search engine for QueuedWebhook with the criteria for the current webhook ID
+        $params = [
+            'criteria' => [
+                [
+                    'link' => 'AND',
+                    'field' => 22,
+                    'searchtype' => 'equals',
+                    'value' => $this->fields['id']
+                ]
+            ],
+            // Sort by creation date descending by default
+            'sort' => [16],
+            'order' => ['DESC'],
+            'forcetoview' => [80, 2, 20, 21, 31, 7, 30, 16],
+            'is_deleted' => 0,
+            'as_map' => 0,
+            'browse' => 0,
+            'push_history' => 0,
+            'hide_controls' => 1,
+            'showmassiveactions' => 0,
+            'usesession' => 0 // Don't save the search criteria in session or use any criteria currently saved
+        ];
+        Search::showList(QueuedWebhook::class, $params);
     }
 
-    public static function signWebhookRequest($body, $secret)
+    public static function getSignature($data, $secret): string
     {
-        $body = json_encode($body);
-        $timestamp = time();
-        $signature = self::getSignature($body . $timestamp, $secret);
-        header("X-GLPI-signature: " . $signature);
-        header("X-GLPI-timestamp: " . $timestamp);
-        echo $body;
-    }
-
-    public static function getSignature($data, $secret)
-    {
-        $signature = hash_hmac('sha256', $data, $secret);
-        return $signature;
+        return hash_hmac('sha256', $data, $secret);
     }
 
     /**
@@ -823,26 +1000,47 @@ class Webhook extends CommonDBTM implements FilterableInterface
             return;
         }
 
+        $entity_criteria = [
+            'entities_id' => 0
+        ];
+
         $it = $DB->request([
-            'SELECT' => ['id'],
+            'SELECT' => ['id', 'entities_id', 'is_recursive'],
             'FROM' => self::getTable(),
             'WHERE' => [
                 'event' => $event,
                 'itemtype' => $item->getType(),
-                'is_active' => 1
+                'is_active' => 1,
             ]
         ]);
         if ($it->count() === 0) {
             return;
         }
 
-        // Get data from the API once for all the webhooks
         $webhook = new self();
         $path = $webhook->getApiPath($item);
 
         foreach ($it as $webhook_data) {
+            $match_entity = false;
+            if ($item->isEntityAssign()) {
+                if ($webhook_data['is_recursive']) {
+                    $parent_entities = getAncestorsOf(\Entity::getTable(), $item->getEntityID());
+                    if (in_array($webhook_data['entities_id'], $parent_entities, true)) {
+                        $match_entity = true;
+                    }
+                }
+                if ($item->getEntityID() === $webhook_data['entities_id']) {
+                    $match_entity = true;
+                }
+            } else if ($webhook_data['entities_id'] === 0) {
+                $match_entity = true;
+            }
+            if (!$match_entity) {
+                continue;
+            }
             $webhook->getFromDB($webhook_data['id']);
-            $body = $webhook->getResultForPath($path, $event);
+            $api_data = $webhook->getAPIResponse($path);
+            $body = $webhook->getWebhookBody($event, $api_data);
 
             // Check if the item matches the webhook filters
             if (!$webhook->itemMatchFilter($item)) {
@@ -853,6 +1051,26 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'X-GLPI-signature' => self::getSignature($body . $timestamp, $webhook->fields['secret']),
                 'X-GLPI-timestamp' => $timestamp
             ];
+
+            $api_data = [
+                'item' => $api_data
+            ];
+            $api_data['event'] = $event;
+            $custom_headers = $webhook->fields['custom_headers'];
+            foreach ($custom_headers as $key => $value) {
+                $env = new \Twig\Environment(
+                    new \Twig\Loader\ArrayLoader([
+                        'payload' => $value
+                    ])
+                );
+                try {
+                    $custom_headers[$key] = $env->render('payload', $api_data);
+                } catch (\Exception $e) {
+                    // Header will not be sent
+                }
+            }
+            $headers = array_merge($headers, $custom_headers);
+
             $data = $webhook->fields;
             $data['items_id'] = $item->getID();
             $data['body'] = $body;
@@ -866,10 +1084,10 @@ class Webhook extends CommonDBTM implements FilterableInterface
      * @param array $data The data for the webhook
      * @return void
      */
-    public static function send(array $data)
+    public static function send(array $data): void
     {
         $queued_webhook = new QueuedWebhook();
-        $queued_webhooks_id = $queued_webhook->add([
+        $queued_webhook->add([
             'itemtype' => $data['itemtype'],
             'items_id' => $data['items_id'],
             'entities_id' => $data['entities_id'],
@@ -878,11 +1096,9 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'body' => $data['body'],
             'event' => $data['event'],
             'headers' => $data['headers'],
+            'http_method' => $data['http_method'],
+            'save_response_body' => $data['save_response_body'],
         ]);
-        // Try sending the webhook immediately
-        if ($queued_webhooks_id !== false) {
-            QueuedWebhook::sendById($queued_webhooks_id);
-        }
     }
 
     public function prepareInputForAdd($input)
@@ -895,6 +1111,17 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $this->handleInput($input);
     }
 
+    public function post_getFromDB()
+    {
+        if (!empty($this->fields['secret'])) {
+            $this->fields['secret'] = (new GLPIKey())->decrypt($this->fields['secret']);
+        }
+        if (!empty($this->fields['clientsecret'])) {
+            $this->fields['clientsecret'] = (new GLPIKey())->decrypt($this->fields['clientsecret']);
+        }
+        $this->fields['custom_headers'] = importArrayFromDB($this->fields['custom_headers']);
+    }
+
     public static function generateRandomSecret()
     {
         return Toolbox::getRandomString(40);
@@ -902,18 +1129,44 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
     public function handleInput($input)
     {
-        //empty choice (0) update to empty ('')
+        $valid_input = true;
+
+        $static_headers = ['X-GLPI-signature', 'X-GLPI-timestamp'];
+        if (isset($input['header_name'], $input['header_value'])) {
+            $custom_headers = array_combine($input['header_name'], $input['header_value']);
+            foreach ($static_headers as $static_header) {
+                unset($custom_headers[$static_header]);
+            }
+            $input['custom_headers'] = exportArrayToDB($custom_headers);
+        } else if (isset($input['custom_headers']) && is_array($input['custom_headers'])) {
+            $input['custom_headers'] = exportArrayToDB($input['custom_headers']);
+        }
+        unset($input['header_name'], $input['header_value']);
         if (isset($input["itemtype"]) && !$input["itemtype"]) {
-            $input["itemtype"] = '';
+            Session::addMessageAfterRedirect(__('An item type is required'), false, ERROR);
+            $valid_input = false;
         }
 
         if (isset($input["event"]) && !$input["event"]) {
-            $input["event"] = '';
+            Session::addMessageAfterRedirect(__('An event is required'), false, ERROR);
+            $valid_input = false;
         }
 
-        if (empty($input['secret']) || isset($input['_regenerate_secret'])) {
+        if (!$valid_input) {
+            return false;
+        }
+
+        if ((empty($input['secret']) && empty($this->fields['secret'])) || isset($input['_regenerate_secret'])) {
             //generate random secret if needed or if empty
             $input['secret'] = self::generateRandomSecret();
+        }
+
+        if (!empty($input['secret'])) {
+            $input['secret'] = (new GLPIKey())->encrypt($input['secret']);
+        }
+
+        if (!empty($input['clientsecret'])) {
+            $input['clientsecret'] = (new GLPIKey())->encrypt($input['clientsecret']);
         }
 
         if (isset($input['use_cra_challenge'])) {

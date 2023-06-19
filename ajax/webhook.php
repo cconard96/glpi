@@ -39,42 +39,36 @@ Html::header_nocache();
 
 Session::checkRight("config", READ);
 
-$action = $_POST['action'] ?? $_POST["action"];
+$action = $_POST['action'] ?? null;
 
 switch ($action) {
     case 'valide_cra_challenge':
-        $response = Webhook::validateCRAChallenge($_POST['target_url'], 'validate_cra_challenge', $_POST['secret']);
-        echo json_encode($response);
-        break;
+        $webhook = new Webhook();
+        if ($webhook->getFromDB($_POST['webhook_id'])) {
+            $response = Webhook::validateCRAChallenge($webhook->fields['url'], 'validate_cra_challenge', $_POST['secret']);
+            header("Content-Type: application/json; charset=UTF-8");
+            echo json_encode($response);
+        } else {
+            die(404);
+        }
+        die();
     case 'get_events_from_itemtype':
         echo Dropdown::showFromArray(
             "event",
             Webhook::getDefaultEventsList(),
             ['display' => false]
         );
-        break;
+        die();
     case 'get_items_from_itemtype':
         if (array_key_exists($_POST['itemtype'], Webhook::getSubItemForAssistance())) {
             $object = new $_POST['itemtype']();
             $data = $object->find();
             $values = [];
             foreach ($data as $items_id => $items_data) {
-                if (is_a($object::getType(), CommonITILTask::class, true)) {
-                    $foreign_key = null;
-                    switch ($object::getType()) {
-                        case TicketTask::class:
-                            $foreign_key = "tickets_id";
-                            break;
-                        case ChangeTask::class:
-                            $foreign_key = "changes_id";
-                            break;
-                        case ProblemTask::class:
-                            $foreign_key = "problems_id";
-                            break;
-                    }
-                    if ($foreign_key !== null) {
-                        $values[$items_id] = getItemtypeForForeignKeyField($foreign_key)::getType() . " " . $items_data[$foreign_key] . " => " . $object::getTypeName(0) . " " . $items_id;
-                    }
+                if ($object instanceof CommonITILTask || $object instanceof CommonITILValidation) {
+                    $itil_type = $object->getItilObjectItemType();
+                    $foreign_key = getForeignKeyFieldForItemType($itil_type);
+                    $values[$items_id] = $itil_type::getTypeName(0) . " " . $items_data[$foreign_key] . " => " . $object::getTypeName(0) . " " . $items_id;
                 } else {
                     $values[$items_id] = $items_data['itemtype']::getTypeName(0) . " " . $items_data['items_id'] . " => " . $object::getTypeName(0) . " " . $items_id;
                 }
@@ -102,7 +96,7 @@ switch ($action) {
                 );
             }
         }
-        break;
+        die();
     case 'get_webhook_body':
         $webhook = new Webhook();
         $itemtype = $_POST['itemtype'];
@@ -136,21 +130,40 @@ switch ($action) {
             $path = $webhook->getApiPath($obj);
             echo $webhook->getResultForPath($path, $event, $raw_output);
         }
-
-        break;
+        die();
     case 'update_payload_template':
         $webhook_id = $_POST['webhook_id'];
         $payload_template = $_POST['payload_template'] ?? '';
         $webhook = new Webhook();
         if ($webhook->getFromDB($webhook_id)) {
             if (!$webhook->canUpdateItem()) {
-                die(403);
+                http_response_code(403);
+                die();
             }
-            $webhook->update([
-                'id' => $webhook_id,
-                'payload' => $payload_template
-            ]);
+            if ($_POST['use_default_payload'] === 'true') {
+                $webhook->update([
+                    'id' => $webhook_id,
+                    'use_default_payload' => 1,
+                ]);
+            } else {
+                $webhook->update([
+                    'id' => $webhook_id,
+                    'payload' => $payload_template,
+                    'use_default_payload' => 0,
+                ]);
+            }
         } else {
-            die(404);
+            http_response_code(404);
+            die();
         }
+        die();
+    case 'resend':
+        $result = QueuedWebhook::sendById($_POST['id']);
+        if ($result) {
+            http_response_code(200);
+        } else {
+            http_response_code(400);
+        }
+        die();
 }
+http_response_code(400);

@@ -47,62 +47,70 @@ $webhook = new Webhook();
 
 if (isset($_POST["add"])) {
     $webhook->check(-1, CREATE);
-    $newID = $webhook->add($_POST);
-    Event::log(
-        $newID,
-        "webhook",
-        4,
-        "setup",
-        sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"], $_POST["name"])
-    );
-    Html::redirect(Toolbox::getItemTypeFormURL('Webhook') . "?id=" . $newID);
+    if ($newID = $webhook->add($_POST)) {
+        Event::log(
+            $newID,
+            "webhook",
+            4,
+            "setup",
+            sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"], $_POST["name"])
+        );
+        if ($_SESSION['glpibackcreated']) {
+            Html::redirect($webhook->getLinkURL());
+        }
+    }
+    Html::back();
 } else if (isset($_POST["delete"])) {
     $webhook->check($_POST["id"], DELETE);
-    $webhook->delete($_POST);
-    Event::log(
-        $_POST["id"],
-        "webhook",
-        4,
-        "setup",
-        //TRANS: %s is the user login
-        sprintf(__('%s deletes an item'), $_SESSION["glpiname"])
-    );
+    if ($webhook->delete($_POST)) {
+        Event::log(
+            $_POST["id"],
+            "webhook",
+            4,
+            "setup",
+            //TRANS: %s is the user login
+            sprintf(__('%s deletes an item'), $_SESSION["glpiname"])
+        );
+    }
     $webhook->redirectToList();
 } else if (isset($_POST["restore"])) {
     $webhook->check($_POST["id"], DELETE);
-    $webhook->restore($_POST);
-    Event::log(
-        $_POST["id"],
-        "webhook",
-        4,
-        "webhook",
-        //TRANS: %s is the user login
-        sprintf(__('%s restores an item'), $_SESSION["glpiname"])
-    );
+    if ($webhook->restore($_POST)) {
+        Event::log(
+            $_POST["id"],
+            "webhook",
+            4,
+            "webhook",
+            //TRANS: %s is the user login
+            sprintf(__('%s restores an item'), $_SESSION["glpiname"])
+        );
+    }
     $webhook->redirectToList();
 } else if (isset($_POST["purge"])) {
     $webhook->check($_POST["id"], PURGE);
-    $webhook->delete($_POST, 1);
-    Event::log(
-        $_POST["id"],
-        "webhook",
-        4,
-        "setup",
-        //TRANS: %s is the user login
-        sprintf(__('%s purges an item'), $_SESSION["glpiname"])
-    );
+    if ($webhook->delete($_POST, 1)) {
+        Event::log(
+            $_POST["id"],
+            "webhook",
+            4,
+            "setup",
+            //TRANS: %s is the user login
+            sprintf(__('%s purges an item'), $_SESSION["glpiname"])
+        );
+    }
     $webhook->redirectToList();
 } else if (isset($_POST["update"])) {
     $webhook->check($_POST["id"], UPDATE);
-    $webhook->update($_POST);
-    Event::log(
-        $_POST["id"],
-        "webhook",
-        4,
-        "setup",
-        //TRANS: %s is the user login
-        sprintf(__('%s updates an item'), $_SESSION["glpiname"])
-    );
+    if ($webhook->update($_POST)) {
+        Event::log(
+            $_POST["id"],
+            "webhook",
+            4,
+            "setup",
+            //TRANS: %s is the user login
+            sprintf(__('%s updates an item'), $_SESSION["glpiname"])
+        );
+    }
     Html::back();
 } else {
     $menus = ["config", Webhook::class];

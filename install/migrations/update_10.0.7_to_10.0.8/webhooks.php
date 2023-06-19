@@ -52,25 +52,29 @@ if (!$DB->tableExists('glpi_webhooks')) {
       `itemtype` varchar(255) DEFAULT NULL,
       `event` varchar(255) DEFAULT NULL,
       `payload` text,
+      `use_default_payload` tinyint NOT NULL DEFAULT '1',
+      `custom_headers` text,
       `url` varchar(255) DEFAULT NULL,
       `secret` text,
       `use_cra_challenge` tinyint NOT NULL DEFAULT '0',
-      `is_cra_challenge_valid` tinyint NOT NULL DEFAULT '0',
       `http_method` varchar(255) DEFAULT 'POST',
       `sent_try` tinyint NOT NULL DEFAULT '3',
       `expiration` int NOT NULL DEFAULT '0',
-      `is_deleted` tinyint NOT NULL DEFAULT '0',
       `is_active` tinyint NOT NULL DEFAULT '0',
+      `save_response_body` tinyint NOT NULL DEFAULT '0',
+      `log_in_item_history` tinyint NOT NULL DEFAULT '0',
       `date_creation` timestamp NULL DEFAULT NULL,
       `date_mod` timestamp NULL DEFAULT NULL,
+      `use_oauth` tinyint NOT NULL DEFAULT '0',
+      `oauth_url` varchar(255) DEFAULT NULL,
+      `clientid` varchar(255) DEFAULT NULL,
+      `clientsecret` varchar(255) DEFAULT NULL,
       PRIMARY KEY (`id`),
       KEY `name` (`name`),
       KEY `is_active` (`is_active`),
       KEY `entities_id` (`entities_id`),
-      KEY `is_deleted` (`is_deleted`),
       KEY `is_recursive` (`is_recursive`),
       KEY `use_cra_challenge` (`use_cra_challenge`),
-      KEY `is_cra_challenge_valid` (`is_cra_challenge_valid`),
       KEY `date_creation` (`date_creation`),
       KEY `date_mod` (`date_mod`)
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC DEFAULT CHARSET = {$default_charset} COLLATE = {$default_collation};";
@@ -95,6 +99,10 @@ if (!$DB->tableExists('glpi_queuedwebhooks')) {
       `headers` text,
       `body` longtext,
       `event` varchar(255) DEFAULT NULL,
+      `last_status_code` int DEFAULT NULL,
+      `save_response_body` tinyint NOT NULL DEFAULT '0',
+      `response_body` longtext,
+      `http_method` varchar(255) DEFAULT 'POST',
       PRIMARY KEY (`id`),
       KEY `item` (`itemtype`,`items_id`),
       KEY `entities_id` (`entities_id`),
@@ -109,7 +117,7 @@ if (!$DB->tableExists('glpi_queuedwebhooks')) {
 }
 
 // Entity, ID, Webhook, Itemtype, Items ID, URL, Creation date
-$ADDTODISPLAYPREF[QueuedWebhook::class] = [80, 2, 22, 20, 21, 7, 16];
+$ADDTODISPLAYPREF[QueuedWebhook::class] = [80, 2, 22, 20, 21, 7, 30, 16];
 
 CronTask::register('QueuedWebhook', 'queuedwebhook', MINUTE_TIMESTAMP, [
     'state' => CronTask::STATE_WAITING,

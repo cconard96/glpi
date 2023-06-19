@@ -9,6 +9,7 @@
         "npm": ">= 8.19"
     },
     "dependencies": {
+        "@algolia/autocomplete-js": "^1.10.0",
         "@fontsource/inter": "^4.5.4",
         "@fortawesome/fontawesome-free": "^6.0.0",
         "@fullcalendar/bootstrap": "^4.4.0",

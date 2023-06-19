@@ -414,7 +414,7 @@ class ITILController extends \HLAPITestCase
         $this->login();
         $func_name = __FUNCTION__;
 
-        foreach (['Ticket', 'Change'] as $itil_type) {
+        foreach (['Ticket'] as $itil_type) {
             // Create a ITIL template
             $template_class = $itil_type . 'Template';
             $template = new $template_class();
@@ -532,8 +532,7 @@ class ITILController extends \HLAPITestCase
             'name' => __FUNCTION__,
             'content' => 'test',
             'tickets_id' => $tickets_id,
-            'itemtype_target' => 'User',
-            'items_id_target' => 2
+            'users_id_validate' => 2
         ]))->isGreaterThan(0);
 
         // Create a document
