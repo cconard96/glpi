@@ -31,10 +31,6 @@
  # ---------------------------------------------------------------------
  #}
 
-{% import 'components/form/fields_macros.html.twig' as fields %}
-{% set params  = params ?? [] %}
-{% set rand_field = rand|default(random()) %}
-
 <div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
    <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
       <button class="btn btn-icon btn-ghost-secondary">
