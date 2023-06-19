@@ -44,6 +44,23 @@
 </div>
 <script>
     $(() => {
-        new GLPI.MonacoEditor('payload2', 'twig', "{{ item.fields['payload']|escape }}", {{ response_schema|json_encode|raw }});
+        const monaco = new GLPI.MonacoEditor('payload2', 'twig', "{{ item.fields['payload']|escape }}", {{ response_schema|json_encode|raw }});
+        $("#webhook-payload-editor-container .editor_find").on('click', function() {
+            monaco.editor.getAction('actions.find').run();
+        });
+        $("#webhook-payload-editor-container .editor_save").on('click', function() {
+            $.ajax({
+                url: CFG_GLPI['root_doc'] + '/ajax/webhook.php',
+                type: 'POST',
+                data: {
+                    action: 'update_payload_template',
+                    webhook_id: $("#webhook-payload-editor-container").data('webhook-id'),
+                    payload_template: editor.getValue(),
+                }
+            }).done(function() {
+                // eslint-disable-next-line no-undef
+                glpi_toast_info(__('Saved'));
+            });
+        });
     });
 </script>

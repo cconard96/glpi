@@ -33,10 +33,22 @@
 
 window.GLPI = window.GLPI || {};
 
+/**
+ * @typedef CompletionItemDefinition
+ * @property {string} name The name of the completion item.
+ * @property {string} type The type of the completion item. This corresponds to a type in the {@link CompletionItemKind} enum.
+ */
 export default class MonacoEditor {
+    /**
+     *
+     * @param {string} element_id The ID of the DIV to create the editor in
+     * @param {string} language The code language
+     * @param {string} value The default value for the editor
+     * @param {CompletionItemDefinition[]} completions List of completion items
+     */
     constructor(element_id, language, value = '', completions = []) {
         const el = document.getElementById(element_id);
-        window.monaco.languages.registerCompletionItemProvider('twig', {
+        window.monaco.languages.registerCompletionItemProvider(language, {
             provideCompletionItems: function (model, position) {
                 const word = model.getWordUntilPosition(position);
                 const range = {
@@ -63,27 +75,9 @@ export default class MonacoEditor {
                 };
             }
         });
-        const editor = window.monaco.editor.create(el, {
+        this.editor = window.monaco.editor.create(el, {
             value: value,
             language: language,
-        });
-
-        $("#webhook-payload-editor-container .editor_find").on('click', function() {
-            editor.getAction('actions.find').run();
-        });
-        $("#webhook-payload-editor-container .editor_save").on('click', function() {
-            $.ajax({
-                url: CFG_GLPI['root_doc'] + '/ajax/webhook.php',
-                type: 'POST',
-                data: {
-                    action: 'update_payload_template',
-                    webhook_id: $("#webhook-payload-editor-container").data('webhook-id'),
-                    payload_template: editor.getValue(),
-                }
-            }).done(function() {
-                // eslint-disable-next-line no-undef
-                glpi_toast_info(__('Saved'));
-            });
         });
     }
 }
