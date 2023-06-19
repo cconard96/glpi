@@ -450,7 +450,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $request = $request->withHeader('Glpi-Session-Token', $_SESSION['valid_id']);
         $response = $router->handleRequest($request);
         if ($response->getStatusCode() === 200) {
-            $data = json_decode($response->getBody()->getContents(), true);
+            $body = (string) $response->getBody();
+            $data = json_decode($body, true);
 
             if ($raw_output) {
                 $data['event'] = $event;

@@ -186,7 +186,7 @@ EOT;
 
             // Always run the security middleware (no condition set)
             $instance->registerResponseMiddleware(new SecurityResponseMiddleware());
-            $instance->registerResponseMiddleware(new DebugResponseMiddleware(), PHP_INT_MAX);
+            //$instance->registerResponseMiddleware(new DebugResponseMiddleware(), PHP_INT_MAX);
             $instance->registerResponseMiddleware(new ResultFormatterMiddleware(), 0, static fn(RoutePath $route_path) => false);
 
             // Register middleware from plugins
