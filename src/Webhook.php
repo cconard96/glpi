@@ -824,13 +824,12 @@ class Webhook extends CommonDBTM implements FilterableInterface
             return;
         }
 
-        // Get data from the API once for all the webhooks
         $webhook = new self();
-        $path = $webhook->getApiPath($item);
-        $body = $webhook->getResultForPath($path, $event);
 
         foreach ($it as $webhook_data) {
             $webhook->getFromDB($webhook_data['id']);
+            $path = $webhook->getApiPath($item);
+            $body = $webhook->getResultForPath($path, $event);
             // Check if the item matches the webhook filters
             if (!$webhook->itemMatchFilter($item)) {
                 continue;
