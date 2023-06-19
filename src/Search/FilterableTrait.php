@@ -36,6 +36,7 @@
 namespace Glpi\Search;
 
 use CommonDBTM;
+use Search;
 
 /**
  * Helper trait to ease interaction with filters
@@ -69,7 +70,7 @@ trait FilterableTrait
         ];
 
         // Execute search
-        $data = SearchEngine::getData($item::getType(), [
+        $data = Search::getDatas($item::getType(), [
             'criteria' => $criteria,
         ]);
 
