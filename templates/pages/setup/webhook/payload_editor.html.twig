@@ -52,15 +52,21 @@
             }
          ) }}
 
-         {{ fields.textareaField('payload2', '', 'Monaco Test', {
+         {% set payload_editor_field %}
+            <div id="payload2" class="webhook-payload-editor w-100"></div>
+         {% endset %}
+         {{ fields.htmlField('payload2', payload_editor_field, '', {
             full_width: true,
-            full_width_adapt_column: false,
-            is_horizontal: false,
-            enable_richtext: false,
          }) }}
+
+         <style>
+            .webhook-payload-editor {
+               height: 300px;
+            }
+         </style>
          <script>
             $(() => {
-                new GLPI.MonacoEditor($('textarea[name="payload2"]').attr('id'), 'html');
+                new GLPI.MonacoEditor('payload2', 'javascript', '');
             });
          </script>
       </div>

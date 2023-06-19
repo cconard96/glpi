@@ -130,7 +130,7 @@ let config = {
         ), // Clean lib dir content
         new MiniCssExtractPlugin(), // Extract styles into CSS files
         new MonacoWebpackPlugin({
-            'languages': ['html'],
+            'languages': ['html', 'javascript', 'typescript'],
             'publicPath': '/public/lib/'
         }),
     ],
