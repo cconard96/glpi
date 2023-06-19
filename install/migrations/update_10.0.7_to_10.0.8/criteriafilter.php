@@ -1,3 +1,5 @@
+<?php
+
 /**
  * ---------------------------------------------------------------------
  *
@@ -5,7 +7,7 @@
  *
  * http://glpi-project.org
  *
- * @copyright 2015-2024 Teclib' and contributors.
+ * @copyright 2015-2023 Teclib' and contributors.
  * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -31,31 +33,27 @@
  * ---------------------------------------------------------------------
  */
 
-// Explicitly bind to window so Jest tests work properly
-window.GLPI = window.GLPI || {};
-window.GLPI.Search = window.GLPI.Search || {};
+/**
+ * @var DB $DB
+ * @var Migration $migration
+ */
 
-window.GLPI.Search.ResultsView = class ResultsView {
+$default_charset = DBConnection::getDefaultCharset();
+$default_collation = DBConnection::getDefaultCollation();
+$default_key_sign = DBConnection::getDefaultPrimaryKeySignOption();
 
-    constructor(element_id, view_class, push_history = true) {
-        this.element_id = element_id;
+$table = "glpi_searches_criteriafilters";
+if (!$DB->tableExists($table)) {
+    $query = "CREATE TABLE `$table` (
+        `id` int {$default_key_sign} NOT NULL AUTO_INCREMENT,
+        `itemtype` varchar(100) DEFAULT NULL,
+        `items_id` int {$default_key_sign} NOT NULL DEFAULT '0',
+        `search_itemtype` varchar(255) DEFAULT NULL,
+        `search_criteria` longtext DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `item` (`itemtype`, `items_id`),
+        KEY `search_itemtype` (`search_itemtype`)
+    ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";
 
-        if (this.getElement()) {
-            this.getAJAXContainer().data('js_class', this);
-            this.view = new view_class(this.element_id, push_history);
-        }
-    }
-
-    getElement() {
-        return $('#'+this.element_id);
-    }
-
-    getAJAXContainer() {
-        return this.getElement().closest('div.ajax-container.search-display-data');
-    }
-
-    getView() {
-        return this.view;
-    }
-};
-export default window.GLPI.Search.ResultsView;
+    $DB->queryOrDie($query, "Add table $table");
+}

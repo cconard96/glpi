@@ -1764,7 +1764,7 @@ class Search
      *
      * @return void
      **/
-    public static function displayData(array $data)
+    public static function displayData(array $data, array $params = [])
     {
         /** @var array $CFG_GLPI */
         global $CFG_GLPI;
@@ -1829,7 +1829,9 @@ class Search
             'href'                => $href,
             'prehref'             => $prehref,
             'posthref'            => $globallinkto,
-            'showmassiveactions'  => ($search['showmassiveactions'] ?? true)
+            'push_history'        => $params['push_history'] ?? true,
+            'hide_controls'       => $params['hide_controls'] ?? false,
+            'showmassiveactions'  => ($params['showmassiveactions'] ?? $search['showmassiveactions'] ?? true)
                                   && $data['display_type'] != self::GLOBAL_SEARCH
                                   && ($itemtype == AllAssets::getType()
                                     || count(MassiveAction::getAllMassiveActions($item, $is_deleted))
@@ -2560,22 +2562,26 @@ class Search
         } else {
             $p['target']       = Toolbox::getItemTypeSearchURL($itemtype);
         }
-        $p['showreset']    = true;
-        $p['showbookmark'] = true;
-        $p['showfolding']  = true;
-        $p['mainform']     = true;
-        $p['prefix_crit']  = '';
-        $p['addhidden']    = [];
-        $p['showaction']   = true;
-        $p['actionname']   = 'search';
-        $p['actionvalue']  = _sx('button', 'Search');
+        $p['showreset']                     = true;
+        $p['showbookmark']                  = true;
+        $p['showfolding']                   = true;
+        $p['mainform']                      = true;
+        $p['prefix_crit']                   = '';
+        $p['addhidden']                     = [];
+        $p['showaction']                    = true;
+        $p['actionname']                    = 'search';
+        $p['actionvalue']                   = _sx('button', 'Search');
+        $p['unpublished']                   = 1;
+        $p['hide_controls']                 = false;
+        $p['showmassiveactions']            = true;
+        $p['extra_actions_templates']       = [];
 
         foreach ($params as $key => $val) {
             $p[$key] = $val;
         }
 
        // Itemtype name used in JS function names, etc
-        $normalized_itemtype = strtolower(str_replace('\\', '', $itemtype));
+        $normalized_itemtype = Toolbox::getNormalizedItemtype($itemtype);
         $rand_criteria = mt_rand();
         $main_block_class = '';
         $card_class = 'search-form card card-sm mb-4';
@@ -2622,6 +2628,9 @@ class Search
             ]);
         }
 
+        echo "<input type='hidden' name='params[hide_controls]' value='" . ($p['hide_controls'] ? "1" : "0") . "' />";
+        echo "<input type='hidden' name='params[showmassiveactions]' value='" . ($p['showmassiveactions'] ? "1" : "0") . "' />";
+
         echo "<div class='card-footer d-flex search_actions'>";
         $linked = self::getMetaItemtypeAvailable($itemtype);
         echo "<button id='addsearchcriteria$rand_criteria' class='btn btn-sm btn-outline-secondary me-1' type='button'>
@@ -2667,6 +2676,9 @@ class Search
                   ><i class='ti ti-circle-x'></i></a>";
                 }
             }
+        }
+        foreach ($p['extra_actions_templates'] as $template => $template_params) {
+            TemplateRenderer::getInstance()->display($template, $template_params);
         }
         echo "</div>"; //.search_actions
 
@@ -2800,7 +2812,7 @@ JAVASCRIPT;
         $p           = $request['p'];
         $options     = self::getCleanedOptions($request["itemtype"]);
         $randrow     = mt_rand();
-        $normalized_itemtype = strtolower(str_replace('\\', '', $request["itemtype"]));
+        $normalized_itemtype = Toolbox::getNormalizedItemtype($request["itemtype"]);
         $rowid       = 'searchrow' . $normalized_itemtype . $randrow;
         $addclass    = $num == 0 ? ' headerRow' : '';
         $prefix      = isset($p['prefix_crit']) ? htmlspecialchars($p['prefix_crit'], ENT_QUOTES) : '';
@@ -3288,7 +3300,7 @@ JAVASCRIPT;
         }
 
         $rands = -1;
-        $normalized_itemtype = strtolower(str_replace('\\', '', $request["itemtype"]));
+        $normalized_itemtype = Toolbox::getNormalizedItemtype($request["itemtype"]);
         $dropdownname = Html::cleanId("spansearchtype$fieldname" .
                                     $normalized_itemtype .
                                     $prefix .
