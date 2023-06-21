@@ -31,6 +31,11 @@
  # ---------------------------------------------------------------------
  #}
 
+{% import 'components/form/fields_macros.html.twig' as fields %}
+
+<div>
+   <button name="toggle_default_payload" class="btn btn-secondary">{{ __('Toggle default payload') }}</button>
+</div>
 <div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
    <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
       <button class="btn btn-icon btn-ghost-secondary">
@@ -40,27 +45,56 @@
          <i class="fas fa-fw fa-search editor_find" title="{{ __('Search') }}"></i>
       </button>
    </div>
-   <div id="payload2" class="webhook-payload-editor" style="height: 350px"></div>
+   <div id="payload" class="webhook-payload-editor" style="height: 350px"></div>
+   <div id="default_payload" class="d-none">
+      {{ fields.textareaField('default_payload', default_payload, '', {
+         readonly: 'readonly',
+         input_class: 'col-12',
+         field_class: 'col-12',
+         rows: 10,
+      }) }}
+   </div>
 </div>
 <script>
     $(() => {
-        const monaco = new GLPI.MonacoEditor('payload2', 'twig', "{{ item.fields['payload']|escape }}", {{ response_schema|json_encode|raw }});
+        {% set payload = item.fields['payload']|default(default_payload)|escape('js') %}
+        const monaco = new GLPI.MonacoEditor('payload', 'twig', "{{ payload }}", {{ response_schema|json_encode|raw }});
         $("#webhook-payload-editor-container .editor_find").on('click', function() {
             monaco.editor.getAction('actions.find').run();
         });
         $("#webhook-payload-editor-container .editor_save").on('click', function() {
+            let payload_template = '';
+            let reload_page = false;
+            if ($('#payload').hasClass('d-none')) {
+                payload_template = $('#default_payload textarea').val();
+                reload_page = true;
+            } else {
+                payload_template = monaco.editor.getValue();
+            }
             $.ajax({
                 url: CFG_GLPI['root_doc'] + '/ajax/webhook.php',
                 type: 'POST',
                 data: {
                     action: 'update_payload_template',
                     webhook_id: $("#webhook-payload-editor-container").data('webhook-id'),
-                    payload_template: monaco.editor.getValue(),
+                    payload_template: payload_template,
                 }
             }).done(function() {
-                // eslint-disable-next-line no-undef
-                glpi_toast_info(__('Saved'));
+                if (reload_page) {
+                   window.location.reload();
+                } else {
+                   glpi_toast_info(__('Saved'));
+                }
             });
+        });
+        $('button[name="toggle_default_payload"]').on('click', () => {
+           $('#webhook-payload-editor-toolbar button').toggleClass('d-none');
+           // Force save button to be visible
+           $('#webhook-payload-editor-toolbar button:first').removeClass('d-none');
+           // Toggle the custom payload input
+           $('#payload').toggleClass('d-none');
+           // Toggle the default payload textarea
+           $('#default_payload').toggleClass('d-none');
         });
     });
 </script>
