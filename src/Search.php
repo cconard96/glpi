@@ -566,10 +566,7 @@ class Search
        /// Get the items to display
        // Add searched items
 
-        $forcetoview = false;
-        if (is_array($forcedisplay) && count($forcedisplay)) {
-            $forcetoview = true;
-        }
+        $forcetoview = (is_array($forcedisplay) && count($forcedisplay)) || isset($p['forcetoview']);
         $data['search']['all_search']  = false;
         $data['search']['view_search'] = false;
        // If no research limit research to display item and compute number of item using simple request
@@ -586,7 +583,7 @@ class Search
                 }
             }
         } else {
-            $data['toview'] = array_merge($data['toview'], $forcedisplay);
+            $data['toview'] = array_merge($data['toview'], ($p['forcetoview'] ?? []), $forcedisplay);
         }
 
         if (count($p['criteria']) > 0) {

@@ -303,7 +303,7 @@ class QueuedWebhook extends CommonDBTM
 
         $tab[] = [
             'id'                => 30,
-            'table'             => 'glpi_webhooks',
+            'table'             => self::getTable(),
             'field'             => 'last_status_code',
             'name'              => __('Last status code'),
             'massiveaction'     => false,

@@ -712,10 +712,17 @@ class Webhook extends CommonDBTM implements FilterableInterface
                     'value' => $this->fields['id']
                 ]
             ],
+            // Sort by creation date descending by default
+            'sort' => [16],
+            'order' => ['DESC'],
+            'forcetoview' => [80, 2, 20, 21, 7, 30, 16],
             'is_deleted' => 0,
             'as_map' => 0,
             'browse' => 0,
             'push_history' => 0,
+            'hide_controls' => 1,
+            'showmassiveactions' => 0,
+            'usesession' => 0 // Don't save the search criteria in session or use any criteria currently saved
         ];
         Search::showList(QueuedWebhook::class, $params);
         return true;

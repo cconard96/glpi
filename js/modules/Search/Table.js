@@ -39,11 +39,12 @@ window.GLPI.Search = window.GLPI.Search || {};
 
 window.GLPI.Search.Table = class Table extends GenericView {
 
-    constructor(result_view_element_id, push_history = true) {
+    constructor(result_view_element_id, push_history = true, forced_params = {}) {
         const element_id = $('#'+result_view_element_id).find('table.search-results').attr('id');
         super(element_id);
 
         this.push_history = push_history;
+        this.forced_params = forced_params;
         this.shiftSelectAllCheckbox();
     }
 
@@ -183,7 +184,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
                     search_data['order'] = sort_state['order'];
                 }
 
-                search_data = Object.assign(search_data, search_criteria, search_overrides);
+                search_data = Object.assign(search_data, search_criteria, this.forced_params, search_overrides);
             }
 
             if (this.push_history) {
