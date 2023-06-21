@@ -447,7 +447,7 @@
       {% set field = field ~ clear_chk %}
    {% endif %}
 
-   {# Add checkbox if needed to regenerate password (controler side) #}.
+   {# Add checkbox if needed to regenerate password (controler side) #}
    {% if options.can_regenerate %}
       {% set regenerate_chk %}
          <input type="checkbox" name="_regenerate_{{ name }}" id="_regenerate_{{ name }}">&nbsp;<label for="_regenerate_{{ name }}">{{ __('Regenerate') }}</label>

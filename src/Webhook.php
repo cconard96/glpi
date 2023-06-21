@@ -591,23 +591,37 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         return [
-            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
-            2 => self::createTabEntry(_n('Query', 'Queries', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward')
+            1 => self::createTabEntry(__('Security'), 0, $item::getType(), 'ti ti-shield-lock'),
+            2 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
+            3 => self::createTabEntry(_n('Query', 'Queries', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward')
         ];
     }
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
         if ((int) $tabnum === 1) {
-            $item->showPayloadEditor();
+            $item->showSecurityForm();
             return true;
         }
 
         if ((int) $tabnum === 2) {
+            $item->showPayloadEditor();
+            return true;
+        }
+
+        if ((int) $tabnum === 3) {
             $item->showSentQueries();
             return true;
         }
         return false;
+    }
+
+    public function showSecurityForm()
+    {
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
+            'item' => $this,
+        ]);
+        return true;
     }
 
     public function showPayloadEditor()
