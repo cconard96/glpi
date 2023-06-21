@@ -55,7 +55,7 @@
                 data: {
                     action: 'update_payload_template',
                     webhook_id: $("#webhook-payload-editor-container").data('webhook-id'),
-                    payload_template: editor.getValue(),
+                    payload_template: monaco.editor.getValue(),
                 }
             }).done(function() {
                 // eslint-disable-next-line no-undef
