@@ -174,16 +174,16 @@ class QueuedWebhook extends CommonDBTM
             //TODO log the error
             $response = null;
         }
-        if ($response !== null && $response->getStatusCode() === 200) {
-            $queued_webhook->delete(['id' => $ID]);
-            return true;
-        }
-
-        $queued_webhook->update([
+        $input = [
             'id' => $ID,
             'sent_try' => $queued_webhook->fields['sent_try'] + 1,
             'sent_time' => $_SESSION["glpi_currenttime"],
-        ]);
+        ];
+        if ($response !== null) {
+            $input['last_status_code'] = $response->getStatusCode();
+        }
+
+        $queued_webhook->update($input);
         return false;
     }
 
@@ -299,6 +299,15 @@ class QueuedWebhook extends CommonDBTM
             'name'               => Webhook::getTypeName(1),
             'massiveaction'      => false,
             'datatype'           => 'dropdown'
+        ];
+
+        $tab[] = [
+            'id'                => 30,
+            'table'             => 'glpi_webhooks',
+            'field'             => 'last_status_code',
+            'name'              => __('Last status code'),
+            'massiveaction'     => false,
+            'datatype'          => 'number'
         ];
 
         $tab[] = [

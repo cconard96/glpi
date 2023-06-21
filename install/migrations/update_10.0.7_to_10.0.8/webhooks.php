@@ -95,6 +95,7 @@ if (!$DB->tableExists('glpi_queuedwebhooks')) {
       `headers` text,
       `body` longtext,
       `event` varchar(255) DEFAULT NULL,
+      `last_status_code` int DEFAULT NULL,
       PRIMARY KEY (`id`),
       KEY `item` (`itemtype`,`items_id`),
       KEY `entities_id` (`entities_id`),
@@ -109,7 +110,7 @@ if (!$DB->tableExists('glpi_queuedwebhooks')) {
 }
 
 // Entity, ID, Webhook, Itemtype, Items ID, URL, Creation date
-$ADDTODISPLAYPREF[QueuedWebhook::class] = [80, 2, 22, 20, 21, 7, 16];
+$ADDTODISPLAYPREF[QueuedWebhook::class] = [80, 2, 22, 20, 21, 7, 30, 16];
 
 CronTask::register('QueuedWebhook', 'queuedwebhook', MINUTE_TIMESTAMP, [
     'state' => CronTask::STATE_WAITING,
