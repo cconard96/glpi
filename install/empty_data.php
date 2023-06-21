@@ -386,6 +386,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 3,
                 'itemtype' => 'ConsumableItem',
@@ -396,6 +398,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 4,
                 'itemtype' => 'SoftwareLicense',
@@ -406,6 +410,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 5,
                 'itemtype' => 'Contract',
@@ -416,6 +422,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 6,
                 'itemtype' => 'Infocom',
@@ -426,6 +434,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 7,
                 'itemtype' => 'CronTask',
@@ -436,6 +446,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 9,
                 'itemtype' => 'MailCollector',
@@ -446,6 +458,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 10,
                 'itemtype' => 'DBconnection',
@@ -456,6 +470,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 11,
                 'itemtype' => 'CronTask',
@@ -466,6 +482,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 12,
                 'itemtype' => 'CronTask',
@@ -476,6 +494,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 13,
                 'itemtype' => 'CronTask',
@@ -486,6 +506,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 14,
                 'itemtype' => 'ReservationItem',
@@ -496,6 +518,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 15,
                 'itemtype' => 'Ticket',
@@ -506,6 +530,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 16,
                 'itemtype' => 'Ticket',
@@ -516,6 +542,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 17,
                 'itemtype' => 'SlaLevel_Ticket',
@@ -526,6 +554,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 18,
                 'itemtype' => 'Ticket',
@@ -536,6 +566,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 19,
                 'itemtype' => 'CronTask',
@@ -546,6 +578,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 20,
                 'itemtype' => 'CommonITILRecurrentCron',
@@ -556,6 +590,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 21,
                 'itemtype' => 'PlanningRecall',
@@ -566,6 +602,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 22,
                 'itemtype' => 'QueuedNotification',
@@ -576,6 +614,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 23,
                 'itemtype' => 'QueuedNotification',
@@ -586,6 +626,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 24,
                 'itemtype' => 'CronTask',
@@ -596,6 +638,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 25,
                 'itemtype' => 'MailCollector',
@@ -606,6 +650,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 26,
                 'itemtype' => 'CronTask',
@@ -616,6 +662,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 27,
                 'itemtype' => 'ObjectLock',
@@ -626,6 +674,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 28,
                 'itemtype' => 'SavedSearch',
@@ -636,6 +686,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 29,
                 'itemtype' => 'SavedSearch_Alert',
@@ -646,6 +698,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 30,
                 'itemtype' => 'Telemetry',
@@ -656,6 +710,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 31,
                 'itemtype' => 'Certificate',
@@ -666,6 +722,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 32,
                 'itemtype' => 'OlaLevel_Ticket',
@@ -676,6 +734,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_INTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 33,
                 'itemtype' => 'PurgeLogs',
@@ -686,6 +746,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 34,
                 'itemtype' => 'Ticket',
@@ -696,6 +758,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 35,
                 'itemtype' => 'Document',
@@ -706,6 +770,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 36,
                 'itemtype' => 'User',
@@ -716,6 +782,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 37,
                 'itemtype' => 'Glpi\\Marketplace\\Controller',
@@ -726,6 +794,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 38,
                 'itemtype' => CleanSoftwareCron::getType(),
@@ -736,6 +806,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 300,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 39,
                 'itemtype' => 'Domain',
@@ -746,6 +818,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 42,
                 'itemtype' => PendingReasonCron::getType(),
@@ -756,6 +830,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 60,
+                'hourmin' => 0,
+                'hourmax' => 24,
             ], [
                 'id' => 40,
                 'itemtype' => 'Glpi\Inventory\Inventory',
@@ -766,6 +842,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 41,
                 'itemtype' => 'Glpi\Inventory\Inventory',
@@ -776,6 +854,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 43,
                 'itemtype' => 'Agent',
@@ -786,6 +866,8 @@ $empty_data_builder = new class
                 'mode' => CronTask::MODE_EXTERNAL,
                 'lastrun' => null,
                 'logs_lifetime' => 30,
+                'hourmin' => 0,
+                'hourmax' => 6,
             ], [
                 'id' => 46,
                 'itemtype' => 'QueuedWebhook',
