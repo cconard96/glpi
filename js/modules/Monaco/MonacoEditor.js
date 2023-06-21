@@ -70,19 +70,30 @@ export default class MonacoEditor {
                         startColumn: 1,
                         endColumn: position.column,
                     });
+                    const text_after = model.getValueInRange({
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: position.column,
+                        endColumn: position.column + 1,
+                    });
                     // Check if we are in a twig tag already
-                    const in_full_tag = text.match(/.*{{.*(?!(}}))$/gm);
-                    const in_partial_tag = text.match(/.*{(?!({))$/gm);
+                    const tag_opened = text.match(/{{\s*$/g);
+                    const tag_closed = text_after.match(/\s*}}/g);
 
                     // If not, we will add the twig tag characters around the inserted text
-                    if (!in_full_tag) {
+                    if (tag_opened && !tag_closed) {
+                        insert_prefix = ' ';
+                        insert_suffix = ' }}';
+                    } else if (!tag_opened && !text.match(/{\s*$/g)) {
                         insert_prefix = '{{ ';
+                        if (text.match(/\s{0}$/g)) {
+                            insert_prefix = ' {{ ';
+                        }
                         insert_suffix = ' }}';
-                    }
-                    // If we are in a partial tag, we will add the other { and the }}
-                    if (in_partial_tag) {
-                        insert_prefix = '{ ';
-                        insert_suffix = ' }}';
+                    } else {
+                        return {
+                            suggestions: []
+                        };
                     }
                 }
                 return {
