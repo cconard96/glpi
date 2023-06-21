@@ -72,6 +72,15 @@
         }
     ]) %}
 
+    {{ fields.numberField(
+        'sent_try',
+        item.fields['sent_try'],
+        __('Number of retries'),
+        {
+            'min': 0
+        }
+    ) }}
+
     <div class="hr-text">
         <i class="ti ti-viewfinder"></i>
         <span>{{ _n('Target', 'Targets', 1) }}</span>
@@ -103,22 +112,6 @@
         item.getHttpMethod(),
         __('HTTP method'),
         field_options
-    ) }}
-
-    <div class="hr-text">
-        <i class="ti ti-adjustments"></i>
-        <span>{{ __('Other') }}</span>
-    </div>
-
-    {{ fields.dropdownNumberField(
-        'sent_try',
-        item.fields['sent_try'],
-        __('Number of retries'),
-        {
-        'min': 3,
-        'max': 5,
-        'step': 1,
-        }
     ) }}
 
 {% endblock %}
