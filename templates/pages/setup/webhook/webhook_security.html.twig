@@ -52,15 +52,12 @@
          {% set warning_secret_already_used %}
             <div class="alert alert-warning align-items-center flex-column" role="alert">
                <i class='ti ti-alert-triangle-filled'></i>
-               <span class='ms-2'>
-                           {{ __('Secret is already use by another webhooks') }}
-                       </span>
-
+               <span class='ms-2'> {{ __('Secret is already use by another webhooks') }}</span>
                <span>
-                           {% for webhook in secret_already_used %}
-                              <li  class='ms-4'>{{ webhook.link|raw }}</li>
-                           {% endfor %}
-                       </span>
+                  {% for webhook in secret_already_used %}
+                     <li  class='ms-4'>{{ webhook.link|raw }}</li>
+                  {% endfor %}
+               </span>
             </div>
          {% endset %}
          {{ fields.htmlField('', warning_secret_already_used, '') }}
@@ -160,7 +157,7 @@
 
       <script>
           $('input[name="use_cra_challenge"]').change(function () {
-              if ($('input[name="use_cra_challenge"]').is(":checked") ) {
+              if ($('input[name="use_cra_challenge"]').is(":checked")) {
                   $('input[name="is_cra_challenge_valid"]').val(0);
                   $('button[name="validate_challenge"]').parent().parent().parent().removeClass('d-none');
                   $('span[name="cra_result"]').parent().parent().parent().removeClass('d-none');
