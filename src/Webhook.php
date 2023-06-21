@@ -91,7 +91,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $parent_tabs = parent::defineTabs();
         $tabs = [
             // Main tab retrieved from parents
-            array_keys($parent_tabs)[0] => array_shift($parent_tabs)
+            array_keys($parent_tabs)[0] => array_shift($parent_tabs),
+            array_keys($parent_tabs)[0] => array_shift($parent_tabs),
         ];
 
         $this->addStandardTab(__CLASS__, $tabs, $options);
@@ -100,6 +101,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $tabs = array_merge($tabs, $parent_tabs);
         $this->addStandardTab('Log', $tabs, $options);
 
+        // Final order of tabs: main, filter, payload editor, queries, test, historical
         return $tabs;
     }
 
@@ -589,7 +591,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         return [
-            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots')
+            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
+            2 => self::createTabEntry(_n('Query', 'Queries', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward')
         ];
     }
 
@@ -597,6 +600,11 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         if ((int) $tabnum === 1) {
             $item->showPayloadEditor();
+            return true;
+        }
+
+        if ((int) $tabnum === 2) {
+            $item->showSentQueries();
             return true;
         }
         return false;
@@ -676,6 +684,27 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'response_schema' => $response_schema,
             'default_payload' => $default_payload_str
         ]);
+    }
+
+    public function showSentQueries()
+    {
+        // Show embeded search engine for QueuedWebhook with the criteria for the current webhook ID
+        $params = [
+            'criteria' => [
+                [
+                    'link' => 'AND',
+                    'field' => 22,
+                    'searchtype' => 'equals',
+                    'value' => $this->fields['id']
+                ]
+            ],
+            'is_deleted' => 0,
+            'as_map' => 0,
+            'browse' => 0,
+            'push_history' => 0,
+        ];
+        Search::showList(QueuedWebhook::class, $params);
+        return true;
     }
 
     /**
