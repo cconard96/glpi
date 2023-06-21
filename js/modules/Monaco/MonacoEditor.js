@@ -57,6 +57,24 @@ export default class MonacoEditor {
                     startColumn: word.startColumn,
                     endColumn: word.endColumn,
                 };
+                let insert_prefix = '';
+                let insert_suffix = '';
+                if (language === 'twig') {
+                    const text = model.getValueInRange({
+                        startLineNumber: 1,
+                        endLineNumber: position.lineNumber,
+                        startColumn: 1,
+                        endColumn: position.column,
+                    });
+                    // Check if we are in a twig tag already
+                    const matches = text.match(/.*{{.*(?!(}}))$/gm);
+
+                    // If not, we will add the twig tag characters around the inserted text
+                    if (!matches) {
+                        insert_prefix = '{{ ';
+                        insert_suffix = ' }}';
+                    }
+                }
                 return {
                     suggestions: ((range) => {
                         const suggestions = [];
@@ -65,7 +83,7 @@ export default class MonacoEditor {
                             suggestions.push({
                                 label: completion.name,
                                 kind: window.monaco.languages.CompletionItemKind[completion.type],
-                                insertText: completion.name,
+                                insertText: insert_prefix + completion.name + insert_suffix,
                                 documentation: completion.name,
                                 range: range,
                             });
