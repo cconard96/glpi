@@ -76,6 +76,7 @@ export default class MonacoEditor {
                         startColumn: position.column,
                         endColumn: position.column + 1,
                     });
+
                     // Check if we are in a twig tag already
                     const tag_opened = text.match(/{{\s*$/g);
                     const tag_closed = text_after.match(/\s*}}/g);
@@ -86,7 +87,7 @@ export default class MonacoEditor {
                         insert_suffix = ' }}';
                     } else if (!tag_opened && !text.match(/{\s*$/g)) {
                         insert_prefix = '{{ ';
-                        if (text.match(/\s{0}$/g)) {
+                        if (text.match(/\s{0}$/g) && position.column > 2) {
                             insert_prefix = ' {{ ';
                         }
                         insert_suffix = ' }}';
