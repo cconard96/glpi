@@ -38,11 +38,11 @@
 </div>
 <div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
    <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
-      <button class="btn btn-icon btn-ghost-secondary">
-         <i class="fas fa-save editor_save" title="{{ _x('button', 'Save') }}"></i>
+      <button name="editor_save" class="btn btn-icon btn-ghost-secondary">
+         <i class="fas fa-save" title="{{ _x('button', 'Save') }}"></i>
       </button>
-      <button class="btn btn-icon btn-ghost-secondary">
-         <i class="fas fa-fw fa-search editor_find" title="{{ __('Search') }}"></i>
+      <button name="editor_find" class="btn btn-icon btn-ghost-secondary">
+         <i class="fas fa-fw fa-search" title="{{ __('Search') }}"></i>
       </button>
    </div>
    <div id="payload" class="webhook-payload-editor" style="height: 350px"></div>
@@ -59,10 +59,10 @@
     $(() => {
         {% set payload = item.fields['payload']|default(default_payload)|escape('js') %}
         const monaco = new GLPI.MonacoEditor('payload', 'twig', "{{ payload }}", {{ response_schema|json_encode|raw }});
-        $("#webhook-payload-editor-container .editor_find").on('click', function() {
+        $("#webhook-payload-editor-container button[name='editor_find']").on('click', function() {
             monaco.editor.getAction('actions.find').run();
         });
-        $("#webhook-payload-editor-container .editor_save").on('click', function() {
+        $("#webhook-payload-editor-container button[name='editor_save']").on('click', function() {
             let payload_template = '';
             let reload_page = false;
             if ($('#payload').hasClass('d-none')) {
