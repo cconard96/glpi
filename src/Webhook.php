@@ -589,7 +589,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         return [
-            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType())
+            1 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots')
         ];
     }
 
@@ -641,7 +641,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'name' => $prop_name,
                 'type' => 'Variable'
             ];
-            //$default_payload['item'][$prop_name] = "{{ item.$prop_name }}";
         }
         // default payload should follow the same nested structure as the original $schema['properties'] but the values should be replaced with a twig tag of the key
         $fn_append_properties = function ($schema_arr, $prefix_keys = []) use (&$fn_append_properties) {
