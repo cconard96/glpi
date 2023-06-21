@@ -1919,6 +1919,7 @@ $empty_data_builder = new class
         $ADDTODISPLAYPREF[Socket::class] = [5, 6, 9, 8, 7];
         $ADDTODISPLAYPREF['Cable'] = [4, 31, 6, 15, 24, 8, 10, 13, 14];
         $ADDTODISPLAYPREF[Webhook::class] = [3, 4, 5];
+        $ADDTODISPLAYPREF[QueuedWebhook::class] = [80, 2, 22, 20, 21, 7, 16];
 
         foreach ($ADDTODISPLAYPREF as $type => $options) {
             $rank = 1;
