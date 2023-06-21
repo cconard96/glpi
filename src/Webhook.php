@@ -431,12 +431,14 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         $itil_types = [Ticket::class, Change::class, Problem::class];
         foreach ($itil_types as $itil_type) {
-            if ($itil_type::getValidationClassInstance() !== null) {
-                $sub_item[$itil_type::getValidationClassInstance()::class] = $itil_type::getValidationClassInstance()::class::getTypeName(0);
+            $validation = $itil_type::getValidationClassInstance();
+            if ($validation !== null) {
+                $sub_item[$validation::class] = $validation::getTypeName(0);
             }
 
-            if ($itil_type::getTaskClass() !== null) {
-                $sub_item[$itil_type::getTaskClass()] = $itil_type::getTaskClass()::getTypeName(0);
+            $task_class = $itil_type::getTaskClass();
+            if ($task_class !== null) {
+                $sub_item[$task_class] = $task_class::getTypeName(0);
             }
         }
         return $sub_item;
