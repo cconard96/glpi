@@ -48,7 +48,11 @@ export default class MonacoEditor {
      */
     constructor(element_id, language, value = '', completions = []) {
         const el = document.getElementById(element_id);
+        const trigger_characters = {
+            twig: ['{', ' '],
+        };
         window.monaco.languages.registerCompletionItemProvider(language, {
+            triggerCharacters: trigger_characters[language] ?? [],
             provideCompletionItems: function (model, position) {
                 const word = model.getWordUntilPosition(position);
                 const range = {
@@ -67,11 +71,17 @@ export default class MonacoEditor {
                         endColumn: position.column,
                     });
                     // Check if we are in a twig tag already
-                    const matches = text.match(/.*{{.*(?!(}}))$/gm);
+                    const in_full_tag = text.match(/.*{{.*(?!(}}))$/gm);
+                    const in_partial_tag = text.match(/.*{(?!({))$/gm);
 
                     // If not, we will add the twig tag characters around the inserted text
-                    if (!matches) {
+                    if (!in_full_tag) {
                         insert_prefix = '{{ ';
+                        insert_suffix = ' }}';
+                    }
+                    // If we are in a partial tag, we will add the other { and the }}
+                    if (in_partial_tag) {
+                        insert_prefix = '{ ';
                         insert_suffix = ' }}';
                     }
                 }
