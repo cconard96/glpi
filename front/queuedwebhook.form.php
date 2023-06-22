@@ -89,6 +89,6 @@ if (isset($_POST["delete"])) {
     );
     $queuedwebhook->redirectToList();
 } else {
-    $menus = ["config", "queuedwebhook"];
+    $menus = ["config", "webhook"];
     QueuedWebhook::displayFullPageForItem($_GET["id"], $menus, $_GET);
 }
