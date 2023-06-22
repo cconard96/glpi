@@ -34,7 +34,7 @@
 {% import 'components/form/fields_macros.html.twig' as fields %}
 
 <div>
-   <button name="toggle_default_payload" class="btn btn-secondary">{{ __('Toggle default payload') }}</button>
+   {{ fields.sliderField('toggle_default_payload', 0, __('Toggle default payload')) }}
 </div>
 <div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
    <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
@@ -87,14 +87,19 @@
                 }
             });
         });
-        $('button[name="toggle_default_payload"]').on('click', () => {
-           $('#webhook-payload-editor-toolbar button').toggleClass('d-none');
+        $('input[name="toggle_default_payload"]').on('change', () => {
+           const is_default_payload = $('input[name="toggle_default_payload"]').is(':checked');
+           if (is_default_payload) {
+               $('#webhook-payload-editor-toolbar button').addClass('d-none');
+               $('#payload').addClass('d-none');
+               $('#default_payload').removeClass('d-none');
+           } else {
+               $('#webhook-payload-editor-toolbar button').removeClass('d-none');
+               $('#payload').removeClass('d-none');
+               $('#default_payload').addClass('d-none');
+           }
            // Force save button to be visible
            $('#webhook-payload-editor-toolbar button:first').removeClass('d-none');
-           // Toggle the custom payload input
-           $('#payload').toggleClass('d-none');
-           // Toggle the default payload textarea
-           $('#default_payload').toggleClass('d-none');
         });
     });
 </script>
