@@ -627,6 +627,45 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return true;
     }
 
+    /**
+     * @param array $schema The API schema used to generate the payload
+     * @return string The default payload as a twig template
+     */
+    private function getDefaultPayloadAsTwigTemplate(array $schema): string
+    {
+        $default_payload = [
+            'event' => '{{ event }}',
+            'item' => []
+        ];
+
+        // default payload should follow the same nested structure as the original $schema['properties'] but the values should be replaced with a twig tag of the key
+        $fn_append_properties = function ($schema_arr, $prefix_keys = []) use (&$fn_append_properties) {
+            $result = [];
+            foreach ($schema_arr as $key => $value) {
+                $new_prefix_keys = array_merge($prefix_keys, [$key]);
+                if ($value['type'] === Schema::TYPE_OBJECT) {
+                    $result = array_merge($result, $fn_append_properties($value['properties'], $new_prefix_keys));
+                } else {
+                    // walk through the result array for each prefix key (creating if needed) and set the value to the twig tag
+                    $current = &$result;
+                    foreach ($prefix_keys as $prefix_key) {
+                        if (!isset($current[$prefix_key])) {
+                            $current[$prefix_key] = [];
+                        }
+                        $current = &$current[$prefix_key];
+                    }
+                    $current[$key] = "{{ item." . implode('.', $new_prefix_keys) . " }}";
+                }
+            }
+            return $result;
+        };
+        $default_payload['item'] = $fn_append_properties($schema['properties']);
+
+        $default_payload_str = json_encode($default_payload, JSON_PRETTY_PRINT);
+
+        return $default_payload_str;
+    }
+
     public function showPayloadEditor()
     {
         $itemtype = $this->fields['itemtype'];
@@ -650,10 +689,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
         $props = Schema::flattenProperties($schema['properties'], 'item.');
-        $default_payload = [
-            'event' => '{{ event }}',
-            'item' => []
-        ];
+
         $response_schema = [
             [
                 'name' => 'event',
@@ -667,30 +703,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'type' => 'Variable'
             ];
         }
-        // default payload should follow the same nested structure as the original $schema['properties'] but the values should be replaced with a twig tag of the key
-        $fn_append_properties = function ($schema_arr, $prefix_keys = []) use (&$fn_append_properties) {
-            $result = [];
-            foreach ($schema_arr as $key => $value) {
-                $new_prefix_keys = array_merge($prefix_keys, [$key]);
-                if ($value['type'] === Schema::TYPE_OBJECT) {
-                    $result = array_merge($result, $fn_append_properties($value['properties'], $new_prefix_keys));
-                } else {
-                    // walk through the result array for each prefix key (creating if needed) and set the value to the twig tag
-                    $current = &$result;
-                    foreach ($prefix_keys as $prefix_key) {
-                        if (!isset($current[$prefix_key])) {
-                            $current[$prefix_key] = [];
-                        }
-                        $current = &$current[$prefix_key];
-                    }
-                    $current[$key] = "{{ " . implode('.', $new_prefix_keys) . " }}";
-                }
-            }
-            return $result;
-        };
-        $default_payload['item'] = $fn_append_properties($schema['properties']);
-
-        $default_payload_str = json_encode($default_payload, JSON_PRETTY_PRINT);
 
         TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
             'item' => $this,
@@ -699,7 +711,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'candel' => false
             ],
             'response_schema' => $response_schema,
-            'default_payload' => $default_payload_str
+            'default_payload' => $this->getDefaultPayloadAsTwigTemplate($schema)
         ]);
     }
 
