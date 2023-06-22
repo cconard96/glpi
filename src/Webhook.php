@@ -470,7 +470,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
                         $data = [
                             'item' => $data
                         ];
-                        //$data = $this->flattenResultsArray($data);
                         $data['event'] = $event;
                         $env = new \Twig\Environment(
                             new \Twig\Loader\ArrayLoader([
@@ -482,6 +481,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                         return null;
                     }
                 } else {
+                    $data['event'] = $event;
                     return json_encode($data, JSON_PRETTY_PRINT);
                 }
             }
