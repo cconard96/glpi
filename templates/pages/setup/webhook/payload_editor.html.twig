@@ -34,7 +34,10 @@
 {% import 'components/form/fields_macros.html.twig' as fields %}
 
 <div>
-   {{ fields.sliderField('use_default_payload', item.fields['use_default_payload'], __('Use default payload')) }}
+   {{ fields.sliderField('use_default_payload', item.fields['use_default_payload'], __('Use default payload'), {
+      align_label_right: false,
+      label_class: 'col-xxl-4'
+   }) }}
 </div>
 <div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
    <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
