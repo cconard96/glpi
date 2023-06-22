@@ -361,9 +361,16 @@ class QueuedWebhook extends CommonDBTM
             'SELECT' => ['id'],
             'FROM'   => self::getTable(),
             'WHERE'  => [
-                    'is_deleted'   => 0,
-                    'send_time'    => ['<', $send_time],
-                ] +  $extra_where,
+                'is_deleted'   => 0,
+                'send_time'    => ['<', $send_time],
+                [
+                    'OR' => [
+                        // We will retry sending webhooks that never got a response or got any error status code (4xx or 5xx)
+                        ['last_status_code' => null],
+                        ['last_status_code' => ['>=', 400]]
+                    ]
+                ]
+            ] +  $extra_where,
             'ORDER'  => 'send_time ASC',
             'START'  => 0,
             'LIMIT'  => $limit
