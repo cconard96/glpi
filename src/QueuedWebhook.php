@@ -344,7 +344,7 @@ class QueuedWebhook extends CommonDBTM
         }
         switch ($field) {
             case 'last_status_code':
-                return getStatusCodeBadge($values[$field]);
+                return self::getStatusCodeBadge($values[$field]);
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
