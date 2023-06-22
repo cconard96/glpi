@@ -45,7 +45,7 @@
    {{ fields.htmlField('send_time', item.fields['send_time'], __('Expected send date')) }}
    {{ fields.htmlField('sent_time', item.fields['sent_time'], __('Send date')) }}
    {{ fields.htmlField('sent_try', item.fields['sent_try'], __('Number of tries of sent')) }}
-   {{ fields.htmlField('last_status_code', item.fields['last_status_code'], __('Last status code')) }}
+   {{ fields.htmlField('last_status_code', item.getStatusCodeBadge(item.fields['last_status_code']), __('Last status code')) }}
 
    {{ fields.smallTitle(__('Request')) }}
 

@@ -322,6 +322,20 @@ class QueuedWebhook extends CommonDBTM
         return $tab;
     }
 
+    public static function getStatusCodeBadge($value): string
+    {
+        $display_value = $value;
+        $badge_class = 'badge bg-orange';
+        if (empty($display_value)) {
+            $display_value = __('Not sent/no response');
+        } else if ($display_value <= 200) {
+            $badge_class = 'badge bg-green';
+        } else {
+            $badge_class = 'badge bg-red';
+        }
+        return '<div class="' . $badge_class . '">' . $display_value . '</div>';
+    }
+
     public static function getSpecificValueToDisplay($field, $values, array $options = [])
     {
         // For last_status_code field, we want to display a badge element
@@ -330,16 +344,7 @@ class QueuedWebhook extends CommonDBTM
         }
         switch ($field) {
             case 'last_status_code':
-                $display_value = $values[$field];
-                $badge_class = 'badge bg-orange';
-                if (empty($display_value)) {
-                    $display_value = __('Not sent/no response');
-                } else if ($display_value <= 200) {
-                    $badge_class = 'badge bg-green';
-                } else {
-                    $badge_class = 'badge bg-red';
-                }
-                return '<div class="' . $badge_class . '">' . $display_value . '</div>';
+                return getStatusCodeBadge($values[$field]);
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
