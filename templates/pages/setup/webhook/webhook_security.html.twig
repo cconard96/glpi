@@ -38,18 +38,6 @@
 
 {% block form_fields %}
    {% block more_fields %}
-      {% set info_security %}
-         <div class="alert alert-info" role="alert">
-            <i class="fas fa-info-circle"></i>
-            <span class="ms-2">
-               {{ __('The webhook secret can be shared with a target server to allow it to validate requests are actually coming from the GLPI server and that the content was not modified between GLPI and the target.') }}
-            </span>
-         </div>
-      {% endset %}
-      {{ fields.htmlField('', info_security, '', {
-         input_class: 'col-12',
-         field_class: 'col-12',
-      }) }}
 
       {{ fields.passwordField(
          'secret',
@@ -57,7 +45,8 @@
          __('Secret'),
          field_options|merge({
             is_disclosable: true,
-            can_regenerate: true
+            can_regenerate: true,
+            helper: __('The webhook secret can be shared with a target server to allow it to validate requests are actually coming from the GLPI server and that the content was not modified between GLPI and the target.')
          })
       ) }}
 
@@ -109,24 +98,13 @@
          <span>{{ __('Target authentication') }}</span>
       </div>
 
-      {% set info_cra_challenge %}
-         <div class="alert alert-info" role="alert">
-            <i class="fas fa-info-circle"></i>
-            <span class="ms-2">
-               {{ __('Challenge–response authentication can be used to validate the identity of the target server before any data is sent from GLPI. This uses the shared secret that was generated in the above section.') }}
-            </span>
-         </div>
-      {% endset %}
-      {{ fields.htmlField('', info_cra_challenge, '', {
-         input_class: 'col-12',
-         field_class: 'col-12',
-      }) }}
-
       {{ fields.checkboxField(
          'use_cra_challenge',
          item.fields['use_cra_challenge'],
          __('Use CRA Challenge ?'),
-         field_options
+         field_options|merge({
+            helper: __('Challenge–response authentication can be used to validate the identity of the target server before any data is sent from GLPI. This uses the shared secret that was generated in the above section.')
+         })
       ) }}
 
       {% set cra_btn %}
