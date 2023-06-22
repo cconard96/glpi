@@ -90,7 +90,9 @@
         'url',
         item.fields['url'],
         __('URL'),
-        field_options
+        field_options|merge({
+            helper: __('It is strongly advised to use the HTTPS protocol')
+        })
     ) }}
 
     {{ fields.dropdownArrayField(
@@ -98,9 +100,7 @@
         item.fields['http_method'],
         item.getHttpMethod(),
         __('HTTP method'),
-        field_options|merge({
-            helper: __('It is strongly advised to use the HTTPS protocol')
-        })
+        field_options
     ) }}
 
 {% endblock %}
