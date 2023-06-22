@@ -93,25 +93,14 @@
         field_options
     ) }}
 
-    {% set warning_url %}
-        <div class="alert alert-warning d-flex align-items-center" role="alert">
-            <i class='ti ti-alert-triangle-filled'></i>
-            <div>
-                <span class='ms-2'>
-                    {{ __('Is strongly advised to use the https protocol') }}
-                </span>
-            </div>
-        </div>
-    {% endset %}
-
-    {{ fields.htmlField('', warning_url, '') }}
-
     {{ fields.dropdownArrayField(
         'http_method',
         item.fields['http_method'],
         item.getHttpMethod(),
         __('HTTP method'),
-        field_options
+        field_options|merge({
+            helper: __('It is strongly advised to use the HTTPS protocol')
+        })
     ) }}
 
 {% endblock %}
