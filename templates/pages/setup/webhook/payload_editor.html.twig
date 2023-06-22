@@ -45,13 +45,13 @@
          <i class="fas fa-fw fa-search" title="{{ __('Search') }}"></i>
       </button>
    </div>
-   <div id="payload" class="webhook-payload-editor" style="height: 350px"></div>
+   <div id="payload" class="webhook-payload-editor" style="height: 600px"></div>
    <div id="default_payload" class="d-none">
       {{ fields.textareaField('default_payload', default_payload, '', {
          readonly: 'readonly',
          input_class: 'col-12',
          field_class: 'col-12',
-         rows: 10,
+         rows: 30,
       }) }}
    </div>
 </div>
