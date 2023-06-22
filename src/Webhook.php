@@ -462,6 +462,9 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 return json_encode($data, JSON_PRETTY_PRINT);
             } else {
                 $payload_template = isset($this->fields['payload']) ? $this->fields['payload'] : null;
+                if ($this->fields['use_default_payload'] === 1) {
+                    $payload_template = null;
+                }
                 if (!empty($payload_template)) {
                     try {
                         $data = [

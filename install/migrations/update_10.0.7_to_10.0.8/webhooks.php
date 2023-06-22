@@ -52,6 +52,7 @@ if (!$DB->tableExists('glpi_webhooks')) {
       `itemtype` varchar(255) DEFAULT NULL,
       `event` varchar(255) DEFAULT NULL,
       `payload` text,
+      `use_default_payload` tinyint NOT NULL DEFAULT '1',
       `url` varchar(255) DEFAULT NULL,
       `secret` text,
       `use_cra_challenge` tinyint NOT NULL DEFAULT '0',

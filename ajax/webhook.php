@@ -146,10 +146,18 @@ switch ($action) {
             if (!$webhook->canUpdateItem()) {
                 die(403);
             }
-            $webhook->update([
-                'id' => $webhook_id,
-                'payload' => $payload_template
-            ]);
+            if ($_POST['use_default_payload'] === 'true') {
+                $webhook->update([
+                    'id' => $webhook_id,
+                    'use_default_payload' => 1,
+                ]);
+            } else {
+                $webhook->update([
+                    'id' => $webhook_id,
+                    'payload' => $payload_template,
+                    'use_default_payload' => 0,
+                ]);
+            }
         } else {
             die(404);
         }

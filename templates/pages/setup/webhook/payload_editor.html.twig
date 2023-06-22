@@ -34,7 +34,7 @@
 {% import 'components/form/fields_macros.html.twig' as fields %}
 
 <div>
-   {{ fields.sliderField('toggle_default_payload', 0, __('Toggle default payload')) }}
+   {{ fields.sliderField('use_default_payload', item.fields['use_default_payload'], __('Use default payload')) }}
 </div>
 <div id="webhook-payload-editor-container" data-webhook-id="{{ item.fields['id'] }}">
    <div id="webhook-payload-editor-toolbar" class="mx-1" style="font-size: 1.25em">
@@ -65,10 +65,7 @@
         $("#webhook-payload-editor-container button[name='editor_save']").on('click', function() {
             let payload_template = '';
             let reload_page = false;
-            if ($('#payload').hasClass('d-none')) {
-                payload_template = $('#default_payload textarea').val();
-                reload_page = true;
-            } else {
+            if (!$('#payload').hasClass('d-none')) {
                 payload_template = monaco.editor.getValue();
             }
             $.ajax({
@@ -78,6 +75,7 @@
                     action: 'update_payload_template',
                     webhook_id: $("#webhook-payload-editor-container").data('webhook-id'),
                     payload_template: payload_template,
+                    use_default_payload: $('input[name="use_default_payload"]').is(':checked'),
                 }
             }).done(function() {
                 if (reload_page) {
@@ -87,8 +85,8 @@
                 }
             });
         });
-        $('input[name="toggle_default_payload"]').on('change', () => {
-           const is_default_payload = $('input[name="toggle_default_payload"]').is(':checked');
+        $('input[name="use_default_payload"]').on('change', () => {
+           const is_default_payload = $('input[name="use_default_payload"]').is(':checked');
            if (is_default_payload) {
                $('#webhook-payload-editor-toolbar button').addClass('d-none');
                $('#payload').addClass('d-none');
@@ -100,6 +98,9 @@
            }
            // Force save button to be visible
            $('#webhook-payload-editor-toolbar button:first').removeClass('d-none');
+        });
+        $(() => {
+           $('input[name="use_default_payload"]').trigger('change');
         });
     });
 </script>
