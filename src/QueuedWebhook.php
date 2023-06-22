@@ -357,11 +357,23 @@ class QueuedWebhook extends CommonDBTM
         }
 
         $pendings = [];
+        $queued_table = self::getTable();
+        $webhook_table = Webhook::getTable();
+
         $iterator = $DB->request([
-            'SELECT' => ['id'],
-            'FROM'   => self::getTable(),
+            'SELECT' => [$queued_table . '.id'],
+            'FROM'   => $queued_table,
+            'LEFT JOIN' => [
+                $webhook_table => [
+                    'FKEY' => [
+                        $webhook_table => 'id',
+                        $queued_table => 'webhooks_id'
+                    ]
+                ]
+            ],
             'WHERE'  => [
                 'is_deleted'   => 0,
+                new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' < ' . $DB::quoteName($webhook_table . '.sent_try')),
                 'send_time'    => ['<', $send_time],
                 [
                     'OR' => [
@@ -425,14 +437,26 @@ class QueuedWebhook extends CommonDBTM
 
         $expiration = $task !== null ? $task->fields['param'] : 30;
 
+        $queued_table = self::getTable();
+        $webhook_table = Webhook::getTable();
         if ($expiration > 0) {
             $secs      = $expiration * DAY_TIMESTAMP;
             $send_time = date("U") - $secs;
             $DB->delete(
-                self::getTable(),
+                $queued_table,
                 [
-                    'is_deleted'   => 1,
-                    new QueryExpression(QueryFunction::unixTimestamp('send_time') . ' < ' . $DB::quoteValue($send_time))
+                    'OR' => [
+                        new QueryExpression(QueryFunction::unixTimestamp('send_time') . ' < ' . $DB::quoteValue($send_time)),
+                        new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' >= ' . $DB::quoteName($webhook_table . '.sent_try')),
+                    ]
+                ],
+                [
+                    $webhook_table => [
+                        'ON' => [
+                            $queued_table => 'webhooks_id',
+                            $webhook_table => 'id'
+                        ]
+                    ]
                 ]
             );
             $vol = $DB->affectedRows();
