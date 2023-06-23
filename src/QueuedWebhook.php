@@ -36,6 +36,7 @@
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
+use Glpi\Http\Response;
 
 class QueuedWebhook extends CommonDBChild
 {
@@ -176,8 +177,11 @@ class QueuedWebhook extends CommonDBChild
                 \GuzzleHttp\RequestOptions::BODY => $queued_webhook->fields['body'],
             ]);
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-            //TODO log the error
-            $response = null;
+            Toolbox::logInFile(
+                "webhook.log",
+                "Error sending webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
+            );
+            $response = $e->getCode() !== null ? new Response($e->getCode()) : null;
         }
         $input = [
             'id' => $ID,
