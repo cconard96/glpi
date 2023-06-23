@@ -161,7 +161,9 @@ class QueuedWebhook extends CommonDBTM
         }
 
         $webhook = new Webhook();
-        $webhook->getFromDB($queued_webhook->fields['webhooks_id']);
+        if (!$webhook->getFromDB($queued_webhook->fields['webhooks_id'])) {
+            return false;
+        }
 
         $client = new \GuzzleHttp\Client($options);
         $headers = json_decode($queued_webhook->fields['headers'], true);
@@ -183,8 +185,7 @@ class QueuedWebhook extends CommonDBTM
             $input['last_status_code'] = $response->getStatusCode();
         }
 
-        $queued_webhook->update($input);
-        return false;
+        return $queued_webhook->update($input) && $response !== null;
     }
 
     public static function getIcon()
@@ -324,10 +325,10 @@ class QueuedWebhook extends CommonDBTM
 
     public static function getStatusCodeBadge($value): string
     {
-        $display_value = $value;
+        $display_value = (int) $value;
         $badge_class = 'badge bg-orange';
         if (empty($display_value)) {
-            $display_value = __('Not sent/no response');
+            $display_value = __s('Not sent/no response');
         } else if ($display_value <= 200) {
             $badge_class = 'badge bg-green';
         } else {
@@ -355,7 +356,6 @@ class QueuedWebhook extends CommonDBTM
         $webhook->getFromDB($this->fields['webhooks_id']);
         TemplateRenderer::getInstance()->display('pages/setup/webhook/queuedwebhook.html.twig', [
             'item' => $this,
-            'item_obj' => new ($this->fields['itemtype'])(),
             'webhook' => $webhook,
             'headers' => json_decode($this->fields['headers'], true),
             'params' => [

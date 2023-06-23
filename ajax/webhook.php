@@ -39,11 +39,12 @@ Html::header_nocache();
 
 Session::checkRight("config", READ);
 
-$action = $_POST['action'] ?? $_POST["action"];
+$action = $_POST['action'] ?? null;
 
 switch ($action) {
     case 'valide_cra_challenge':
         $response = Webhook::validateCRAChallenge($_POST['target_url'], 'validate_cra_challenge', $_POST['secret']);
+        header("Content-Type: application/json; charset=UTF-8");
         echo json_encode($response);
         break;
     case 'get_events_from_itemtype':
@@ -59,22 +60,10 @@ switch ($action) {
             $data = $object->find();
             $values = [];
             foreach ($data as $items_id => $items_data) {
-                if (is_a($object::getType(), CommonITILTask::class, true)) {
-                    $foreign_key = null;
-                    switch ($object::getType()) {
-                        case TicketTask::class:
-                            $foreign_key = "tickets_id";
-                            break;
-                        case ChangeTask::class:
-                            $foreign_key = "changes_id";
-                            break;
-                        case ProblemTask::class:
-                            $foreign_key = "problems_id";
-                            break;
-                    }
-                    if ($foreign_key !== null) {
-                        $values[$items_id] = getItemtypeForForeignKeyField($foreign_key)::getType() . " " . $items_data[$foreign_key] . " => " . $object::getTypeName(0) . " " . $items_id;
-                    }
+                if ($object instanceof CommonITILTask) {
+                    $itil_type = $object->getItilObjectItemType();
+                    $foreign_key = getForeignKeyFieldForItemType($itil_type);
+                    $values[$items_id] = $itil_type::getTypeName(0) . " " . $items_data[$foreign_key] . " => " . $object::getTypeName(0) . " " . $items_id;
                 } else {
                     $values[$items_id] = $items_data['itemtype']::getTypeName(0) . " " . $items_data['items_id'] . " => " . $object::getTypeName(0) . " " . $items_id;
                 }
@@ -161,4 +150,5 @@ switch ($action) {
         } else {
             die(404);
         }
+        break;
 }

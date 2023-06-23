@@ -168,15 +168,12 @@
               $.ajax({
                   type: 'POST',
                   url: '{{ path('/ajax/webhook.php') }}',
-                  dataType: 'json',
                   data: {
                       action: 'valide_cra_challenge',
                       target_url: target_url,
                       secret: secret,
                   },
                   success: function(json_response) {
-                      console.log(json_response);
-
                       if (json_response.status) {
                           $('input[name="is_cra_challenge_valid"]').val(1);
                           $('span[name="cra_result"]').html('<i class="fa-solid fa-circle-check fa-beat fa-lg" style="color: #36d601;"></i> ' + (json_response.status_code ? json_response.status_code + ' ' : ' ') + json_response.message);

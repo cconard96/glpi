@@ -312,7 +312,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         }
     }
 
-    private static function getAPIItemtypeData()
+    private static function getAPIItemtypeData(): array
     {
         global $CFG_GLPI;
 
@@ -584,8 +584,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $this->initForm($id, $options);
 
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook.html.twig', [
-            'item' => $this,
-            'secret_already_used' => $this->getWebhookWithSameSecret()
+            'item' => $this
         ]);
 
         return true;
@@ -619,12 +618,12 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return false;
     }
 
-    public function showSecurityForm()
+    private function showSecurityForm(): void
     {
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
             'item' => $this,
+            'secret_already_used' => $this->getWebhookWithSameSecret()
         ]);
-        return true;
     }
 
     /**
@@ -666,7 +665,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $default_payload_str;
     }
 
-    public function showPayloadEditor()
+    private function showPayloadEditor(): void
     {
         $itemtype = $this->fields['itemtype'];
         /** @var class-string<AbstractController> $controller_class */
@@ -715,7 +714,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         ]);
     }
 
-    public function showSentQueries()
+    private function showSentQueries(): void
     {
         // Show embeded search engine for QueuedWebhook with the criteria for the current webhook ID
         $params = [
@@ -740,53 +739,41 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'usesession' => 0 // Don't save the search criteria in session or use any criteria currently saved
         ];
         Search::showList(QueuedWebhook::class, $params);
-        return true;
     }
 
     /**
      * Check if secret is already use dby another webhook
      * @return array of webhook using same secret
      */
-    public function getWebhookWithSameSecret()
+    private function getWebhookWithSameSecret(): array
     {
 
-        if ($this->isNewID($this->fields['id'])) {
+        if (self::isNewID($this->fields['id'])) {
             return [];
-        } else {
-            //check if secret is already use by another webhook
-            $webhook = new self();
-            $data = $webhook->find([
-                'secret' => $this->fields['secret'],
-                'NOT' => [
-                    'id' => $this->fields['id']
-                ],
-            ]);
-
-            $already_use = [];
-            foreach ($data as $webhook_value) {
-                $webhook->getFromDB($webhook_value['id']);
-                $already_use[$webhook_value['id']] = [
-                    'link' => $webhook->getLink()
-                ];
-            }
-            return $already_use;
         }
+
+        //check if secret is already use by another webhook
+        $webhook = new self();
+        $data = $webhook->find([
+            'secret' => $this->fields['secret'],
+            'NOT' => [
+                'id' => $this->fields['id']
+            ],
+        ]);
+
+        $already_use = [];
+        foreach ($data as $webhook_value) {
+            $webhook->getFromDB($webhook_value['id']);
+            $already_use[$webhook_value['id']] = [
+                'link' => $webhook->getLink()
+            ];
+        }
+        return $already_use;
     }
 
-    public static function signWebhookRequest($body, $secret)
+    public static function getSignature($data, $secret): string
     {
-        $body = json_encode($body);
-        $timestamp = time();
-        $signature = self::getSignature($body . $timestamp, $secret);
-        header("X-GLPI-signature: " . $signature);
-        header("X-GLPI-timestamp: " . $timestamp);
-        echo $body;
-    }
-
-    public static function getSignature($data, $secret)
-    {
-        $signature = hash_hmac('sha256', $data, $secret);
-        return $signature;
+        return hash_hmac('sha256', $data, $secret);
     }
 
     /**
@@ -932,7 +919,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
      * @param array $data The data for the webhook
      * @return void
      */
-    public static function send(array $data)
+    public static function send(array $data): void
     {
         $queued_webhook = new QueuedWebhook();
         $queued_webhooks_id = $queued_webhook->add([

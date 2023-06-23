@@ -38,7 +38,7 @@
 
 {% block form_fields %}
    {{ fields.htmlField('itemtype', item.fields['itemtype'], _n('Type', 'Types', 1)) }}
-   {{ fields.htmlField('items_id', get_item_link(item_obj, item.fields['items_id']), _n('Item', 'Items', 1)) }}
+   {{ fields.htmlField('items_id', get_item_link(item.fields['itemtype'], item.fields['items_id']), _n('Item', 'Items', 1)) }}
    {{ fields.htmlField('webhooks_id', get_item_link(webhook), 'Webhook'|itemtype_name) }}
    {{ fields.nullField() }}
    {{ fields.htmlField('create_time', item.fields['create_time'], __('Creation date')) }}

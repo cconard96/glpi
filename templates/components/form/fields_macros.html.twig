@@ -907,7 +907,7 @@
       {% if options.center %}
          {% set flex_class = "d-flex align-items-center" %}
       {% endif %}
-      <div {{ container_id }} class="{{ options.input_class }} {{ flex_class }} field-container {{ container_class }}">
+      <div {{ container_id }} class="{{ options.input_class }} {{ flex_class }} field-container">
          {{ field|raw }}
          {{ add_field_html|raw }}
       </div>
