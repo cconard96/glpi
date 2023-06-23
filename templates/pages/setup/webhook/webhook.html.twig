@@ -46,7 +46,7 @@
         item.getItemtypesDropdownValues(),
         __('Itemtype'),
         field_options|merge({
-            display_emptychoice: true,
+            display_emptychoice: item.isNewItem(),
             rand: rand_field,
         })
     ) }}
@@ -57,7 +57,7 @@
         item.getGlpiEventsList(item.fields['itemtype']),
         _n('Event', 'Events', 1),
         field_options|merge({
-            display_emptychoice: true,
+            display_emptychoice: item.isNewItem(),
             container_id: 'show_event_field',
         })
     ) }}

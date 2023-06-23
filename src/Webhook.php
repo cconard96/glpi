@@ -686,6 +686,10 @@ class Webhook extends CommonDBTM implements FilterableInterface
             }
         }
 
+        if ($controller_class === null || $schema_name === null) {
+            echo __('This itemtype is not supported by the API. Maybe a plugin is missing/disabled?');
+            return;
+        }
         $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
         $props = Schema::flattenProperties($schema['properties'], 'item.');
 
@@ -957,11 +961,11 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         //empty choice (0) update to empty ('')
         if (isset($input["itemtype"]) && !$input["itemtype"]) {
-            $input["itemtype"] = '';
+            Session::addMessageAfterRedirect(__('An item type is required'), false, ERROR);
         }
 
         if (isset($input["event"]) && !$input["event"]) {
-            $input["event"] = '';
+            Session::addMessageAfterRedirect(__('An event is required'), false, ERROR);
         }
 
         if (empty($input['secret']) || isset($input['_regenerate_secret'])) {
