@@ -936,10 +936,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'event' => $data['event'],
             'headers' => $data['headers'],
         ]);
-        // Try sending the webhook immediately
-        if ($queued_webhooks_id !== false) {
-            QueuedWebhook::sendById($queued_webhooks_id);
-        }
     }
 
     public function prepareInputForAdd($input)
