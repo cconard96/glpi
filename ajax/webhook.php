@@ -43,9 +43,14 @@ $action = $_POST['action'] ?? null;
 
 switch ($action) {
     case 'valide_cra_challenge':
-        $response = Webhook::validateCRAChallenge($_POST['target_url'], 'validate_cra_challenge', $_POST['secret']);
-        header("Content-Type: application/json; charset=UTF-8");
-        echo json_encode($response);
+        $webhook = new Webhook();
+        if ($webhook->getFromDB($_POST['webhook_id'])) {
+            $response = Webhook::validateCRAChallenge($webhook->fields['url'], 'validate_cra_challenge', $_POST['secret']);
+            header("Content-Type: application/json; charset=UTF-8");
+            echo json_encode($response);
+        } else {
+            die(404);
+        }
         break;
     case 'get_events_from_itemtype':
         echo Dropdown::showFromArray(

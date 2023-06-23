@@ -56,7 +56,6 @@ if (!$DB->tableExists('glpi_webhooks')) {
       `url` varchar(255) DEFAULT NULL,
       `secret` text,
       `use_cra_challenge` tinyint NOT NULL DEFAULT '0',
-      `is_cra_challenge_valid` tinyint NOT NULL DEFAULT '0',
       `http_method` varchar(255) DEFAULT 'POST',
       `sent_try` tinyint NOT NULL DEFAULT '3',
       `expiration` int NOT NULL DEFAULT '0',
@@ -71,7 +70,6 @@ if (!$DB->tableExists('glpi_webhooks')) {
       KEY `is_deleted` (`is_deleted`),
       KEY `is_recursive` (`is_recursive`),
       KEY `use_cra_challenge` (`use_cra_challenge`),
-      KEY `is_cra_challenge_valid` (`is_cra_challenge_valid`),
       KEY `date_creation` (`date_creation`),
       KEY `date_mod` (`date_mod`)
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC DEFAULT CHARSET = {$default_charset} COLLATE = {$default_collation};";

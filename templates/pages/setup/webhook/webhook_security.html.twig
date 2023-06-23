@@ -125,8 +125,7 @@
 
       {% set cra_challenge_infi %}
          <span name="cra_result">
-               {{ item.fields['is_cra_challenge_valid'] ? '<i class="fa-solid fa-circle-check fa-beat fa-lg" style="color: #36d601;"></i>' : '<i class="fa-solid fa-triangle-exclamation fa-beat fa-lg" style="color: #ff0000;"></i>' }}
-           </span>
+         </span>
       {% endset %}
 
       {{ fields.htmlField(
@@ -138,31 +137,19 @@
          })
       ) }}
 
-      {{ fields.hiddenField(
-         'is_cra_challenge_valid',
-         item.fields['is_cra_challenge_valid'],
-         '',
-         field_options|merge({
-            add_field_class: (item.fields['use_cra_challenge']) ? '' : 'd-none',
-         })
-      ) }}
-
       <script>
           $('input[name="use_cra_challenge"]').change(function () {
               if ($('input[name="use_cra_challenge"]').is(":checked")) {
-                  $('input[name="is_cra_challenge_valid"]').val(0);
                   $('button[name="validate_challenge"]').parent().parent().parent().removeClass('d-none');
                   $('span[name="cra_result"]').parent().parent().parent().removeClass('d-none');
                   $('button[name="validate_challenge"]').trigger('click');
               } else {
-                  $('input[name="is_cra_challenge_valid"]').val(0);
                   $('button[name="validate_challenge"]').parent().parent().parent().addClass('d-none');
                   $('span[name="cra_result"]').parent().parent().parent().addClass('d-none');
               }
           });
 
           $('button[name="validate_challenge"]').click(function () {
-              target_url = $('input[name="url"]').val();
               secret = $('input[name="secret"]').val();
 
               $.ajax({
@@ -170,7 +157,7 @@
                   url: '{{ path('/ajax/webhook.php') }}',
                   data: {
                       action: 'valide_cra_challenge',
-                      target_url: target_url,
+                      webhook_id: {{ item.fields['id'] }},
                       secret: secret,
                   },
                   success: function(json_response) {
