@@ -539,7 +539,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 $parent_id = $item->fields[$item::$items_id];
             } else if ($item instanceof CommonDBRelation) {
                 $itemtype_field = $item::$itemtype_2;
-                if ($itemtype_field === 'itemtype') {
+                if (str_starts_with($itemtype_field, "itemtype")) {
                     $itemtype_value = $item->fields[$itemtype_field];
                 } else {
                     $itemtype_value = $itemtype_field;
