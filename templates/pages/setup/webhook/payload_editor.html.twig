@@ -60,8 +60,8 @@
 </div>
 <script>
     $(() => {
-        {% set payload = item.fields['payload']|default(default_payload)|escape('js') %}
-        const monaco = new GLPI.MonacoEditor('payload', 'twig', "{{ payload }}", {{ response_schema|json_encode|raw }});
+        {% set payload = item.fields['payload']|default(default_payload) %}
+        const monaco = new GLPI.MonacoEditor('payload', 'twig', {{ payload|json_encode|raw }}, {{ response_schema|json_encode|raw }});
         $("#webhook-payload-editor-container button[name='editor_find']").on('click', function() {
             monaco.editor.getAction('actions.find').run();
         });
