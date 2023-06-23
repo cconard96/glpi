@@ -926,7 +926,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public static function send(array $data): void
     {
         $queued_webhook = new QueuedWebhook();
-        $queued_webhooks_id = $queued_webhook->add([
+        $queued_webhook->add([
             'itemtype' => $data['itemtype'],
             'items_id' => $data['items_id'],
             'entities_id' => $data['entities_id'],
