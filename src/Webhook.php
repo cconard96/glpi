@@ -948,6 +948,13 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $this->handleInput($input);
     }
 
+    public function post_getFromDB()
+    {
+        if (!empty($this->fields['secret'])) {
+            $this->fields['secret'] = (new GLPIKey())->decrypt($this->fields['secret']);
+        }
+    }
+
     public static function generateRandomSecret()
     {
         return Toolbox::getRandomString(40);
@@ -971,9 +978,13 @@ class Webhook extends CommonDBTM implements FilterableInterface
             return false;
         }
 
-        if (empty($input['secret']) || isset($input['_regenerate_secret'])) {
+        if ((empty($input['secret']) && empty($this->fields['secret'])) || isset($input['_regenerate_secret'])) {
             //generate random secret if needed or if empty
             $input['secret'] = self::generateRandomSecret();
+        }
+
+        if (!empty($input['secret'])) {
+            $input['secret'] = (new GLPIKey())->encrypt($input['secret']);
         }
 
         if (isset($input['use_cra_challenge'])) {
