@@ -886,6 +886,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'X-GLPI-signature' => self::getSignature($body . $timestamp, $webhook->fields['secret']),
                 'X-GLPI-timestamp' => $timestamp
             ];
+            $headers = array_merge($headers, $webhook->fields['custom_headers']);
+
             $data = $webhook->fields;
             $data['items_id'] = $item->getID();
             $data['body'] = $body;
@@ -929,6 +931,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         if (!empty($this->fields['secret'])) {
             $this->fields['secret'] = (new GLPIKey())->decrypt($this->fields['secret']);
         }
+        $this->fields['custom_headers'] = importArrayFromDB($this->fields['custom_headers']);
     }
 
     public static function generateRandomSecret()
@@ -940,6 +943,15 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         $valid_input = true;
 
+        $static_headers = ['X-GLPI-signature', 'X-GLPI-timestamp'];
+        if (isset($input['header_name'], $input['header_value'])) {
+            $custom_headers = array_combine($input['header_name'], $input['header_value']);
+            foreach ($static_headers as $static_header) {
+                unset($custom_headers[$static_header]);
+            }
+            $input['custom_headers'] = exportArrayToDB($custom_headers);
+        }
+        unset($input['header_name'], $input['header_value']);
         if (isset($input["itemtype"]) && !$input["itemtype"]) {
             Session::addMessageAfterRedirect(__('An item type is required'), false, ERROR);
             $valid_input = false;
