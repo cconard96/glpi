@@ -55,9 +55,9 @@ if (isset($_POST["add"])) {
             "setup",
             sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"], $_POST["name"])
         );
-    }
-    if ($_SESSION['glpibackcreated']) {
-        Html::redirect($webhook->getLinkURL());
+        if ($_SESSION['glpibackcreated']) {
+            Html::redirect($webhook->getLinkURL());
+        }
     }
     Html::back();
 } else if (isset($_POST["delete"])) {

@@ -955,13 +955,20 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
     public function handleInput($input)
     {
-        //empty choice (0) update to empty ('')
+        $valid_input = true;
+
         if (isset($input["itemtype"]) && !$input["itemtype"]) {
             Session::addMessageAfterRedirect(__('An item type is required'), false, ERROR);
+            $valid_input = false;
         }
 
         if (isset($input["event"]) && !$input["event"]) {
             Session::addMessageAfterRedirect(__('An event is required'), false, ERROR);
+            $valid_input = false;
+        }
+
+        if (!$valid_input) {
+            return false;
         }
 
         if (empty($input['secret']) || isset($input['_regenerate_secret'])) {
