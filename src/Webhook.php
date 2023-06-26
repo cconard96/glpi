@@ -66,6 +66,13 @@ class Webhook extends CommonDBTM implements FilterableInterface
         ];
     }
 
+    public function cleanDBonPurge()
+    {
+        $this->deleteChildrenAndRelationsFromDb([
+            QueuedWebhook::class
+        ]);
+    }
+
     public static function getTypeName($nb = 0)
     {
         return _n('Webhook', 'Webhooks', $nb);
