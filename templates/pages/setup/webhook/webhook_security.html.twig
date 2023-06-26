@@ -50,23 +50,6 @@
          })
       ) }}
 
-      {% if secret_already_used is not empty %}
-         {% set warning_secret_already_used %}
-            <div class="alert alert-warning align-items-center flex-column" role="alert">
-               <i class='ti ti-alert-triangle-filled'></i>
-               <span class='ms-2'> {{ __('Secret is already use by another webhooks') }}</span>
-               <span>
-                  {% for webhook in secret_already_used %}
-                     <li  class='ms-4'>{{ webhook.link|raw }}</li>
-                  {% endfor %}
-               </span>
-            </div>
-         {% endset %}
-         {{ fields.htmlField('', warning_secret_already_used, '') }}
-      {% else %}
-         {{ fields.nullField() }}
-      {% endif %}
-
       {{ fields.dropdownTimestampField(
          'expiration',
          item.fields['expiration'],

@@ -629,7 +629,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
             'item' => $this,
-            'secret_already_used' => $this->getWebhookWithSameSecret()
         ]);
     }
 
@@ -750,36 +749,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'usesession' => 0 // Don't save the search criteria in session or use any criteria currently saved
         ];
         Search::showList(QueuedWebhook::class, $params);
-    }
-
-    /**
-     * Check if secret is already use dby another webhook
-     * @return array of webhook using same secret
-     */
-    private function getWebhookWithSameSecret(): array
-    {
-
-        if (self::isNewID($this->fields['id'])) {
-            return [];
-        }
-
-        //check if secret is already use by another webhook
-        $webhook = new self();
-        $data = $webhook->find([
-            'secret' => $this->fields['secret'],
-            'NOT' => [
-                'id' => $this->fields['id']
-            ],
-        ]);
-
-        $already_use = [];
-        foreach ($data as $webhook_value) {
-            $webhook->getFromDB($webhook_value['id']);
-            $already_use[$webhook_value['id']] = [
-                'link' => $webhook->getLink()
-            ];
-        }
-        return $already_use;
     }
 
     public static function getSignature($data, $secret): string
