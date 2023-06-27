@@ -36,16 +36,14 @@
 {% set params  = params ?? [] %}
 {% set rand_field = rand|default(random()) %}
 
-{% if item.fields['last_status_code'] <= 200 %}
-   {% set params = params|merge({
-      addbuttons: {
-         send: {
-            icon: 'ti ti-send',
-            text: __('Send')
-         }
+{% set params = params|merge({
+   addbuttons: {
+      send: {
+         icon: 'ti ti-send',
+         text: item.fields['last_status_code'] is null or item.fields['last_status_code'] > 200 ? __('Send') : __('Resend')
       }
-   }) %}
-{% endif %}
+   }
+}) %}
 
 {% block form_fields %}
    {{ fields.htmlField('itemtype', item.fields['itemtype'], _n('Type', 'Types', 1)) }}
