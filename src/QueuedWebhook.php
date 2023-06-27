@@ -172,7 +172,7 @@ class QueuedWebhook extends CommonDBChild
         // Send CRA challenge
         $result = $webhook::validateCRAChallenge($webhook->fields['url'], 'validate_cra_challenge', $webhook->fields['secret']);
         if ($result === false || $result['status'] !== true) {
-            Toolbox::logInFile('webhook.log', "CRA challenge failed for webhook {$webhook->fields['name']} ({$webhook->getID()})");
+            Toolbox::logInFile('webhook', "CRA challenge failed for webhook {$webhook->fields['name']} ({$webhook->getID()})");
             return false;
         }
 
@@ -185,7 +185,7 @@ class QueuedWebhook extends CommonDBChild
             ]);
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
             Toolbox::logInFile(
-                "webhook.log",
+                "webhook",
                 "Error sending webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
             );
             $response = $e->getCode() !== null ? new Response($e->getCode()) : null;
