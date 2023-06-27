@@ -416,8 +416,6 @@ JS);
         switch ($field) {
             case 'last_status_code':
                 return self::getStatusCodeBadge($values[$field], $values['id'] ?? null);
-            case 'http_method':
-                return Webhook::getHttpMethod()[$values[$field]];
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
