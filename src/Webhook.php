@@ -909,13 +909,17 @@ class Webhook extends CommonDBTM implements FilterableInterface
             return;
         }
 
+        $entity_criteria = [
+            'entities_id' => 0
+        ];
+
         $it = $DB->request([
-            'SELECT' => ['id'],
+            'SELECT' => ['id', 'entities_id', 'is_recursive'],
             'FROM' => self::getTable(),
             'WHERE' => [
                 'event' => $event,
                 'itemtype' => $item->getType(),
-                'is_active' => 1
+                'is_active' => 1,
             ]
         ]);
         if ($it->count() === 0) {
@@ -926,6 +930,23 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $path = $webhook->getApiPath($item);
 
         foreach ($it as $webhook_data) {
+            $match_entity = false;
+            if ($item->isEntityAssign()) {
+                if ($webhook_data['is_recursive']) {
+                    $parent_entities = getAncestorsOf(\Entity::getTable(), $item->getEntityID());
+                    if (in_array($webhook_data['entities_id'], $parent_entities, true)) {
+                        $match_entity = true;
+                    }
+                }
+                if ($item->getEntityID() === $webhook_data['entities_id']) {
+                    $match_entity = true;
+                }
+            } else if ($webhook_data['entities_id'] === 0) {
+                $match_entity = true;
+            }
+            if (!$match_entity) {
+                continue;
+            }
             $webhook->getFromDB($webhook_data['id']);
             $api_data = $webhook->getAPIResponse($path);
             $body = $webhook->getWebhookBody($event, $api_data);
