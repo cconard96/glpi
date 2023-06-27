@@ -180,6 +180,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
                     return $label;
                 }
                 break;
+            case 'http_method':
+                return self::getHttpMethod()[$values[$field]];
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
