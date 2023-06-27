@@ -290,10 +290,10 @@ class Webhook extends CommonDBTM implements FilterableInterface
     }
 
     /**
-     * Return a list of default events.
-     *
-     * @return array
-     */
+    * Return a list of HTTP methods.
+    *
+    * @return array
+    */
     public static function getHttpMethod(): array
     {
         return [
@@ -788,7 +788,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
             // Sort by creation date descending by default
             'sort' => [16],
             'order' => ['DESC'],
-            'forcetoview' => [80, 2, 20, 21, 7, 30, 16],
+            'forcetoview' => [80, 2, 20, 21, 31, 7, 30, 16],
             'is_deleted' => 0,
             'as_map' => 0,
             'browse' => 0,
