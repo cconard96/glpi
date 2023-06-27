@@ -103,7 +103,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
         ];
 
         $this->addStandardTab(__CLASS__, $tabs, $options);
-        $this->addStandardTab(WebhookTest::class, $tabs, $options);
         // Add common tabs
         $tabs = array_merge($tabs, $parent_tabs);
         $this->addStandardTab('Log', $tabs, $options);
@@ -603,7 +602,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
             1 => self::createTabEntry(__('Security'), 0, $item::getType(), 'ti ti-shield-lock'),
             2 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
             3 => self::createTabEntry(_n('Custom header', 'Custom headers', Session::getPluralNumber()), 0, 'ti ti-http-head'),
-            4 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward')
+            4 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward'),
+            5 => self::createTabEntry(__('Preview'), 0, $item::getType(), 'ti ti-eye-exclamation'),
         ];
     }
 
@@ -628,6 +628,12 @@ class Webhook extends CommonDBTM implements FilterableInterface
             $item->showSentQueries();
             return true;
         }
+
+        if ((int) $tabnum === 5) {
+            $item->showPreviewForm();
+            return true;
+        }
+
         return false;
     }
 
@@ -642,6 +648,13 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_headers.html.twig', [
             'item' => $this,
+        ]);
+    }
+
+    private function showPreviewForm(): void
+    {
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhooktest.html.twig', [
+            'item' => $this
         ]);
     }
 
