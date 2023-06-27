@@ -602,7 +602,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return [
             1 => self::createTabEntry(__('Security'), 0, $item::getType(), 'ti ti-shield-lock'),
             2 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
-            3 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward')
+            3 => self::createTabEntry(_n('Custom header', 'Custom headers', Session::getPluralNumber()), 0, 'ti ti-http-head'),
+            4 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-mail-forward')
         ];
     }
 
@@ -619,6 +620,11 @@ class Webhook extends CommonDBTM implements FilterableInterface
         }
 
         if ((int) $tabnum === 3) {
+            $item->showCustomHeaders();
+            return true;
+        }
+
+        if ((int) $tabnum === 4) {
             $item->showSentQueries();
             return true;
         }
@@ -628,6 +634,13 @@ class Webhook extends CommonDBTM implements FilterableInterface
     private function showSecurityForm(): void
     {
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
+            'item' => $this,
+        ]);
+    }
+
+    private function showCustomHeaders(): void
+    {
+        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_headers.html.twig', [
             'item' => $this,
         ]);
     }
