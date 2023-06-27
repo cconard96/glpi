@@ -386,6 +386,10 @@ class QueuedWebhook extends CommonDBChild
                     },
                     complete: () => {
                         $("#{$btn_id}").prop('disabled', false);
+                        const search_class = $('table.search-results').closest('div.ajax-container.search-display-data').data('js_class');
+                        if (search_class !== undefined) {
+                            search_class.view.refreshResults();
+                        }
                     }
                 });
             });
