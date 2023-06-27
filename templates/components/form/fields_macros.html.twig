@@ -897,7 +897,7 @@
 
    {# Usefull for Ajax::updateItemOnSelectEvent (DOM to update) #}
    {% if options.container_id is not empty %}
-      {% set container_id = 'id="' ~ options.container_id ~ '"' %}
+      {% set container_id = 'id=' ~ options.container_id %}
    {% else %}
       {% set container_id = '' %}
    {% endif %}
