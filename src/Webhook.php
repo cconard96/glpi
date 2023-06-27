@@ -452,7 +452,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $sub_item;
     }
 
-    public function getResultForPath(string $path, string $event, bool $raw_output = false): ?string
+    private function getAPIResponse(string $path): ?array
     {
         $router = Router::getInstance();
         $path = rtrim($path, '/');
@@ -460,9 +460,21 @@ class Webhook extends CommonDBTM implements FilterableInterface
         $request = $request->withHeader('Glpi-Session-Token', $_SESSION['valid_id']);
         $response = $router->handleRequest($request);
         if ($response->getStatusCode() === 200) {
-            $body = (string) $response->getBody();
-            $data = json_decode($body, true);
+            $body = (string)$response->getBody();
+            try {
+                $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $data = null;
+            }
+            return $data;
+        }
+        return null;
+    }
 
+    private function getWebhookBody(string $event, array $api_data, bool $raw_output = false): ?string
+    {
+        $data = $api_data;
+        if ($data !== null) {
             if ($raw_output) {
                 $data['event'] = $event;
                 return json_encode($data, JSON_PRETTY_PRINT);
@@ -494,6 +506,12 @@ class Webhook extends CommonDBTM implements FilterableInterface
         }
         // An error occurred, so return nothing.
         return null;
+    }
+
+    public function getResultForPath(string $path, string $event, bool $raw_output = false): ?string
+    {
+        $data = $this->getAPIResponse($path);
+        return $this->getWebhookBody($event, $data, $raw_output);
     }
 
     public function getApiPath(CommonDBTM $item): string
@@ -902,7 +920,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         foreach ($it as $webhook_data) {
             $webhook->getFromDB($webhook_data['id']);
-            $body = $webhook->getResultForPath($path, $event);
+            $api_data = $webhook->getAPIResponse($path);
+            $body = $webhook->getWebhookBody($event, $api_data);
             // Check if the item matches the webhook filters
             if (!$webhook->itemMatchFilter($item)) {
                 continue;
@@ -912,7 +931,25 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 'X-GLPI-signature' => self::getSignature($body . $timestamp, $webhook->fields['secret']),
                 'X-GLPI-timestamp' => $timestamp
             ];
-            $headers = array_merge($headers, $webhook->fields['custom_headers']);
+
+            $api_data = [
+                'item' => $api_data
+            ];
+            $api_data['event'] = $event;
+            $custom_headers = $webhook->fields['custom_headers'];
+            foreach ($custom_headers as $key => $value) {
+                $env = new \Twig\Environment(
+                    new \Twig\Loader\ArrayLoader([
+                        'payload' => $value
+                    ])
+                );
+                try {
+                    $custom_headers[$key] = $env->render('payload', $api_data);
+                } catch (\Exception $e) {
+                    // Header will not be sent
+                }
+            }
+            $headers = array_merge($headers, $custom_headers);
 
             $data = $webhook->fields;
             $data['items_id'] = $item->getID();
