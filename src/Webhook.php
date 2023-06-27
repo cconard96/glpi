@@ -672,7 +672,12 @@ class Webhook extends CommonDBTM implements FilterableInterface
     private function showPreviewForm(): void
     {
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhooktest.html.twig', [
-            'item' => $this
+            'item' => $this,
+            'params' => [
+                'canedit' => false,
+                'candel' => false,
+                'formfooter' => false,
+            ]
         ]);
     }
 
