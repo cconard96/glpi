@@ -58,7 +58,13 @@ class QueuedWebhook extends CommonDBChild
 
     public static function canDelete()
     {
-        return static::canUpdate();
+        return Session::haveRight(static::$rightname, UPDATE);
+    }
+
+    public static function canUpdate()
+    {
+        // No standard update is allowed
+        return false;
     }
 
     public static function getForbiddenActionsForMenu()
@@ -324,7 +330,8 @@ class QueuedWebhook extends CommonDBChild
             'field'             => 'last_status_code',
             'name'              => __('Last status code'),
             'massiveaction'     => false,
-            'datatype'          => 'specific'
+            'datatype'          => 'specific',
+            'additionalfields'  => ['id']
         ];
 
         $tab[] = [
@@ -339,7 +346,7 @@ class QueuedWebhook extends CommonDBChild
         return $tab;
     }
 
-    public static function getStatusCodeBadge($value): string
+    public static function getStatusCodeBadge($value, ?int $id = null): string
     {
         $display_value = (int) $value;
         $badge_class = 'badge bg-orange';
@@ -350,7 +357,40 @@ class QueuedWebhook extends CommonDBChild
         } else {
             $badge_class = 'badge bg-red';
         }
-        return '<div class="' . $badge_class . '">' . $display_value . '</div>';
+        $badge = '<div class="' . $badge_class . '">' . $display_value . '</div>';
+
+        if ($id === null || (is_numeric($display_value) && (int) $display_value <= 200)) {
+            return $badge;
+        }
+        // Add a button to resend the webhook via ajax
+        $btn_id = "resend-webhook-{$id}";
+        $badge .= "<button id='{$btn_id}' type='button' class='btn btn-outline-secondary btn-sm ms-1' data-id='{$id}'>" . __('Send') . "</button>";
+        $badge .= Html::scriptBlock(<<<JS
+            $("#{$btn_id}").click(function() {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '/ajax/webhook.php',
+                    type: 'POST',
+                    data: {
+                        'action': 'resend',
+                        'id': id
+                    },
+                    beforeSend: () => {
+                        $("#{$btn_id}").prop('disabled', true);
+                    },
+                    success: () => {
+                        glpi_toast_info(__('Retried to send webhook'));
+                    },
+                    error: () => {
+                        glpi_toast_error(__('Failed to send webhook'));
+                    },
+                    complete: () => {
+                        $("#{$btn_id}").prop('disabled', false);
+                    }
+                });
+            });
+JS);
+        return $badge;
     }
 
     public static function getSpecificValueToDisplay($field, $values, array $options = [])
@@ -361,7 +401,7 @@ class QueuedWebhook extends CommonDBChild
         }
         switch ($field) {
             case 'last_status_code':
-                return self::getStatusCodeBadge($values[$field]);
+                return self::getStatusCodeBadge($values[$field], $values['id'] ?? null);
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
@@ -375,7 +415,7 @@ class QueuedWebhook extends CommonDBChild
             'webhook' => $webhook,
             'headers' => json_decode($this->fields['headers'], true),
             'params' => [
-                'canedit' => false,
+                'canedit' => true,
                 'candel' => $this->canDeleteItem()
             ]
         ]);

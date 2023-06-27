@@ -36,6 +36,16 @@
 {% set params  = params ?? [] %}
 {% set rand_field = rand|default(random()) %}
 
+{% if item.fields['last_status_code'] <= 200 %}
+   {% set params = params|merge({
+      addbuttons: {
+         send: {
+            text: __('Send')
+         }
+      }
+   }) %}
+{% endif %}
+
 {% block form_fields %}
    {{ fields.htmlField('itemtype', item.fields['itemtype'], _n('Type', 'Types', 1)) }}
    {{ fields.htmlField('items_id', get_item_link(item.fields['itemtype'], item.fields['items_id']), _n('Item', 'Items', 1)) }}
@@ -61,4 +71,25 @@
    {% for header_name, header_value in headers %}
       {{ fields.htmlField('headers_' ~ header_name, header_value, header_name) }}
    {% endfor %}
+   <script>
+      $(() => {
+          $('button[name="send"]').click((e) => {
+              const btn = $(e.target);
+              $.ajax({
+                  url: '/ajax/webhook.php',
+                  type: 'POST',
+                  data: {
+                      'action': 'resend',
+                      'id': {{ item.fields['id'] }}
+                  },
+                  beforeSend: () => {
+                      btn.attr('disabled', true);
+                  },
+                  complete: () => {
+                      window.location.reload();
+                  }
+              });
+          });
+      })
+   </script>
 {% endblock %}

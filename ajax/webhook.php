@@ -138,7 +138,8 @@ switch ($action) {
         $webhook = new Webhook();
         if ($webhook->getFromDB($webhook_id)) {
             if (!$webhook->canUpdateItem()) {
-                die(403);
+                http_response_code(403);
+                die();
             }
             if ($_POST['use_default_payload'] === 'true') {
                 $webhook->update([
@@ -153,7 +154,17 @@ switch ($action) {
                 ]);
             }
         } else {
-            die(404);
+            http_response_code(404);
+            die();
+        }
+        break;
+    case 'resend':
+        $result = QueuedWebhook::sendById($_POST['id']);
+        if ($result) {
+            http_response_code(200);
+        } else {
+            http_response_code(400);
         }
         break;
 }
+http_response_code(400);
