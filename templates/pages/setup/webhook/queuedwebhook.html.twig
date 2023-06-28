@@ -71,6 +71,15 @@
    {% for header_name, header_value in headers %}
       {{ fields.htmlField('headers_' ~ header_name, header_value, header_name) }}
    {% endfor %}
+
+   {{ fields.smallTitle(__('Last response')) }}
+   {{ fields.textareaField('response_body', item.fields['response_body'], '', {
+      full_width: true,
+      readonly: true,
+      rows: 10,
+      no_label: true,
+   }) }}
+
    <script>
       $(() => {
           $('button[name="send"]').click((e) => {

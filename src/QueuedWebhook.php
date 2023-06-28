@@ -205,6 +205,7 @@ class QueuedWebhook extends CommonDBChild
         ];
         if ($response !== null) {
             $input['last_status_code'] = $response->getStatusCode();
+            $input['response_body'] = (string) $response->getBody();
             /** @var class-string<CommonDBTM> $itemtype */
             $itemtype = $queued_webhook->fields['itemtype'];
             $item = new $itemtype();

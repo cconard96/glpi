@@ -9305,6 +9305,7 @@ CREATE TABLE `glpi_queuedwebhooks` (
    `body` longtext,
    `event` varchar(255) DEFAULT NULL,
    `last_status_code` int DEFAULT NULL,
+   `response_body` longtext,
    PRIMARY KEY (`id`),
    KEY `item` (`itemtype`,`items_id`),
    KEY `entities_id` (`entities_id`),
