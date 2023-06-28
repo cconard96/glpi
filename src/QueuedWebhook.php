@@ -362,14 +362,14 @@ class QueuedWebhook extends CommonDBChild
         $badge_class = 'badge bg-orange';
         if (empty($display_value)) {
             $display_value = __s('Not sent/no response');
-        } else if ($display_value <= 200) {
+        } else if ($display_value < 300) {
             $badge_class = 'badge bg-green';
         } else {
             $badge_class = 'badge bg-red';
         }
         $badge = '<div class="' . $badge_class . '">' . $display_value . '</div>';
 
-        if ($id === null || (is_numeric($display_value) && (int) $display_value <= 200)) {
+        if ($id === null || (is_numeric($display_value) && (int) $display_value < 300)) {
             return $badge;
         }
         // Add a button to resend the webhook via ajax
