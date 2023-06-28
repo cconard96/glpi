@@ -87,7 +87,7 @@
       <script>
           if (typeof initFluidSearch !== "function") {
              window.initFluidSearch = () => {
-                 const allowed_forced_params = ['hide_controls', 'usesession', 'forcetoview'];
+                 const allowed_forced_params = ['hide_controls', 'usesession', 'forcetoview', 'criteria'];
                  let forced_params = {};
                  let all_params = {{ data['search']|default({})|json_encode|raw }};
 

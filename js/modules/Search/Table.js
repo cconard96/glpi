@@ -45,6 +45,15 @@ window.GLPI.Search.Table = class Table extends GenericView {
 
         this.push_history = push_history;
         this.forced_params = forced_params;
+
+        const search_container = this.getElement().closest('.search-container');
+        this.embedded_mode = !(search_container.length > 0 && search_container.find('form.search-form-container').length > 0);
+
+        if (!this.embedded_mode) {
+            // Remove 'criteria' from the forced params as we want it to be determined by the form
+            delete this.forced_params.criteria;
+        }
+
         this.shiftSelectAllCheckbox();
     }
 
