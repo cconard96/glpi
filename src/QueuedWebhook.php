@@ -205,6 +205,17 @@ class QueuedWebhook extends CommonDBChild
         ];
         if ($response !== null) {
             $input['last_status_code'] = $response->getStatusCode();
+            /** @var class-string<CommonDBTM> $itemtype */
+            $itemtype = $queued_webhook->fields['itemtype'];
+            $item = new $itemtype();
+            $tabs = $item->defineTabs();
+            $has_history_tab = array_key_exists('Log$1', $tabs);
+
+            if ($has_history_tab) {
+                Log::history($queued_webhook->fields['items_id'], $queued_webhook->fields['itemtype'], [
+                    30, $queued_webhook->fields['last_status_code'], $response->getStatusCode()
+                ], $queued_webhook->fields['id'], Log::HISTORY_SEND_WEBHOOK);
+            }
         }
 
         return $queued_webhook->update($input) && $response !== null;

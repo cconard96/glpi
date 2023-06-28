@@ -40,7 +40,8 @@
    addbuttons: {
       send: {
          icon: 'ti ti-send',
-         text: item.fields['last_status_code'] is null or item.fields['last_status_code'] >= 300 ? __('Send') : __('Resend')
+         text: item.fields['last_status_code'] is null or item.fields['last_status_code'] >= 300 ? __('Send') : __('Resend'),
+         type: 'button'
       }
    }
 }) %}
