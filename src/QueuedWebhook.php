@@ -362,9 +362,8 @@ class QueuedWebhook extends CommonDBChild
 
         $tab[] = [
             'id' => 31,
-            'table' => Webhook::getTable(),
+            'table' => self::getTable(),
             'field' => 'http_method',
-            'linkfield' => 'webhooks_id',
             'name' => __('HTTP method'),
             'massiveaction' => false,
             'datatype' => 'specific',
@@ -433,6 +432,8 @@ JS);
         switch ($field) {
             case 'last_status_code':
                 return self::getStatusCodeBadge($values[$field], $values['id'] ?? null);
+            case 'http_method':
+                return Webhook::getHttpMethod()[$values[$field]] ?? $values[$field];
         }
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
