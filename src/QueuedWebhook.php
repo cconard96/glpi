@@ -177,7 +177,7 @@ class QueuedWebhook extends CommonDBChild
 
         if ($webhook->fields['use_cra_challenge']) {
             // Send CRA challenge
-            $result = $webhook::validateCRAChallenge($webhook->fields['url'], 'validate_cra_challenge', $webhook->fields['secret']);
+            $result = $webhook::validateCRAChallenge($queued_webhook->fields['url'], 'validate_cra_challenge', $webhook->fields['secret']);
             if ($result === false || $result['status'] !== true) {
                 Toolbox::logInFile('webhook', "CRA challenge failed for webhook {$webhook->fields['name']} ({$webhook->getID()})");
                 return false;
@@ -187,7 +187,7 @@ class QueuedWebhook extends CommonDBChild
         $client = new \GuzzleHttp\Client($options);
         $headers = json_decode($queued_webhook->fields['headers'], true);
         try {
-            $response = $client->request($webhook->fields['http_method'], $queued_webhook->fields['url'], [
+            $response = $client->request($queued_webhook->fields['http_method'], $queued_webhook->fields['url'], [
                 \GuzzleHttp\RequestOptions::HEADERS => $headers,
                 \GuzzleHttp\RequestOptions::BODY => $queued_webhook->fields['body'],
             ]);
@@ -205,17 +205,22 @@ class QueuedWebhook extends CommonDBChild
         ];
         if ($response !== null) {
             $input['last_status_code'] = $response->getStatusCode();
-            $input['response_body'] = (string) $response->getBody();
-            /** @var class-string<CommonDBTM> $itemtype */
-            $itemtype = $queued_webhook->fields['itemtype'];
-            $item = new $itemtype();
-            $tabs = $item->defineTabs();
-            $has_history_tab = array_key_exists('Log$1', $tabs);
+            if ($queued_webhook->fields['save_response_body']) {
+                $input['response_body'] = (string)$response->getBody();
+            }
 
-            if ($has_history_tab) {
-                Log::history($queued_webhook->fields['items_id'], $queued_webhook->fields['itemtype'], [
-                    30, $queued_webhook->fields['last_status_code'], $response->getStatusCode()
-                ], $queued_webhook->fields['id'], Log::HISTORY_SEND_WEBHOOK);
+            if ($webhook->fields['log_in_item_history']) {
+                /** @var class-string<CommonDBTM> $itemtype */
+                $itemtype = $queued_webhook->fields['itemtype'];
+                $item = new $itemtype();
+                $tabs = $item->defineTabs();
+                $has_history_tab = array_key_exists('Log$1', $tabs);
+
+                if ($has_history_tab) {
+                    Log::history($queued_webhook->fields['items_id'], $queued_webhook->fields['itemtype'], [
+                        30, $queued_webhook->fields['last_status_code'], $response->getStatusCode()
+                    ], $queued_webhook->fields['id'], Log::HISTORY_SEND_WEBHOOK);
+                }
             }
         }
 

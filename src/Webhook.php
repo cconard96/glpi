@@ -1004,6 +1004,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'body' => $data['body'],
             'event' => $data['event'],
             'headers' => $data['headers'],
+            'http_method' => $data['http_method'],
+            'save_response_body' => $data['save_response_body'],
         ]);
     }
 

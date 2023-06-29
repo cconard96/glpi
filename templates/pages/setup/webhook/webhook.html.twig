@@ -103,4 +103,8 @@
         field_options
     ) }}
 
+    {{ fields.dropdownYesNo('save_response_body', item.fields['save_response_body'], __('Save response body')) }}
+
+    {{ fields.dropdownYesNo('log_in_item_history', item.fields['log_in_item_history'], __('Log in item history')) }}
+
 {% endblock %}
