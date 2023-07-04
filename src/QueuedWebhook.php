@@ -34,8 +34,6 @@
  */
 
 use Glpi\Application\View\TemplateRenderer;
-use Glpi\DBAL\QueryExpression;
-use Glpi\DBAL\QueryFunction;
 use Glpi\Http\Response;
 
 class QueuedWebhook extends CommonDBChild
@@ -561,7 +559,7 @@ JS);
                 $queued_table,
                 [
                     'OR' => [
-                        new QueryExpression(QueryFunction::unixTimestamp('send_time') . ' < ' . $DB::quoteValue($send_time)),
+                        new QueryExpression('UNIX_TIMESTAMP(' . $DB::quoteName('send_time') . ') < ' . $DB::quoteValue($send_time)),
                         new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' >= ' . $DB::quoteName($webhook_table . '.sent_try')),
                     ]
                 ],
