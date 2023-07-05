@@ -1043,6 +1043,8 @@ class Webhook extends CommonDBTM implements FilterableInterface
                 unset($custom_headers[$static_header]);
             }
             $input['custom_headers'] = exportArrayToDB($custom_headers);
+        } else if (isset($input['custom_headers']) && is_array($input['custom_headers'])) {
+            $input['custom_headers'] = exportArrayToDB($input['custom_headers']);
         }
         unset($input['header_name'], $input['header_value']);
         if (isset($input["itemtype"]) && !$input["itemtype"]) {
