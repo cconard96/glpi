@@ -53,7 +53,7 @@ trait FilterableTrait
         }
 
         // The ID is not always search option 2
-        $opts = SearchOption::getOptionsForItemtype($item::getType());
+        $opts = Search::getOptions($item::getType());
         $item_table = $item::getTable();
         $id_field = $item::getIndexName();
         $id_opt_num = null;
