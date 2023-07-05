@@ -416,4 +416,69 @@ class ITILSolution extends CommonDBChild
     {
         return 'ti ti-check';
     }
+
+    public function rawSearchOptions()
+    {
+
+        $tab = [];
+
+        $tab[] = [
+            'id'                 => 'common',
+            'name'               => __('Characteristics')
+        ];
+
+        $tab[] = [
+            'id'                 => 1,
+            'table'              => self::getTable(),
+            'field'              => 'content',
+            'name'               => __('Description'),
+            'datatype'           => 'text',
+            'htmltext'           => true,
+        ];
+
+        $tab[] = [
+            'id'                 => 2,
+            'table'              => self::getTable(),
+            'field'              => 'id',
+            'name'               => __('ID'),
+            'datatype'           => 'number',
+            'massiveaction'      => false,
+        ];
+
+        $tab[] = [
+            'id'                 => 3,
+            'table'              => 'glpi_users',
+            'field'              => 'name',
+            'name'               => User::getTypeName(1),
+            'datatype'           => 'dropdown',
+            'right'              => 'all'
+        ];
+
+        $tab[] = [
+            'id'                 => 4,
+            'table'              => self::getTable(),
+            'field'              => 'itemtype',
+            'name'               => RequestType::getTypeName(1),
+            'datatype'           => 'dropdown'
+        ];
+
+        $tab[] = [
+            'id'                => 5,
+            'table'             => self::getTable(),
+            'field'             => 'solutiontype_name',
+            'name'              => SolutionType::getTypeName(1),
+            'datatype'          => 'string'
+        ];
+
+        $tab[] = [
+            'id'                => 6,
+            'table'             => self::getTable(),
+            'field'             => 'content',
+            'name'               => __('Description'),
+            'datatype'           => 'text',
+            'htmltext'           => true,
+        ];
+
+        return $tab;
+    }
 }

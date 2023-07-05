@@ -65,6 +65,9 @@ class Webhook extends \DbTestCase
                     break;
                 }
             }
+            if ($id_opt_num === null) {
+                echo 'No ID option found for itemtype ' . $itemtype;
+            }
             $this->variable($id_opt_num)->isNotNull();
         }
     }
