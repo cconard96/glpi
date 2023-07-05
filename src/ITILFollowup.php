@@ -553,6 +553,15 @@ class ITILFollowup extends CommonDBChild
         ];
 
         $tab[] = [
+            'id'                 => '7',
+            'table'              => self::getTable(),
+            'field'              => 'id',
+            'name'               => __('ID'),
+            'datatype'           => 'number',
+            'massiveaction'      => false,
+        ];
+
+        $tab[] = [
             'id'                 => '1',
             'table'              => $this->getTable(),
             'field'              => 'content',
