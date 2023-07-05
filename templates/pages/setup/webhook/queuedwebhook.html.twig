@@ -85,7 +85,7 @@
           $('button[name="send"]').click((e) => {
               const btn = $(e.target);
               $.ajax({
-                  url: '/ajax/webhook.php',
+                  url: '{{ path('/ajax/webhook.php') }}',
                   type: 'POST',
                   data: {
                       'action': 'resend',
