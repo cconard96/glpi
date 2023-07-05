@@ -7167,6 +7167,7 @@ CREATE TABLE `glpi_tickets` (
   `locations_id` int unsigned NOT NULL DEFAULT '0',
   `validation_percent` int NOT NULL DEFAULT '0',
   `date_creation` timestamp NULL DEFAULT NULL,
+  `externalid` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `closedate` (`closedate`),
