@@ -608,8 +608,10 @@ class ITILFollowup extends CommonDBChild
             'id'                 => '6',
             'table'              => $this->getTable(),
             'field'              => 'itemtype',
-            'name'               => RequestType::getTypeName(1),
-            'datatype'           => 'dropdown'
+            'name'               => __('Itemtype'),
+            'datatype'           => 'specific',
+            'searchtype'         => 'equals',
+            'massiveaction'      => false,
         ];
 
         return $tab;
@@ -738,6 +740,40 @@ class ITILFollowup extends CommonDBChild
         return $tab;
     }
 
+    public static function getSpecificValueToDisplay($field, $values, array $options = [])
+    {
+
+        if (!is_array($values)) {
+            $values = [$field => $values];
+        }
+        switch ($field) {
+            case 'itemtype':
+                if (in_array($values['itemtype'], ['Ticket', 'Change', 'Problem'])) {
+                    return $values['itemtype']::getTypeName(1);
+                }
+                return $values['itemtype'];
+        }
+        return parent::getSpecificValueToDisplay($field, $values, $options);
+    }
+
+    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
+    {
+
+        if (!is_array($values)) {
+            $values = [$field => $values];
+        }
+        $options['display'] = false;
+
+        switch ($field) {
+            case 'itemtype':
+                return Dropdown::showFromArray($field, [
+                    'Ticket' => Ticket::getTypeName(1),
+                    'Change' => Change::getTypeName(1),
+                    'Problem' => Problem::getTypeName(1),
+                ], $options);
+        }
+        return parent::getSpecificValueToSelect($field, $name, $values, $options);
+    }
 
     public static function getFormURL($full = true)
     {

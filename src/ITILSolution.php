@@ -369,7 +369,11 @@ class ITILSolution extends CommonDBChild
                 $statuses = self::getStatuses();
 
                 return (isset($statuses[$value]) ? $statuses[$value] : $value);
-            break;
+            case 'itemtype':
+                if (in_array($values['itemtype'], ['Ticket', 'Change', 'Problem'])) {
+                    return $values['itemtype']::getTypeName(1);
+                }
+                return $values['itemtype'];
         }
 
         return parent::getSpecificValueToDisplay($field, $values, $options);
@@ -391,7 +395,12 @@ class ITILSolution extends CommonDBChild
                 $options['display'] = false;
                 $options['value'] = $values[$field];
                 return Dropdown::showFromArray($name, self::getStatuses(), $options);
-            break;
+            case 'itemtype':
+                return Dropdown::showFromArray($field, [
+                    'Ticket' => Ticket::getTypeName(1),
+                    'Change' => Change::getTypeName(1),
+                    'Problem' => Problem::getTypeName(1),
+                ], $options);
         }
 
         return parent::getSpecificValueToSelect($field, $name, $values, $options);
@@ -458,16 +467,19 @@ class ITILSolution extends CommonDBChild
             'id'                 => 4,
             'table'              => self::getTable(),
             'field'              => 'itemtype',
-            'name'               => RequestType::getTypeName(1),
-            'datatype'           => 'dropdown'
+            'name'               => __('Itemtype'),
+            'datatype'           => 'specific',
+            'searchtype'         => 'equals',
+            'massiveaction'      => false,
         ];
 
         $tab[] = [
             'id'                => 5,
-            'table'             => self::getTable(),
-            'field'             => 'solutiontype_name',
+            'table'             => SolutionType::getTable(),
+            'field'             => 'name',
             'name'              => SolutionType::getTypeName(1),
-            'datatype'          => 'string'
+            'datatype'          => 'dropdown',
+            'searchtype'        => 'equals',
         ];
 
         $tab[] = [
