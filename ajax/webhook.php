@@ -51,14 +51,14 @@ switch ($action) {
         } else {
             die(404);
         }
-        break;
+        die();
     case 'get_events_from_itemtype':
         echo Dropdown::showFromArray(
             "event",
             Webhook::getDefaultEventsList(),
             ['display' => false]
         );
-        break;
+        die();
     case 'get_items_from_itemtype':
         if (array_key_exists($_POST['itemtype'], Webhook::getSubItemForAssistance())) {
             $object = new $_POST['itemtype']();
@@ -96,7 +96,7 @@ switch ($action) {
                 );
             }
         }
-        break;
+        die();
     case 'get_webhook_body':
         $webhook = new Webhook();
         $itemtype = $_POST['itemtype'];
@@ -131,7 +131,7 @@ switch ($action) {
             echo $webhook->getResultForPath($path, $event, $raw_output);
         }
 
-        break;
+        die();
     case 'update_payload_template':
         $webhook_id = $_POST['webhook_id'];
         $payload_template = $_POST['payload_template'] ?? '';
@@ -157,7 +157,7 @@ switch ($action) {
             http_response_code(404);
             die();
         }
-        break;
+        die();
     case 'resend':
         $result = QueuedWebhook::sendById($_POST['id']);
         if ($result) {
