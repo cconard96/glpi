@@ -182,8 +182,36 @@ class QueuedWebhook extends CommonDBChild
             }
         }
 
+        $bearer_token = null;
+        if ($webhook->fields['use_oauth']) {
+            // Send OAuth Client Credentials
+            $client = new \GuzzleHttp\Client($options);
+            try {
+                $response = $client->request('POST', $webhook->fields['oauth_url'], [
+                    \GuzzleHttp\RequestOptions::FORM_PARAMS => [
+                        'grant_type' => 'client_credentials',
+                        'client_id' => $webhook->fields['clientid'],
+                        'client_secret' => $webhook->fields['clientsecret'],
+                        'scope' => '',
+                    ],
+                ]);
+                $response = json_decode((string) $response->getBody(), true);
+                if (isset($response['access_token'])) {
+                    $bearer_token = $response['access_token'];
+                }
+            } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+                Toolbox::logInFile(
+                    "webhook",
+                    "OAuth authentication error for webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
+                );
+            }
+        }
+
         $client = new \GuzzleHttp\Client($options);
         $headers = json_decode($queued_webhook->fields['headers'], true);
+        if ($bearer_token !== null) {
+            $headers['Authentication'] = 'Bearer ' . $bearer_token;
+        }
         try {
             $response = $client->request($queued_webhook->fields['http_method'], $queued_webhook->fields['url'], [
                 \GuzzleHttp\RequestOptions::HEADERS => $headers,

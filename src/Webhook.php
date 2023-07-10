@@ -56,7 +56,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public $dohistory                = true;
 
     public static $undisclosedFields = [
-        'secret'
+        'secret', 'clientsecret'
     ];
 
     public function getCloneRelations(): array
@@ -1024,6 +1024,9 @@ class Webhook extends CommonDBTM implements FilterableInterface
         if (!empty($this->fields['secret'])) {
             $this->fields['secret'] = (new GLPIKey())->decrypt($this->fields['secret']);
         }
+        if (!empty($this->fields['clientsecret'])) {
+            $this->fields['clientsecret'] = (new GLPIKey())->decrypt($this->fields['clientsecret']);
+        }
         $this->fields['custom_headers'] = importArrayFromDB($this->fields['custom_headers']);
     }
 
@@ -1068,6 +1071,10 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         if (!empty($input['secret'])) {
             $input['secret'] = (new GLPIKey())->encrypt($input['secret']);
+        }
+
+        if (!empty($input['clientsecret'])) {
+            $input['clientsecret'] = (new GLPIKey())->encrypt($input['clientsecret']);
         }
 
         if (isset($input['use_cra_challenge'])) {

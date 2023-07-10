@@ -76,10 +76,7 @@
          })
       ) }}
 
-      <div class="hr-text">
-         <i class="ti ti-key"></i>
-         <span>{{ __('Target authentication') }}</span>
-      </div>
+      {{ fields.smallTitle(__('Target authentication'), 'ti ti-key') }}
 
       {{ fields.checkboxField(
          'use_cra_challenge',
@@ -119,6 +116,14 @@
             add_field_class: (item.fields['use_cra_challenge']) ? '' : 'd-none',
          })
       ) }}
+
+      {{ fields.smallTitle(__('OAuth Authentication')) }}
+      {{ fields.checkboxField('use_oauth', item.fields['use_oauth'], __('Use OAuth')) }}
+      {{ fields.textField('oauth_url', item.fields['oauth_url'], __('URL')) }}
+      {{ fields.textField('clientid', item.fields['clientid'], __('Client ID')) }}
+      {{ fields.passwordField('clientsecret', item.fields['clientsecret'], __('Client Secret'), {
+         is_disclosable: true,
+      }) }}
 
       <script>
           $('input[name="use_cra_challenge"]').change(function () {

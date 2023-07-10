@@ -81,10 +81,7 @@
         }
     ) }}
 
-    <div class="hr-text">
-        <i class="ti ti-viewfinder"></i>
-        <span>{{ _n('Target', 'Targets', 1) }}</span>
-    </div>
+    {{ fields.largeTitle(_n('Target', 'Targets', 1), 'ti ti-viewfinder') }}
 
     {{ fields.textField(
         'url',
