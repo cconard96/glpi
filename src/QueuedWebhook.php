@@ -115,6 +115,14 @@ class QueuedWebhook extends CommonDBChild
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
 
+    public function prepareBody($input)
+    {
+        if (isset($input['body'])) {
+            $input['body'] = Glpi\Toolbox\Sanitizer::dbEscape($input['body']);
+        }
+        return $input;
+    }
+
     public function prepareInputForAdd($input)
     {
         global $DB;
@@ -139,7 +147,13 @@ class QueuedWebhook extends CommonDBChild
         }
         $input['sent_try'] = 0;
 
+        $input = $this->prepareBody($input);
         return $input;
+    }
+
+    public function prepareInputForUpdate($input)
+    {
+        return $this->prepareBody($input);
     }
 
     /**

@@ -43,6 +43,7 @@ use Glpi\Http\Request;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Search\FilterableInterface;
 use Glpi\Search\FilterableTrait;
+use Glpi\Toolbox\Sanitizer;
 use GuzzleHttp\Client as Guzzle_Client;
 
 class Webhook extends CommonDBTM implements FilterableInterface
@@ -486,6 +487,20 @@ class Webhook extends CommonDBTM implements FilterableInterface
                     $payload_template = null;
                 }
                 if (!empty($payload_template)) {
+                    // run desanitize on all leaf values
+                    $fn_desanitize = static function ($value) use (&$fn_desanitize) {
+                        if (is_array($value)) {
+                            foreach ($value as $k => $v) {
+                                $value[$k] = $fn_desanitize($v);
+                            }
+                        } else if (is_string($value)) {
+                            $value = Sanitizer::decodeHtmlSpecialChars($value);
+                            // slash double quotes
+                            $value = str_replace('"', '\\"', $value);
+                        }
+                        return $value;
+                    };
+                    $data = $fn_desanitize($data);
                     try {
                         $data = [
                             'item' => $data
