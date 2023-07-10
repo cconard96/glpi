@@ -341,7 +341,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                         ITILFollowup::class => [], // All main types can be the parent
                         Document_Item::class => [],
                         ITILSolution::class => [],
-                        TicketValidation::class => [],
+                        TicketValidation::class => ['parent' => Ticket::class],
                     ]
                 ],
                 ManagementController::class => [
@@ -753,6 +753,9 @@ class Webhook extends CommonDBTM implements FilterableInterface
             }
             if (isset($categories['subtypes']) && array_key_exists($itemtype, $categories['subtypes'])) {
                 $schema_name = $categories['subtypes'][$itemtype]['name'];
+                if (isset($categories['subtypes'][$itemtype]['parent'])) {
+                    $schema_name = $categories['main'][$categories['subtypes'][$itemtype]['parent']]['name'] . $schema_name;
+                }
                 $controller_class = $controller;
                 break;
             }
