@@ -157,7 +157,7 @@
                                                raw_output: true
                                            },
                                            success: function(response) {
-                                               $('pre[name="webhook_result"]').html(response);
+                                               $('pre[name="webhook_result"]').text(response);
                                            },
                                        });
 
@@ -172,7 +172,7 @@
                                                webhook_id: {{ item.fields['id'] }},
                                            },
                                            success: function(response) {
-                                               $('pre[name="webhook_payload_result"]').html(response);
+                                               $('pre[name="webhook_payload_result"]').text(response);
                                            },
                                        });
                                    });
