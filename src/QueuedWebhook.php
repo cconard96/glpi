@@ -209,6 +209,10 @@ class QueuedWebhook extends CommonDBChild
 
         $client = new \GuzzleHttp\Client($options);
         $headers = json_decode($queued_webhook->fields['headers'], true);
+        // Remove headers with empty values
+        $headers = array_filter($headers, static function ($value) {
+            return !empty($value);
+        });
         if ($bearer_token !== null) {
             $headers['Authentication'] = 'Bearer ' . $bearer_token;
         }
