@@ -216,6 +216,7 @@ class QueuedWebhook extends CommonDBChild
         if ($bearer_token !== null) {
             $headers['Authentication'] = 'Bearer ' . $bearer_token;
         }
+
         try {
             $response = $client->request($queued_webhook->fields['http_method'], $queued_webhook->fields['url'], [
                 \GuzzleHttp\RequestOptions::HEADERS => $headers,
@@ -226,7 +227,7 @@ class QueuedWebhook extends CommonDBChild
                 "webhook",
                 "Error sending webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
             );
-            $response = $e->getCode() !== null ? new Response($e->getCode()) : null;
+            $response = $e->getResponse();
         }
         $input = [
             'id' => $ID,
