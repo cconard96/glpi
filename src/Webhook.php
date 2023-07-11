@@ -737,9 +737,12 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $default_payload_str;
     }
 
-    private function showPayloadEditor(): void
+    /**
+     * @param class-string<CommonDBTM> $itemtype The itemtype to get the schema for
+     * @return array|null
+     */
+    public static function getAPISchemaBySupportedItemtype(string $itemtype): ?array
     {
-        $itemtype = $this->fields['itemtype'];
         /** @var class-string<AbstractController> $controller_class */
         $controller_class = null;
         $schema_name = null;
@@ -763,9 +766,14 @@ class Webhook extends CommonDBTM implements FilterableInterface
 
         if ($controller_class === null || $schema_name === null) {
             echo __('This itemtype is not supported by the API. Maybe a plugin is missing/disabled?');
-            return;
+            return null;
         }
-        $schema = $controller_class::getKnownSchemas()[$schema_name] ?? null;
+        return $controller_class::getKnownSchemas()[$schema_name] ?? null;
+    }
+
+    private function showPayloadEditor(): void
+    {
+        $schema = self::getAPISchemaBySupportedItemtype($this->fields['itemtype']);
         $props = Schema::flattenProperties($schema['properties'], 'item.');
 
         $response_schema = [
