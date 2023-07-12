@@ -158,6 +158,21 @@
                   const autocomplete_id = list_id.split('-').slice(0, 2).join('-') + '-input';
                   $(`#${autocomplete_id}`).closest('.header_value_autocomplete').data('autocomplete').setQuery(selected.text());
               });
+              $('body').on('click', (e) => {
+                  // Close panels when clicking outside of them unless we click on another input,
+                  // in which case we close all panels except the panel for the one we clicked on
+                  if ($(e.target).closest('.aa-Panels, .aa-Input').length === 0) {
+                      $.each($('.header_value_autocomplete'), (i, v) => {
+                          $(v).data('autocomplete').setIsOpen(false);
+                      });
+                  } else if ($(e.target).closest('.aa-Input').length > 0) {
+                      $.each($('.header_value_autocomplete'), (i, v) => {
+                          if (!$(v).find('.aa-Input').is($(e.target))) {
+                              $(v).data('autocomplete').setIsOpen(false);
+                          }
+                      });
+                  }
+              });
           });
       </script>
    {% endblock %}
