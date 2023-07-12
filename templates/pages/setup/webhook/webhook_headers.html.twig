@@ -101,11 +101,14 @@
               container.data('autocomplete', window.autocomplete({
                   'container': `#${container.attr('id')}`,
                   'detachedMediaQuery': 'none',
-                  'openOnFocus': true,
+                  'openOnFocus': !readonly,
                   onStateChange({ state }) {
                       container.parent().find('input[name="header_value[]"]').val(state.query);
                   },
                   getSources({ query }) {
+                      if (readonly) {
+                          return [];
+                      }
                       return [
                           {
                               sourceId: 'fields',
@@ -126,6 +129,7 @@
               }));
               container.data('autocomplete').setQuery(value);
               if (readonly) {
+                  container.find('.aa-Input').prop('readonly', true);
                   container.find('.aa-Input').css('width', 'calc(100% - 3rem)');
               } else {
                   container.find('.aa-Input').css('width', 'calc(100% - 1rem)');
