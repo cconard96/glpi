@@ -676,13 +676,24 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
             'item' => $this,
+            'params' => [
+                'candel' => false,
+                'formfooter' => false,
+            ]
         ]);
     }
 
     private function showCustomHeaders(): void
     {
+        $schema = self::getAPISchemaBySupportedItemtype($this->fields['itemtype']);
+        $item_fields = Schema::flattenProperties($schema['properties'], 'item.');
         TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_headers.html.twig', [
             'item' => $this,
+            'item_fields' => $item_fields,
+            'params' => [
+                'candel' => false,
+                'formfooter' => false,
+            ]
         ]);
     }
 

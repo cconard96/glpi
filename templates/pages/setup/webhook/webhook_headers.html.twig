@@ -44,22 +44,24 @@
                no_label: true,
                field_class: 'col-4',
             }) }}
-            <span class="mx-2">=</span>
             {% set remove_btn %}
                <button class="btn btn-danger btn-icon" name="remove_header" type="button" title="{{ __('Remove') }}">
                   <i class="ti ti-trash"></i>
                </button>
             {% endset %}
-            {{ fields.textField('header_value[]', '', '', {
+            {% set header_value_autocomplete %}
+               <input type="hidden" name="header_value[]" value="">
+               <div class="header_value_autocomplete"></div>
+            {% endset %}
+            {{ fields.htmlField('header_value[]', header_value_autocomplete, '', {
                no_label: true,
-               field_class: 'col-12 col-sm-6 d-flex',
+               field_class: 'ms-2 h-100 d-flex col-4 justify-content-center',
                add_field_html: remove_btn,
             }) }}
          {% endset %}
          {{ fields.field('custom_header[]', header_field_pair, '', {
             no_label: true,
-            input_class: 'col-12',
-            field_class: 'col-12 d-flex custom-header-field-pair',
+            field_class: 'col-12 d-flex custom-header-field-pair align-items-center',
          }) }}
       </template>
 
@@ -85,7 +87,49 @@
                   template.find('button[name="remove_header"]').remove();
               }
               // insert the template before the add button
-              custom_header_fields_container.find('button[name="add_header"]').before(template);
+              let container = $(template).insertBefore(custom_header_fields_container.find('button[name="add_header"]'));
+              // init autocomplete
+              container = container.find('.header_value_autocomplete');
+              container.attr('id', `header_value_autocomplete${Math.round(Math.random() * 1000000)}`);
+              const item_fields = {{ item_fields|keys|json_encode|raw }};
+              const opts = [];
+              $.each(item_fields, (i, v) => {
+                  {% verbatim %}
+                  opts.push({ label: `{{ ${v} }}`, value: `{{ ${v} }}` });
+                  {% endverbatim %}
+              });
+              container.data('autocomplete', window.autocomplete({
+                  'container': `#${container.attr('id')}`,
+                  'detachedMediaQuery': 'none',
+                  'openOnFocus': true,
+                  onStateChange({ state }) {
+                      container.parent().find('input[name="header_value[]"]').val(state.query);
+                  },
+                  getSources({ query }) {
+                      return [
+                          {
+                              sourceId: 'fields',
+                              getItems() {
+                                  return opts.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase()));
+                              },
+                              templates: {
+                                  noResults() {
+                                      return 'No results';
+                                  },
+                                  item({ item, html }) {
+                                      return html`<div class="item_field_option py-1 my-n1">${item.label}</div>`;
+                                  },
+                              }
+                          },
+                      ];
+                  },
+              }));
+              container.data('autocomplete').setQuery(value);
+              if (readonly) {
+                  container.find('.aa-Input').css('width', 'calc(100% - 3rem)');
+              } else {
+                  container.find('.aa-Input').css('width', 'calc(100% - 1rem)');
+              }
           };
           $(() => {
               const known_custom = {{ item.fields['custom_headers']|default([])|json_encode(constant('JSON_FORCE_OBJECT'))|raw }};
@@ -101,6 +145,14 @@
                   add_custom_header('', '');
               }).on('click', 'button[name="remove_header"]', (e) => {
                   $(e.target).closest('.custom-header-field-pair').remove();
+              });
+
+              $('body').on('click', '.aa-List .item_field_option', (e) => {
+                  const selected = $(e.target);
+                  const list_id = selected.closest('.aa-List').attr('id');
+                  // the autocomplete id is the first two parts of the list id (ex: autocomplete-1-0-List -> autocomplete-1)
+                  const autocomplete_id = list_id.split('-').slice(0, 2).join('-') + '-input';
+                  $(`#${autocomplete_id}`).closest('.header_value_autocomplete').data('autocomplete').setQuery(selected.text());
               });
           });
       </script>
