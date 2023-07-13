@@ -482,15 +482,6 @@ class ITILSolution extends CommonDBChild
             'searchtype'        => 'equals',
         ];
 
-        $tab[] = [
-            'id'                => 6,
-            'table'             => self::getTable(),
-            'field'             => 'content',
-            'name'               => __('Description'),
-            'datatype'           => 'text',
-            'htmltext'           => true,
-        ];
-
         return $tab;
     }
 }
