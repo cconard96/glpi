@@ -258,6 +258,7 @@ class QueuedWebhook extends CommonDBChild
                 /** @var class-string<CommonDBTM> $itemtype */
                 $itemtype = $queued_webhook->fields['itemtype'];
                 $item = new $itemtype();
+                $item->getFromDB($queued_webhook->fields['items_id']);
                 $tabs = $item->defineTabs();
                 $has_history_tab = array_key_exists('Log$1', $tabs);
 
