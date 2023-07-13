@@ -165,6 +165,6 @@ switch ($action) {
         } else {
             http_response_code(400);
         }
-        break;
+        die();
 }
 http_response_code(400);
