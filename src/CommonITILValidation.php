@@ -1081,7 +1081,7 @@ abstract class CommonITILValidation extends CommonDBChild
 
         $tab[] = [
             'id'                 => 9,
-            'table'              => $table,
+            'table'              => $this->getTable(),
             'field'              => 'id',
             'name'               => __('ID'),
             'datatype'           => 'number',
