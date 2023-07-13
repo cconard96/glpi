@@ -228,7 +228,7 @@ class QueuedWebhook extends CommonDBChild
             return !empty($value);
         });
         if ($bearer_token !== null) {
-            $headers['Authentication'] = 'Bearer ' . $bearer_token;
+            $headers['Authorization'] = 'Bearer ' . $bearer_token;
         }
 
         try {
