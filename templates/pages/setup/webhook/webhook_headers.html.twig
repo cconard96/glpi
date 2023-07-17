@@ -140,7 +140,7 @@
               add_custom_header('X-GLPI-signature', __('Filled automatically'), true);
               add_custom_header('X-GLPI-timestamp', __('Filled automatically'), true);
               {% if item.fields['use_oauth'] %}
-                 add_custom_header('Authentication', __('Filled automatically'), true);
+                 add_custom_header('Authorization', __('Filled automatically'), true);
               {% endif %}
               for (const [name, value] of Object.entries(known_custom)) {
                   add_custom_header(name, value);
