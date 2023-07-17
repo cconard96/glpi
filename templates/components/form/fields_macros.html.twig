@@ -429,7 +429,7 @@
              value="{{ options.is_disclosable ? value : '' }}"
          {{ options.readonly ? 'readonly' : '' }}
          {{ options.disabled ? 'disabled' : '' }}
-         {{ options.required ? 'required' : '' }} />
+         {{ options.required ? 'required' : '' }} {% for name, value in options.add_field_attribs %} {{ name }}="{{ value }}" {% endfor %}/>
    {% endset %}
    {% set btn_group %}
       &nbsp;<i class="far fa-eye pointer disclose" onmousedown="showDisclosablePasswordField('{{ options.id }}')"
