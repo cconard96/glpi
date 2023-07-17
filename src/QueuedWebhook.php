@@ -534,7 +534,12 @@ JS);
             ],
             'WHERE'  => [
                 'is_deleted'   => 0,
-                new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' < ' . $DB::quoteName($webhook_table . '.sent_try')),
+                [
+                    'OR' => [
+                        "$queued_table.sent_try" => null,
+                        new QueryExpression($DB::quoteName($queued_table . '.sent_try') . ' <= ' . $DB::quoteName($webhook_table . '.sent_try')),
+                    ]
+                ],
                 'send_time'    => ['<', $send_time],
                 [
                     'OR' => [
