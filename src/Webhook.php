@@ -511,6 +511,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                                 'payload' => $payload_template
                             ])
                         );
+                        $env->addExtension(new \Twig\Extra\Markdown\MarkdownExtension());
                         return $env->render('payload', $data);
                     } catch (Throwable $e) {
                         return null;
