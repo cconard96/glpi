@@ -1134,11 +1134,6 @@ HTML;
                 Html::requireJs('reservations');
             }
 
-            if (in_array('kanban', $jslibs)) {
-                $tpl_vars['js_modules'][] = ['path' => 'js/modules/Kanban/Kanban.js'];
-                Html::requireJs('kanban');
-            }
-
             if (in_array('rateit', $jslibs)) {
                 $tpl_vars['css_files'][] = ['path' => 'public/lib/jquery.rateit.css'];
                 Html::requireJs('rateit');
@@ -6239,8 +6234,6 @@ HTML;
                         }
                     }
                 }
-                break;
-            case 'kanban':
                 break;
             case 'rateit':
                 $_SESSION['glpi_js_toload'][$name][] = 'public/lib/jquery.rateit.js';

@@ -569,13 +569,13 @@ $CFG_GLPI['javascript'] = [
     'helpdesk'  => [
         'dashboard' => ['dashboard'],
         'planning'  => ['clipboard', 'fullcalendar', 'tinymce', 'planning'],
-        'ticket'    => ['rateit', 'tinymce', 'kanban', 'dashboard'],
-        'problem'   => ['tinymce', 'kanban', 'sortable'],
-        'change'    => ['tinymce', 'kanban', 'sortable', 'rateit'],
+        'ticket'    => ['rateit', 'tinymce', 'dashboard'],
+        'problem'   => ['tinymce', 'sortable'],
+        'change'    => ['tinymce', 'sortable', 'rateit'],
         'stat'      => ['charts', 'rateit']
     ],
     'tools'     => [
-        'project'                 => ['kanban', 'tinymce', 'sortable'],
+        'project'                 => ['tinymce', 'sortable'],
         'knowbaseitem'            => ['tinymce'],
         'knowbaseitemtranslation' => ['tinymce'],
         'reminder'                => ['tinymce'],
