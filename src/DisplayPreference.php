@@ -725,7 +725,6 @@ class DisplayPreference extends CommonDBTM
         }
     }
 
-
     /**
      * For tab management : force isNewItem
      *
@@ -764,6 +763,9 @@ class DisplayPreference extends CommonDBTM
                     $ong[2] = __('Personal View');
                 }
                 return $ong;
+
+            case Config::class:
+                return self::createTabEntry(__('Global View'), 0, __CLASS__, 'ti ti-columns-3');
         }
         return '';
     }
@@ -788,6 +790,10 @@ class DisplayPreference extends CommonDBTM
                         $item->showFormPerso(Toolbox::cleanTarget($_GET['_target']), $_GET["displaytype"]);
                         return true;
                 }
+
+            case Config::class:
+                self::showForUser(0);
+                return true;
         }
         return false;
     }
