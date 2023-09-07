@@ -337,6 +337,21 @@
             $.each(col.items, (j, card) => {
                 new_state[i].cards.push(card.id);
             });
+            // Sort cards based on their index in the column
+            new_state[i].cards.sort((a, b) => {
+                // Handle the case where the card is not in the column
+                const card_a = $(`#${a}`);
+                const card_b = $(`#${b}`);
+                if (card_a.length === 0) {
+                    return -1;
+                }
+                if (card_b.length === 0) {
+                    return 1;
+                }
+                const a_index = card_a.index();
+                const b_index = card_b.index();
+                return a_index - b_index;
+            });
         });
 
         return new_state;
