@@ -1419,6 +1419,7 @@
 
         .kanban-container {
             overflow: auto;
+            min-height: 200px;
 
             .kanban-dropdown {
                 position: fixed;
