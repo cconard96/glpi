@@ -88,28 +88,8 @@
     }
 
     const cards_to_show = computed(() => {
-        const not_filtered_out = Object.values(props.column_data.items || {}).filter(item => {
+        return Object.values(props.column_data.items || {}).filter(item => {
             return !item._filtered_out;
-        });
-        // sort cards by _rank property. If this property is missing, they should be last.
-        return not_filtered_out.sort((a, b) => {
-            if (a._rank === undefined && b._rank === undefined) {
-                // sort by date_creation for all unranked
-                if (a._metadata.date_creation === undefined) {
-                    return 1;
-                }
-                if (b._metadata.date_creation === undefined) {
-                    return -1;
-                }
-                return new Date(a._metadata.date_creation) - new Date(b._metadata.date_creation);
-            }
-            if (a._rank === undefined) {
-                return 1;
-            }
-            if (b._rank === undefined) {
-                return -1;
-            }
-            return a._rank - b._rank;
         });
     });
 

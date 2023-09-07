@@ -323,25 +323,23 @@
             .find('ul').toggle();
     }
 
-    function updateColumnState() {
-        const new_state = {
-            is_dirty: true,
-            state: {}
-        };
-        $.each(columns.value, (i, col) => {
+    function getUpdatedColumnState() {
+        const new_state = {};
+
+        $.each(ordered_columns.value, (i, col) => {
             const column_id = col.id || i;
-            new_state.state[i] = {
+            new_state[i] = {
                 column: column_id,
-                folded: false,
-                cards: {}
+                folded: col.folded,
+                visible: col.visible,
+                cards: []
             };
-            $.each(col.items, function(i2, item) {
-                // find position of the card in the DOM
-                const pos = $(`#${item.id}`).index();
-                new_state.state[i]['cards'][pos] = item.id;
+            $.each(col.items, (j, card) => {
+                new_state[i].cards.push(card.id);
             });
         });
-        user_state.value = new_state;
+
+        return new_state;
     }
 
     /**
@@ -353,7 +351,6 @@
      */
     async function saveState() {
         emit('kanban:pre_save_state');
-        updateColumnState();
         return $.ajax({
             type: "POST",
             url: CFG_GLPI.root_doc + '/ajax/kanban.php',
@@ -361,7 +358,7 @@
                 action: "save_column_state",
                 itemtype: props.item.itemtype,
                 items_id: props.item.items_id,
-                state: user_state.value.state
+                state: getUpdatedColumnState()
             },
         }).always(() => {
             emit('kanban:post_save_state');
@@ -401,7 +398,7 @@
                 if (element.length === 0) {
                     promises.push(loadColumn(entry.column, true, false));
                 }
-                $(`#${[props.element_id]} .kanban-columns .kanban-column:nth-child(${index})`).after(element);
+                $(`#${props.element_id} .kanban-columns .kanban-column:nth-child(${index})`).after(element);
                 if (entry.folded === 'true') {
                     element.addClass('collapsed');
                 }
@@ -458,14 +455,16 @@
      */
     async function loadColumn(column_id) {
         let skip_load = false;
-        $.each(user_state.value.state, function(i, c) {
-            if (parseInt(c['column']) === parseInt(column_id)) {
-                if (!c['visible']) {
-                    skip_load = true;
+        if (user_state.value.state !== undefined) {
+            $.each(user_state.value.state, function (i, c) {
+                if (parseInt(c['column']) === parseInt(column_id)) {
+                    if (!c['visible']) {
+                        skip_load = true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-        });
+            });
+        }
         if (skip_load) {
             return Promise.resolve(null);
         }
@@ -489,6 +488,8 @@
                         item['icon'] = props.supported_itemtypes[itemtype]['icon'] || '';
                     });
                     column[column_id].items = Object.values(column[column_id].items || {});
+                    column[column_id].folded = user_state.value.state[column_id].folded || false;
+                    column[column_id].folded = (column[column_id].folded === 'true' || column[column_id].folded === true);
                     columns.value[column_id] = column[column_id];
                     refreshSortables();
                 }
@@ -521,17 +522,18 @@
                     // Save the state for the first time
                     saveState();
                 }
+                // Set the folded state of the columns to false initially in case they are not in the user state
+                $.each(columns.value, (i, col) => {
+                    col.folded = false;
+                });
+
                 // If cards exist in the user_state for this column, make sure those cards are in the right order. All other cards come after.
                 $.each(user_state.value.state, (column_id, column) => {
-                    $.each(column.cards, function(i, item) {
-                        $.each(columns.value[column_id].items, (i2, card) => {
-                            if (card.id === item) {
-                                //FIXME This change doesn't persist. Proxy object issues?
-                                card['_rank'] = parseInt(i);
-                                return false;
-                            }
-                        });
-                    });
+                    if (columns.value[column_id] === undefined) {
+                        return;
+                    }
+                    columns.value[column_id].folded = column.folded || false;
+                    columns.value[column_id].folded = (columns.value[column_id].folded === 'true' || columns.value[column_id].folded === true);
                 });
                 emit('kanban:refresh');
                 // Have to delay the badge image fetch until the next tick for it to work properly
@@ -544,6 +546,11 @@
         return _refresh();
     }
 
+    /**
+     * Get the folded state of the column from the user state.
+     * @param column_id The ID of the column.
+     * @return {boolean} True if the column is folded, false otherwise (default if nothing specified in the user state for this column).
+     */
     function getFoldedState(column_id) {
         if (user_state.value.state === undefined) {
             return false;
@@ -656,8 +663,6 @@
                 position: position,
                 kanban: props.item
             }
-        }).then(() => {
-            updateColumnState();
         });
     }
 
@@ -1207,6 +1212,71 @@
         });
         return visible;
     });
+
+    const ordered_columns = computed(() => {
+        // If there is a column without an ID or <= 0, it should be first (No status column and other special columns)
+        // Then, the legacy_user_state should be used to determine the order of all the columns referenced by it
+        // Finally, the remaining columns will be shown in the order they are in the columns Object at the end
+        const ordered = [];
+        const added = [];
+        $.each(columns.value, (column_id, column) => {
+            const i_column_id = parseInt(column.id || column_id);
+            if (i_column_id <= 0) {
+                column.id = i_column_id;
+                ordered.push(column);
+                added.push(i_column_id);
+            }
+        });
+        if (user_state.value.state !== undefined) {
+            $.each(user_state.value.state, (i, c) => {
+                const i_column_id = parseInt(c.column);
+                if (!added.includes(i_column_id) && columns.value[i_column_id] !== undefined) {
+                    ordered.push(columns.value[i_column_id]);
+                    added.push(i_column_id);
+                }
+            });
+        }
+        $.each(columns.value, (column_id, column) => {
+            const i_column_id = parseInt(column_id);
+            if (!added.includes(i_column_id)) {
+                ordered.push(column);
+                added.push(i_column_id);
+            }
+        });
+
+        // Order the cards
+        // If the card is in the user state, use that position
+        // The remaining cards will be shown in the order they are in the column
+        $.each(ordered, (i, column) => {
+            const ordered_cards = [];
+            const added_cards = [];
+            let col_state = Object.values(user_state.value.state || {}).filter((c) => parseInt(c.column) === parseInt(column.id));
+            if (col_state.length > 0) {
+                col_state = col_state[0];
+            } else {
+                col_state = null;
+            }
+            if (col_state !== null) {
+                $.each(col_state.cards || {}, (i2, card_id) => {
+                    $.each(column.items || {}, (i3, card) => {
+                        if (card.id === card_id) {
+                            ordered_cards.push(card);
+                            added_cards.push(card_id);
+                        }
+                    });
+                });
+            }
+            $.each(column.items || {}, (i2, card) => {
+                if (!added_cards.includes(card.id)) {
+                    ordered_cards.push(card);
+                    added_cards.push(card.id);
+                }
+            });
+            column.items = ordered_cards;
+        });
+
+        return ordered;
+    });
 </script>
 
 <template>
@@ -1289,12 +1359,12 @@
                 </div>
             </div>
             <div class="kanban-columns">
-                <Column v-for="(column, column_id) in columns" :key="column_id"
-                        :column_id="parseInt(column_id)" :column_data="column" :rights="rights" :column_field_id="column_field.id"
-                        :folded="getFoldedState(column_id)" :supported_itemtypes="supported_itemtypes" @vue:mounted="refreshSortables()"
+                <Column v-for="(column) in ordered_columns" :key="column.id"
+                        :column_id="parseInt(column.id)" :column_data="column" :rights="rights" :column_field_id="column_field.id"
+                        :folded="getFoldedState(column.id)" :supported_itemtypes="supported_itemtypes" @vue:mounted="refreshSortables()"
                         @kanban:column_fold="updateFoldColumn($event)" :team_badge_provider="team_badge_provider"
                         @kanban:card_delete="deleteCard" @kanban:card_restore="restoreCard" @kanban:refresh="refresh"
-                        @kanban:column_hide="hideColumn(column_id)" @kanban:card_show_details="openCardDetailsPanel($event)"></Column>
+                        @kanban:column_hide="hideColumn(column.id)" @kanban:card_show_details="openCardDetailsPanel($event)"></Column>
             </div>
             <ul id="kanban-item-overflow-dropdown" class="kanban-dropdown dropdown-menu d-none">
                 <li class="kanban-item-goto dropdown-item">
