@@ -8,6 +8,7 @@
     import {computed, nextTick, onMounted, ref, watch} from "vue";
     import SearchInput from "../../../modules/SearchTokenizer/SearchInput.js";
     import {TeamBadgeProvider} from "./TeamBadgeProvider.js";
+    import FilteredSearchInput from '../FilteredSearch/Input.vue';
 
     const props = defineProps({
         /** @type {Rights} */
@@ -114,6 +115,27 @@
         }
     });
 
+    function on_filter_result_change(e, result) {
+        filters.value = {
+            _text: ''
+        };
+        filters.value._text = result.getFullPhrase();
+        result.getTaggedTerms().forEach(t => filters.value[t.tag] = {
+            term: t.term || '',
+            exclusion: t.exclusion || false,
+            prefix: t.prefix
+        });
+    }
+
+    const tokenizer_options = {
+        custom_prefixes: {
+            '#': { // Regex prefix
+                label: __('Regex'),
+                token_color: '#00800080'
+            }
+        }
+    };
+
     onMounted(() => {
         emit('kanban:pre_init');
         loadState().then(() => {
@@ -133,25 +155,8 @@
             });
             filter_input = new SearchInput($(`#${props.element_id} input[name="filter"]`), {
                 allowed_tags: props.supported_filters,
-                on_result_change: (e, result) => {
-                    filters.value = {
-                        _text: ''
-                    };
-                    filters.value._text = result.getFullPhrase();
-                    result.getTaggedTerms().forEach(t => filters.value[t.tag] = {
-                        term: t.term || '',
-                        exclusion: t.exclusion || false,
-                        prefix: t.prefix
-                    });
-                },
-                tokenizer_options: {
-                    custom_prefixes: {
-                        '#': { // Regex prefix
-                            label: __('Regex'),
-                            token_color: '#00800080'
-                        }
-                    }
-                }
+                on_result_change: on_filter_result_change,
+                tokenizer_options: tokenizer_options
             });
             refreshSearchTokenizer();
             refreshSortables();
@@ -1292,6 +1297,10 @@
 
         return ordered;
     });
+
+    function getFilterInput() {
+        return $(`#${props.element_id} input[name='filter']`);
+    }
 </script>
 
 <template>
@@ -1302,6 +1311,9 @@
                     <option v-for="(k_name, k_id) in all_kanbans" :value="k_id" :selected="k_id === item.items_id" :key="k_id">{{ k_name }}</option>
                 </select>
                 <input name="filter" class="form-control ms-1" type="text" :placeholder="__('Search or filter results')" autocomplete="off"/>
+                <FilteredSearchInput v-if="getFilterInput().length > 0" :original_input="getFilterInput()" :allowed_tags="props.supported_filters"
+                                     :tokenizer_options="tokenizer_options">
+                </FilteredSearchInput>
                 <div class="dropdown">
                     <button type="button" class="kanban-add-column btn btn-outline-secondary ms-1" v-if="rights.canModifyView()"
                             data-bs-toggle="dropdown" data-bs-auto-close="outside" @click="updateAllColumnsList()">{{ __('Add column') }}</button>

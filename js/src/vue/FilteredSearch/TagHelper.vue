@@ -2,23 +2,24 @@
     import SearchTokenizer from "../../../modules/SearchTokenizer/SearchTokenizer.js";
     import {computed} from "vue";
 
-    const props = {
+    const props = defineProps({
         tokenizer: {
             type: SearchTokenizer,
             required: true
         },
-        selected_node: { //TODO Probably better to just pass the selected text
-            type: Object
+        selected_text: {
+            type: String,
+            default: ''
         },
         filter_on_type: {
             type: Boolean,
-            required: true
+            default: true
         },
-    };
+    });
 
     const tags_to_show = computed(() => {
         const all_tags = props.tokenizer.allowed_tags;
-        let selected_text = props.selected_node ? props.selected_node.text().trim() : '';
+        let selected_text = props.selected_text.trim();
         // Match either:
         // [^\s"]+ - one or more characters that are not whitespace or double quotes
         // OR
@@ -29,7 +30,7 @@
         selected_text = (selected_phrases ? selected_phrases[selected_phrases.length - 1] : '').toLowerCase();
         const tags_to_show = {};
 
-        $.each(all_tags, (name, info) => {
+        $.each(all_tags || {}, (name, info) => {
             if ((props.filter_on_type && selected_text.length > 0) && !name.toLowerCase().startsWith(selected_text)) {
                 return; // continue
             }
@@ -39,9 +40,9 @@
             };
 
             $.each(info.supported_prefixes, (i, prefix) => {
-                const custom_prefix = this.tokenizer.options.custom_prefixes[prefix];
+                const custom_prefix = props.tokenizer.options.custom_prefixes[prefix];
                 let label = custom_prefix ? (custom_prefix.label || prefix) : prefix;
-                if (prefix === this.tokenizer.EXCLUSION_PREFIX) {
+                if (prefix === props.tokenizer.EXCLUSION_PREFIX) {
                     label = __('Exclude');
                 }
                 tag_info.supported_prefixes[prefix] = {

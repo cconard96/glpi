@@ -79,6 +79,16 @@ component_context.keys().forEach((f) => {
 // Save components in global scope
 window.Vue.components = Object.assign(window.Vue.components, components);
 
+// Add components from libraries
+window.Vue.components['Lib/Popper'] = {
+    // dynamic import of just the Popper export from vue3-popper
+    component: vue.defineAsyncComponent(() => import(
+        /* webpackExports: ["Popper"] */
+        /* webpackChunkName: "Lib-Popper" */
+        'vue3-popper')
+    ),
+};
+
 // export vue module to be used in other webpack bundles as an external dependency without uselessly bundling it
 // For example, plugins can import from 'vue' as usual, but use the webpack externals option to map 'vue' to 'window _vue'
 window._vue = vue;

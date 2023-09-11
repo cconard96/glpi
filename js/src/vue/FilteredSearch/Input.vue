@@ -1,6 +1,9 @@
 <script setup>
+    /* global escapeMarkupText */
     import SearchTokenizer from "../../../modules/SearchTokenizer/SearchTokenizer.js";
-    import {ref} from "vue";
+    import {computed, ref} from "vue";
+    import TagHelper from './TagHelper.vue';
+    import AutocompleteHelper from './AutocompleteHelper.vue';
 
     const props = defineProps({
         original_input: {
@@ -13,7 +16,9 @@
         },
         tokenizer_options: {
             type: Object,
-            default: () => {}
+            default: () => {
+                return {};
+            }
         },
         filter_on_type: {
             type: Boolean,
@@ -21,11 +26,15 @@
         },
         input_options: {
             type: Object,
-            default: () => {}
+            default: () => {
+                return {};
+            }
         },
         allowed_tags: {
             type: Object,
-            default: () => {}
+            default: () => {
+                return {};
+            }
         },
         drop_unallowed_tags: {
             type: Boolean,
@@ -90,6 +99,21 @@
         }
     }
 
+    function registerListeners() {
+        const input = $(displayed_input);
+        const input_parent = input.parent();
+
+        input.on('input click focus', () => {
+            console.log('input, click or focus');
+            show_popover.value = true;
+        });
+        $(document.body).on('click', (e) => {
+            if ($(e.target).closest('.search-input-popover-wrapper').length === 0) {
+                show_popover.value = false;
+            }
+        });
+    }
+
     function tagifySelectedNode() {
         const selected_node = $(getSelectedNode());
         if (selected_node && isSelectionUntagged()) {
@@ -133,14 +157,24 @@
 
     const tokenizer = new SearchTokenizer(props.allowed_tags, props.drop_unallowed_tags, props.tokenizer_options);
     const displayed_input = ref(null);
+    const popover_mode = ref('tag');
+    const popover_content = computed(() => {
+        return '';
+    });
+    const show_popover = ref(false);
     applyInputOptions();
-
+    registerListeners();
 </script>
 
 <template>
-    <div class="form-control search-input d-flex overflow-auto" tabindex="0" ref="displayed_input">
-        <span class="search-input-tag-input flex-grow-1" contenteditable="true"></span>
-    </div>
+    <Popper :show="show_popover" interactive placement="bottom-start" closeDelay="300" class="search-input-popover-wrapper">
+        <div class="form-control search-input d-flex overflow-auto" tabindex="0" :ref="displayed_input">
+            <span class="search-input-tag-input flex-grow-1" contenteditable="true"></span>
+        </div>
+        <template #content>
+            <Component :is="popover_mode === 'tag' ? TagHelper : AutocompleteHelper" :tokenizer="tokenizer"></Component>
+        </template>
+    </Popper>
 </template>
 
 <style scoped>

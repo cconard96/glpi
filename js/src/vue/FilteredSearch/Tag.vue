@@ -1,7 +1,7 @@
 <script setup>
     /* global escapeMarkupText */
     import SearchTokenizer from "../../../modules/SearchTokenizer/SearchTokenizer.js";
-    import {computed} from "vue";
+    import {computed, ref} from "vue";
 
     const props = {
         tokenizer: {
@@ -13,6 +13,8 @@
             required: true
         },
     };
+
+    const editing = ref(false);
 
     const dark_mode = document.documentElement.attr('data-glpi-theme-dark') === '1';
     const tag_display = computed(() => {
@@ -46,9 +48,13 @@
 </script>
 
 <template>
-    <span class="search-input-tag badge bg-secondary me-1" contenteditable="false" :data-tag="props.token.tag" :style="style_overrides">
-        <span class="search-input-tag-value" contenteditable="false" v-text="tag_display"></span>
+    <span v-if="!editing" class="search-input-tag badge bg-secondary me-1" :contenteditable="false"
+          :data-tag="props.token.tag" :style="style_overrides">
+        <span class="search-input-tag-value" contenteditable="false" v-html="tag_display"></span>
         <i class="ti ti-x cursor-pointer ms-1" :title="__('Delete')" contenteditable="false"></i>
+    </span>
+    <span v-else class="search-input-tag-input badge bg-secondary me-1" :contenteditable="true"
+          :data-tag="props.token.tag" :style="style_overrides" v-text="props.token.raw">
     </span>
 </template>
 

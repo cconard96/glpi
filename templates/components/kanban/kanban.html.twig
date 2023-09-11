@@ -77,7 +77,7 @@
       // Create kanban elements and add data
       //kanban.init();
 
-      window.Vue.createApp(window.Vue.components['Kanban/Kanban'].component, {
+      const app = window.Vue.createApp(window.Vue.components['Kanban/Kanban'].component, {
           element_id: '{{ kanban_id|default('kanban') }}',
           rights: {{ rights|json_encode|raw }},
           supported_itemtypes: {{ supported_itemtypes|json_encode|raw }},
@@ -86,6 +86,8 @@
           item: {{ item|json_encode|raw }},
           supported_filters: {{ supported_filters|json_encode|raw }},
           display_initials: {{ entity_config('display_users_initials', session('glpiactive_entity')) ? 'true' : 'false' }},
-      }).mount('#kanban-app');
+      });
+      app.component('Popper', window.Vue.components['Lib/Popper'].component);
+      app.mount('#kanban-app');
    });
 </script>
