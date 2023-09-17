@@ -35,7 +35,7 @@
                 return; // continue
             }
             const tag_info = {
-                prefix_content: info.description || '',
+                description: info.description || '',
                 supported_prefixes: {}
             };
 
@@ -57,19 +57,21 @@
 </script>
 
 <template>
-    <ul class="list-group tags-list">
-        <li class="list-group-item list-group-item-action cursor-pointer" v-for="(tag_info, tag_name) in tags_to_show" :key="tag_name">
-            <div class="d-flex flex-grow-1 justify-content-between">
-                <b v-text="tag_name"></b>
-                <span>
-                    <button type="button" :class="`btn btn-outline-secondary btn-sm tag-prefix ${i > 0 ? 'ms-1' : ''}`"
-                            :data-prefix="prefix" :title="prefix_info.label" v-text="prefix"
-                            v-for="(prefix_info, prefix, i) in tag_info.supported_prefixes" :key="prefix"></button>
-                </span>
-            </div>
-            <div class="text-muted fst-italic" v-text="tag_info.description"></div>
-        </li>
-    </ul>
+    <div class="popover">
+        <ul class="list-group tags-list">
+            <li class="list-group-item list-group-item-action cursor-pointer px-3 py-1" v-for="(tag_info, tag_name) in tags_to_show" :key="tag_name">
+                <div class="d-flex flex-grow-1 justify-content-between">
+                    <b v-text="tag_name"></b>
+                    <span>
+                        <button type="button" :class="`btn btn-outline-secondary btn-sm tag-prefix ${i > 0 ? 'ms-1' : ''}`"
+                                :data-prefix="prefix" :title="prefix_info.label" v-text="prefix"
+                                v-for="(prefix_info, prefix, i) in tag_info.supported_prefixes" :key="prefix"></button>
+                    </span>
+                </div>
+                <div class="text-muted fst-italic" v-text="tag_info.description"></div>
+            </li>
+        </ul>
+    </div>
 </template>
 
 <style scoped>

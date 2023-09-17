@@ -153,11 +153,11 @@
                     kanban_switcher.value = props.item.items_id <= 0 ? -1 : props.item.items_id;
                 });
             });
-            filter_input = new SearchInput($(`#${props.element_id} input[name="filter"]`), {
-                allowed_tags: props.supported_filters,
-                on_result_change: on_filter_result_change,
-                tokenizer_options: tokenizer_options
-            });
+            // filter_input = new SearchInput($(`#${props.element_id} input[name="filter"]`), {
+            //     allowed_tags: props.supported_filters,
+            //     on_result_change: on_filter_result_change,
+            //     tokenizer_options: tokenizer_options
+            // });
             refreshSearchTokenizer();
             refreshSortables();
             initMutationObserver();
@@ -279,14 +279,14 @@
     }
 
     function refreshSearchTokenizer() {
-        filter_input.tokenizer.clearAutocomplete();
+        // filter_input.tokenizer.clearAutocomplete();
+        //
+        // // Refresh core tags autocomplete
+        // filter_input.tokenizer.setAutocomplete('type', Object.keys(props.supported_itemtypes).map(k => `<i class="${props.supported_itemtypes[k].icon} me-1"></i>` + k));
+        // filter_input.tokenizer.setAutocomplete('milestone', ["true", "false"]);
+        // filter_input.tokenizer.setAutocomplete('deleted', ["true", "false"]);
 
-        // Refresh core tags autocomplete
-        filter_input.tokenizer.setAutocomplete('type', Object.keys(props.supported_itemtypes).map(k => `<i class="${props.supported_itemtypes[k].icon} me-1"></i>` + k));
-        filter_input.tokenizer.setAutocomplete('milestone', ["true", "false"]);
-        filter_input.tokenizer.setAutocomplete('deleted', ["true", "false"]);
-
-        emit('kanban:refresh_tokenizer', filter_input.tokenizer);
+        //emit('kanban:refresh_tokenizer', filter_input.tokenizer);
     }
 
     /**

@@ -12,11 +12,15 @@
             type: Object,
             required: true
         },
+        initial_editing: {
+            type: Boolean,
+            default: false
+        }
     };
 
-    const editing = ref(false);
+    const editing = ref(props.initial_editing);
 
-    const dark_mode = document.documentElement.attr('data-glpi-theme-dark') === '1';
+    const dark_mode = document.documentElement.getAttribute('data-glpi-theme-dark') === '1';
     const tag_display = computed(() => {
         if (!props.token.tag) {
             return '';
@@ -48,15 +52,20 @@
 </script>
 
 <template>
-    <span v-if="!editing" class="search-input-tag badge bg-secondary me-1" :contenteditable="false"
+    <span v-if="!editing" class="search-input-tag badge bg-secondary me-1 text-start" :contenteditable="false"
           :data-tag="props.token.tag" :style="style_overrides">
         <span class="search-input-tag-value" contenteditable="false" v-html="tag_display"></span>
         <i class="ti ti-x cursor-pointer ms-1" :title="__('Delete')" contenteditable="false"></i>
     </span>
-    <span v-else class="search-input-tag-input badge bg-secondary me-1" :contenteditable="true"
+    <span v-else class="search-input-tag-input badge bg-secondary me-1 text-start" :contenteditable="true"
           :data-tag="props.token.tag" :style="style_overrides" v-text="props.token.raw">
     </span>
 </template>
 
 <style scoped>
+    span.badge:empty {
+        width: auto;
+        height: auto;
+        padding: var(--tblr-badge-padding-y) var(--tblr-badge-padding-x);
+    }
 </style>

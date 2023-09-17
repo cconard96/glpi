@@ -41,9 +41,11 @@
 </script>
 
 <template>
-    <ul class="list-group term-suggestions-list" v-if="autocomplete_values !== null">
-        <li class="list-group-item list-group-item-action cursor-pointer" v-for="v in autocomplete_values" :key="v" v-text="v"></li>
-    </ul>
+    <div class="popover">
+        <ul class="list-group term-suggestions-list" v-if="autocomplete_values !== null">
+            <li class="list-group-item list-group-item-action cursor-pointer px-3 py-1" v-for="v in autocomplete_values" :key="v" v-text="v"></li>
+        </ul>
+    </div>
 </template>
 
 <style scoped>

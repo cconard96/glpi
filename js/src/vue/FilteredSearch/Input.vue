@@ -1,9 +1,10 @@
 <script setup>
     /* global escapeMarkupText */
     import SearchTokenizer from "../../../modules/SearchTokenizer/SearchTokenizer.js";
-    import {computed, ref} from "vue";
+    import {computed, onMounted, ref} from "vue";
     import TagHelper from './TagHelper.vue';
     import AutocompleteHelper from './AutocompleteHelper.vue';
+    import Tag from "./Tag.vue";
 
     const props = defineProps({
         original_input: {
@@ -42,10 +43,14 @@
         },
     });
 
+    function getDisplayedInput() {
+        return $(`#${wrapper_id} .search-input`);
+    }
+
     function applyInputOptions() {
         let new_attrs = {};
 
-        const displayed = $(displayed_input.value);
+        const displayed = getDisplayedInput();
 
         if (props.input_options.attributes !== undefined) {
             if (typeof props.input_options.attributes === 'object') {
@@ -100,11 +105,10 @@
     }
 
     function registerListeners() {
-        const input = $(displayed_input);
+        const input = getDisplayedInput();
         const input_parent = input.parent();
 
         input.on('input click focus', () => {
-            console.log('input, click or focus');
             show_popover.value = true;
         });
         $(document.body).on('click', (e) => {
@@ -156,27 +160,39 @@
     }
 
     const tokenizer = new SearchTokenizer(props.allowed_tags, props.drop_unallowed_tags, props.tokenizer_options);
-    const displayed_input = ref(null);
+    const displayed_input_wrapper = ref(null);
     const popover_mode = ref('tag');
     const popover_content = computed(() => {
         return '';
     });
+    const wrapper_id = 'searchinputwrapper' + Math.floor(Math.random() * 1000000);
     const show_popover = ref(false);
-    applyInputOptions();
-    registerListeners();
+    props.original_input.hide();
+    const selected_text = computed(() => {
+        return $(`#${wrapper_id} .search-input-tag-input`).text().trim();
+    });
+
+    function init() {
+        applyInputOptions();
+        registerListeners();
+    }
 </script>
 
 <template>
-    <Popper :show="show_popover" interactive placement="bottom-start" closeDelay="300" class="search-input-popover-wrapper">
-        <div class="form-control search-input d-flex overflow-auto" tabindex="0" :ref="displayed_input">
-            <span class="search-input-tag-input flex-grow-1" contenteditable="true"></span>
+    <Popper :show="show_popover" interactive placement="bottom-start" closeDelay="300" :id="wrapper_id"
+            class="search-input-popover-wrapper flex-grow-1 align-self-center"
+            :ref="displayed_input_wrapper" @vue:mounted="init">
+        <div class="form-control search-input d-flex overflow-auto" tabindex="0">
+            <Tag :initial_editing="true"></Tag>
         </div>
         <template #content>
-            <Component :is="popover_mode === 'tag' ? TagHelper : AutocompleteHelper" :tokenizer="tokenizer"></Component>
+            <Component :is="popover_mode === 'tag' ? TagHelper : AutocompleteHelper" :tokenizer="tokenizer" :selected_text="selected_text"></Component>
         </template>
     </Popper>
 </template>
 
 <style scoped>
-
+    :deep(.popper) {
+        min-width: 200px;
+    }
 </style>
