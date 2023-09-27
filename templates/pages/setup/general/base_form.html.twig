@@ -40,6 +40,17 @@
         <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}" />
 {% endif %}
 
+ {% macro render_section_header_centered(section) %}
+    <div class="hr-text">
+       <i class="{{ section.getIcon() }}"></i>
+       <span>{{ section.getLabel() }}</span>
+    </div>
+ {% endmacro %}
+
+ {% macro render_option(option, scope, additional_field_options = {}, default = null, scope_params = {}) %}
+     {{ call([option, 'renderInput'], [scope, scope_params, additional_field_options]) }}
+ {% endmacro %}
+
 <div class="row">
     {% block config_fields %}
     {% endblock %}
