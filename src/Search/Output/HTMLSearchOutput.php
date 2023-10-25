@@ -37,6 +37,7 @@ namespace Glpi\Search\Output;
 
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Dashboard\Grid;
+use SavedSearch;
 use Ticket;
 
 /**
@@ -107,6 +108,13 @@ abstract class HTMLSearchOutput extends AbstractSearchOutput
 
         \Session::initNavigateListItems($data['itemtype'], '', $href);
 
+        $active_savedsearch_name = '';
+        if (isset($_SESSION['glpi_loaded_savedsearch'])) {
+            $savedsearch = new SavedSearch();
+            $savedsearch->getFromDB($_SESSION['glpi_loaded_savedsearch']);
+            $active_savedsearch_name = $savedsearch->getName();
+        }
+
         $rand = mt_rand();
         TemplateRenderer::getInstance()->display('components/search/display_data.html.twig', [
             'data'                => $data,
@@ -143,6 +151,8 @@ abstract class HTMLSearchOutput extends AbstractSearchOutput
             'may_be_located'      => $item instanceof \CommonDBTM && $item->maybeLocated(),
             'may_be_browsed'      => $item !== null && \Toolbox::hasTrait($item, \Glpi\Features\TreeBrowse::class),
             'may_be_unpublished'  => $itemtype == 'KnowbaseItem' && $item->canUpdate(),
+            'original_params'     => $params,
+            'active_savedsearch'  => $active_savedsearch_name,
         ] + ($params['extra_twig_params'] ?? []));
 
         // Add items in item list
