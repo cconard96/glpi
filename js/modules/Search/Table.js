@@ -40,7 +40,7 @@ window.GLPI.Search = window.GLPI.Search || {};
 window.GLPI.Search.Table = class Table extends GenericView {
 
     constructor(result_view_element_id, push_history = true, forced_params = {}) {
-        const element_id = $('#'+result_view_element_id).find('table.search-results').attr('id');
+        const element_id = $('#'+result_view_element_id).parent().find('table.search-results').attr('id');
         super(element_id);
 
         this.push_history = push_history;
