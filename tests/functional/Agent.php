@@ -176,13 +176,15 @@ class Agent extends DbTestCase
 
         //check inventory metadata
         $metadata = $inventory->getMetadata();
-        $this->array($metadata)->hasSize(7)
-         ->string['deviceid']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-         ->string['version']->isIdenticalTo('FusionInventory-Agent_v2.5.2-1.fc31')
-         ->string['itemtype']->isIdenticalTo('Computer')
-         ->string['action']->isIdenticalTo('inventory')
-         ->variable['port']->isIdenticalTo(null)
-         ->string['tag']->isIdenticalTo('000005');
+        $this->assertCount(7, $metadata);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2018-07-09-09-07-13',
+            'version'   => 'FusionInventory-Agent_v2.5.2-1.fc31',
+            'itemtype'  => 'Computer',
+            'action'    => 'inventory',
+            'port'      => null,
+            'tag'       => '000005',
+        ], $metadata, true);
         $this->array($metadata['provider'])->hasSize(10);
 
         global $DB;
@@ -191,12 +193,13 @@ class Agent extends DbTestCase
         $agents = $DB->request(['FROM' => \Agent::getTable()]);
         $this->integer(count($agents))->isIdenticalTo(1);
         $agent = $agents->current();
-        $this->array($agent)
-         ->string['deviceid']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-         ->string['name']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-         ->string['version']->isIdenticalTo('2.5.2-1.fc31')
-         ->string['itemtype']->isIdenticalTo('Computer')
-         ->integer['agenttypes_id']->isIdenticalTo($agenttype['id']);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2018-07-09-09-07-13',
+            'name'      => 'glpixps-2018-07-09-09-07-13',
+            'version'   => '2.5.2-1.fc31',
+            'itemtype'  => 'Computer',
+            'agenttypes_id' => $agenttype['id'],
+        ], $agent, true);
 
         $this
          ->given($this->newTestedInstance)
@@ -273,13 +276,15 @@ class Agent extends DbTestCase
 
         //check inventory metadata
         $metadata = $inventory->getMetadata();
-        $this->array($metadata)->hasSize(7)
-            ->string['deviceid']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-            ->string['version']->isIdenticalTo('FusionInventory-Agent_v2.5.2-1.fc31')
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['action']->isIdenticalTo('inventory')
-            ->variable['port']->isIdenticalTo(null)
-            ->string['tag']->isIdenticalTo('000005');
+        $this->assertCount(7, $metadata);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2018-07-09-09-07-13',
+            'version'   => 'FusionInventory-Agent_v2.5.2-1.fc31',
+            'itemtype'  => 'Computer',
+            'action'    => 'inventory',
+            'port'      => null,
+            'tag'       => '000005',
+        ], $metadata, true);
         $this->array($metadata['provider'])->hasSize(10);
 
         global $DB;
@@ -288,13 +293,14 @@ class Agent extends DbTestCase
         $agents = $DB->request(['FROM' => \Agent::getTable()]);
         $this->integer(count($agents))->isIdenticalTo(1);
         $agent = $agents->current();
-        $this->array($agent)
-            ->string['deviceid']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-            ->string['name']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-            ->string['version']->isIdenticalTo('2.5.2-1.fc31')
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['tag']->isIdenticalTo('000005')
-            ->integer['agenttypes_id']->isIdenticalTo($agenttype['id']);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2018-07-09-09-07-13',
+            'name'      => 'glpixps-2018-07-09-09-07-13',
+            'version'   => '2.5.2-1.fc31',
+            'itemtype'  => 'Computer',
+            'tag'       => '000005',
+            'agenttypes_id' => $agenttype['id'],
+        ], $agent, true);
         $old_agents_id = $agent['id'];
 
         $this
@@ -330,13 +336,15 @@ class Agent extends DbTestCase
 
         //check inventory metadata
         $metadata = $inventory->getMetadata();
-        $this->array($metadata)->hasSize(7)
-            ->string['deviceid']->isIdenticalTo('glpixps-2022-01-17-11-36-53')
-            ->string['version']->isIdenticalTo('GLPI-Agent_v1')
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['action']->isIdenticalTo('inventory')
-            ->variable['port']->isIdenticalTo(null)
-            ->string['tag']->isIdenticalTo('000005');
+        $this->assertCount(7, $metadata);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2022-01-17-11-36-53',
+            'version'   => 'GLPI-Agent_v1',
+            'itemtype'  => 'Computer',
+            'action'    => 'inventory',
+            'port'      => null,
+            'tag'       => '000005',
+        ], $metadata, true);
         $this->array($metadata['provider'])->hasSize(10);
 
         //check old agent has been dropped
@@ -384,11 +392,13 @@ class Agent extends DbTestCase
 
         //check inventory metadata
         $metadata = $inventory->getMetadata();
-        $this->array($metadata)->hasSize(6)
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['action']->isIdenticalTo('inventory')
-            ->variable['port']->isIdenticalTo(null)
-            ->string['tag']->isIdenticalTo('000005');
+        $this->assertCount(6, $metadata);
+        $this->assertArraySubset([
+            'itemtype'  => 'Computer',
+            'action'    => 'inventory',
+            'port'      => null,
+            'tag'       => '000005',
+        ], $metadata, true);
 
         global $DB;
         //check created agent
@@ -396,10 +406,11 @@ class Agent extends DbTestCase
         $agents = $DB->request(['FROM' => \Agent::getTable()]);
         $this->integer(count($agents))->isIdenticalTo(1);
         $agent = $agents->current();
-        $this->array($agent)
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['tag']->isIdenticalTo('000005')
-            ->integer['agenttypes_id']->isIdenticalTo($agenttype['id']);
+        $this->assertArraySubset([
+            'itemtype'  => 'Computer',
+            'tag'       => '000005',
+            'agenttypes_id' => $agenttype['id'],
+        ], $agent, true);
     }
 
     public function testStaleActions()
@@ -418,13 +429,15 @@ class Agent extends DbTestCase
 
         //check inventory metadata
         $metadata = $inventory->getMetadata();
-        $this->array($metadata)->hasSize(7)
-            ->string['deviceid']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-            ->string['version']->isIdenticalTo('FusionInventory-Agent_v2.5.2-1.fc31')
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['action']->isIdenticalTo('inventory')
-            ->variable['port']->isIdenticalTo(null)
-            ->string['tag']->isIdenticalTo('000005');
+        $this->assertCount(7, $metadata);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2018-07-09-09-07-13',
+            'version'   => 'FusionInventory-Agent_v2.5.2-1.fc31',
+            'itemtype'  => 'Computer',
+            'action'    => 'inventory',
+            'port'      => null,
+            'tag'       => '000005',
+        ], $metadata, true);
         $this->array($metadata['provider'])->hasSize(10);
 
         global $DB;
@@ -433,13 +446,14 @@ class Agent extends DbTestCase
         $agents = $DB->request(['FROM' => \Agent::getTable()]);
         $this->integer(count($agents))->isIdenticalTo(1);
         $agent = $agents->current();
-        $this->array($agent)
-            ->string['deviceid']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-            ->string['name']->isIdenticalTo('glpixps-2018-07-09-09-07-13')
-            ->string['version']->isIdenticalTo('2.5.2-1.fc31')
-            ->string['itemtype']->isIdenticalTo('Computer')
-            ->string['tag']->isIdenticalTo('000005')
-            ->integer['agenttypes_id']->isIdenticalTo($agenttype['id']);
+        $this->assertArraySubset([
+            'deviceid'  => 'glpixps-2018-07-09-09-07-13',
+            'name'      => 'glpixps-2018-07-09-09-07-13',
+            'version'   => '2.5.2-1.fc31',
+            'itemtype'  => 'Computer',
+            'tag'       => '000005',
+            'agenttypes_id' => $agenttype['id'],
+        ], $agent, true);
         $old_agents_id = $agent['id'];
 
         $this

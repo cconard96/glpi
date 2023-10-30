@@ -35,6 +35,9 @@
 
 // Generic test classe, to be extended for CommonDBTM Object
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class DbTestCase extends \GLPITestCase
 {
     public function setUp(): void

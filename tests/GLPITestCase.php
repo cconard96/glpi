@@ -62,17 +62,19 @@ class GLPITestCase extends \CJDevStudios\AtoumShim\Atoum
 
     public function __get(string $name)
     {
-        if ($name === 'newTestedInstance') {
-            $tested_class_name = str_replace('tests\units', '', static::class);
-            $this->newTestedInstance = new $tested_class_name();
-            return null;
-        } else if ($name === 'testedInstance') {
+        if ($name === 'testedInstance') {
             if ($this->testedInstance === null) {
-                $this->newTestedInstance;
+                $this->testedInstance = $this->newTestedInstance();
             }
             return $this->testedInstance;
         }
         return null;
+    }
+
+    protected function newTestedInstance(...$args)
+    {
+        $tested_class_name = str_replace('tests\units', '', static::class);
+        return new $tested_class_name(...$args);
     }
 
     public function setUp(): void
@@ -381,5 +383,17 @@ class GLPITestCase extends \CJDevStudios\AtoumShim\Atoum
     protected function getTestRootEntity(bool $only_id = false)
     {
         return getItemByTypeName('Entity', '_test_root_entity', $only_id);
+    }
+
+    protected function assertArraySubset(array $subset, array $array, bool $strict = false, string $message = ''): void
+    {
+        foreach ($subset as $k => $v) {
+            $this->assertArrayHasKey($k, $array, $message);
+            if ($strict) {
+                $this->assertSame($v, $array[$k], $message);
+            } else {
+                $this->assertEquals($v, $array[$k], $message);
+            }
+        }
     }
 }
