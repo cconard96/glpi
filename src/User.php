@@ -1167,6 +1167,9 @@ class User extends CommonDBTM
             } else {
                 $_SESSION['glpi_tz'] = $this->fields['timezone'];
             }
+            if (in_array('default_central_tab', $this->updates)) {
+                Session::setActiveTab("central", "Central$" . $this->fields['default_central_tab']);
+            }
         }
 
         $this->updateUserEmails();
