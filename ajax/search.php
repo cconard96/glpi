@@ -76,6 +76,7 @@ switch ($_REQUEST['action']) {
         unset($_REQUEST['params']);
 
         $search_params = Search::manageParams($itemtype, $_REQUEST, $_REQUEST['usesession'] ?? true);
+        $params = array_replace($search_params, $params);
 
         if (isset($search_params['browse']) && $search_params['browse'] == 1) {
             $itemtype::showBrowseView($itemtype, $search_params, true);
