@@ -31,6 +31,7 @@
  # ---------------------------------------------------------------------
  #}
 
+{% set is_ajax = _request['searchform_id'] is defined and _request['searchform_id'] is not null %}
 {% set rand = random() %}
 {% set mainform = mainform is not defined ? true : mainform %}
 {% set main_block_class = mainform ? '' : 'sub_criteria' %}
@@ -179,15 +180,17 @@
          });
 
          {% if mainform and not hide_criteria %}
-            const toggle_fold_search = function(show_search) {
-                $('#searchcriteria{{ rand }}').closest('.search-form').toggle(show_search);
-            };
-            // Init search_criteria state
-            const search_criteria_visibility = window.localStorage.getItem('show_full_searchcriteria');
-            if (search_criteria_visibility !== undefined && search_criteria_visibility !== 'false') {
-                $('.fold-search').click();
-            }
-            $(document).on("click", ".remove-search-criteria", function() {
+            {% if not is_ajax %}
+                const toggle_fold_search = function(show_search) {
+                    $('#searchcriteria{{ rand }}').closest('.search-form').toggle(show_search);
+                };
+                // Init search_criteria state
+                const search_criteria_visibility = window.localStorage.getItem('show_full_searchcriteria');
+                if (search_criteria_visibility !== undefined && search_criteria_visibility !== 'false') {
+                    $('.fold-search').click();
+                }
+            {% endif %}
+            $(document).off('click', '.remove-search-criteria').on("click", ".remove-search-criteria", function() {
                 // force removal of tooltip
                 const tooltip = bootstrap.Tooltip.getInstance($(this)[0]);
                 if (tooltip !== null) {
