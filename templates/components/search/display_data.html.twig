@@ -44,9 +44,6 @@
 
 {% set massive_action_form_id = "massform" ~ normalized_itemtype ~ rand %}
 
-<form id="{{ massive_action_form_id }}" method="get" action="{{ path('front/massiveaction.php') }}"
-      data-search-itemtype="{{ data['itemtype'] }}" data-start="{{ start }}" data-count="{{ count }}" data-limit="{{ limit }}" data-submit-once>
-</form>
 <div class="card card-sm mt-0 search-card">
     {% if not hide_controls %}
         <div class="card-header d-flex justify-content-between search-header pe-0">
@@ -65,22 +62,27 @@
         </div>
     {% endif %}
 
-    {% if data['search']['as_map'] == 0 %}
-        {{ include('components/search/table.html.twig') }}
-    {% elseif count > 0 %}
-        {{ include('components/search/map.html.twig') }}
-    {% endif %}
-    {% if count > 0 %}
-        {% if data['display_type'] != constant('Search::GLOBAL_SEARCH') and data['search']['as_map'] == 0 %}
-        <div class="card-footer search-footer">
-            {{ include('components/pager.html.twig') }}
-        </div>
+    <form id="{{ massive_action_form_id }}" method="get" action="{{ path('front/massiveaction.php') }}"
+          data-search-itemtype="{{ data['itemtype'] }}"
+          data-start="{{ start }}" data-count="{{ count }}" data-limit="{{ limit }}" data-submit-once>
+
+        {% if data['search']['as_map'] == 0 %}
+            {{ include('components/search/table.html.twig') }}
+        {% elseif count > 0 %}
+            {{ include('components/search/map.html.twig') }}
         {% endif %}
-    {% elseif data['search']['as_map'] == 1 %}
-        <div class="alert alert-info mb-0 rounded-0 border-top-0 border-bottom-0 border-right-0" role="alert">
-        {{ __('No item found') }}
-        </div>
-    {% endif %}
+        {% if count > 0 %}
+            {% if data['display_type'] != constant('Search::GLOBAL_SEARCH') and data['search']['as_map'] == 0 %}
+            <div class="card-footer search-footer">
+                {{ include('components/pager.html.twig') }}
+            </div>
+            {% endif %}
+        {% elseif data['search']['as_map'] == 1 %}
+            <div class="alert alert-info mb-0 rounded-0 border-top-0 border-bottom-0 border-right-0" role="alert">
+            {{ __('No item found') }}
+            </div>
+        {% endif %}
+    </form>
 </div>
 {% if not is_ajax %}
    </div>
