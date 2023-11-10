@@ -161,41 +161,45 @@
                     'start': start,
                 }|url_encode ~ '&' ~ posthref %}
                 <div class="dropdown-menu" style="z-index: 10001" aria-labelledby="dropdown-export-{{ rand }}">
+                    <h6 class="dropdown-header">{{ __("Current page") }}</h6>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=' ~ constant('Search::PDF_OUTPUT_LANDSCAPE') }}">
-                        <i class="far fa-lg fa-file-pdf"></i>
-                        {{ __('Current page in landscape PDF') }}
+                        <i class="ti ti-file-type-pdf"></i>
+                        {{ __('landscape PDF') }}
                     </a>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=' ~ constant('Search::PDF_OUTPUT_PORTRAIT') }}">
-                        <i class="far fa-lg fa-file-pdf"></i>
-                        {{ __('Current page in portrait PDF') }}
+                        <i class="ti ti-file-type-pdf"></i>
+                        {{ __('portrait PDF') }}
                     </a>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=' ~ constant('Search::SYLK_OUTPUT') }}">
-                        <i class="far fa-lg fa-file-excel"></i>
-                        {{ __('Current page in SLK') }}
+                        <i class="ti ti-file-spreadsheet"></i>
+                        {{ __('SLK') }}
                     </a>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=' ~ constant('Search::CSV_OUTPUT') }}">
-                        <i class="fas fa-lg fa-file-csv"></i>
-                        {{ __('Current page in CSV') }}
+                        <i class="ti ti-file-type-csv"></i>
+                        {{ __('CSV') }}
                     </a>
+                    <hr class="dropdown-divider">
+                    <h6 class="dropdown-header">{{ __("All pages") }}</h6>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=-' ~ constant('Search::PDF_OUTPUT_LANDSCAPE') }}">
-                        <i class="far fa-lg fa-file-pdf"></i>
-                        {{ __('All pages in landscape PDF') }}
+                        <i class="ti ti-file-type-pdf"></i>
+                        {{ __('landscape PDF') }}
                     </a>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=-' ~ constant('Search::PDF_OUTPUT_PORTRAIT') }}">
-                        <i class="far fa-lg fa-file-pdf"></i>
-                        {{ __('All pages in portrait PDF') }}
+                        <i class="ti ti-file-type-pdf"></i>
+                        {{ __('portrait PDF') }}
                     </a>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=-' ~ constant('Search::SYLK_OUTPUT') }}">
-                        <i class="far fa-lg fa-file-excel"></i>
-                        {{ __('All pages in SLK') }}
+                        <i class="ti ti-file-spreadsheet"></i>
+                        {{ __('SLK') }}
                     </a>
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=-' ~ constant('Search::CSV_OUTPUT') }}">
-                        <i class="fas fa-lg fa-file-csv"></i>
-                        {{ __('All pages in CSV') }}
+                        <i class="ti ti-file-type-csv"></i>
+                        {{ __('CSV') }}
                     </a>
                     {% if itemtype != 'Stat' %}
+                    <hr class="dropdown-divider">
                     <a class="dropdown-item" href="{{ exporthref ~ '&display_type=-' ~ constant('Search::NAMES_OUTPUT') }}" id="copy_names_to_clipboard">
-                        <i class="far fa-lg fa-copy"></i>
+                        <i class="ti ti-copy"></i>
                         {{ __('Copy names to clipboard') }}
                     </a>
                     {% endif %}
