@@ -655,6 +655,12 @@ final class QueryBuilder implements SearchInputInterface
             if (isset($_SESSION['glpisearch'][$itemtype])) {
                 unset($_SESSION['glpisearch'][$itemtype]);
             }
+
+            // if we ask for reset but without precising particular bookmark
+            // then remove current active bookmark
+            if (!isset($params['savedsearches_id'])) {
+                unset($_SESSION['glpi_loaded_savedsearch']);
+            }
         }
 
         if (

@@ -112,7 +112,9 @@ abstract class HTMLSearchOutput extends AbstractSearchOutput
         if (isset($_SESSION['glpi_loaded_savedsearch'])) {
             $savedsearch = new SavedSearch();
             $savedsearch->getFromDB($_SESSION['glpi_loaded_savedsearch']);
-            $active_savedsearch_name = $savedsearch->getName();
+            if ($itemtype === $savedsearch->fields['itemtype']) {
+                $active_savedsearch_name = $savedsearch->getName();
+            }
         }
 
         $rand = mt_rand();
