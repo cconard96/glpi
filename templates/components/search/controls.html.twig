@@ -36,69 +36,50 @@
         {% do call('Html::showMassiveActions', [massiveactionparams]) %}
     {% endif %}
 
-    <div class="btn-group me-2" role="group" aria-label="Basic radio toggle button group">
-        <input type="radio" class="btn-check" role="button"
-                    name="as_map" value="1" autocomplete="off"
-                    id="show_as_table"
-                    onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
-                    {{ data['search']['as_map'] == 0 ? 'checked' : '' }} />
-            <label class="btn btn-sm btn-outline-secondary" title="{{ __('Show as table') }}"
-                   for="show_as_table"
-                   data-bs-toggle="tooltip" data-bs-placement="bottom">
-                <i class="ti ti-table"></i>
-            </label >
-
-        {% if may_be_located and (count > 0 or data['search']['as_map'] == 1) %}
+    {% set can_select_view = may_be_located %}
+    {% if can_select_view %}
+        <div class="btn-group me-2" role="group">
             <input type="radio" class="btn-check" role="button"
-                    name="as_map" value="1" autocomplete="off"
-                    id="show_as_map"
-                    onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
-                    {{ data['search']['as_map'] == 1 ? 'checked' : '' }} />
-            <label class="btn btn-sm btn-outline-secondary" title="{{ __('Show as map') }}"
-                   for="show_as_map"
-                   data-bs-toggle="tooltip" data-bs-placement="bottom">
-                <i class="ti ti-map-2"></i>
-            </label >
-        {% endif %}
-    </div>
+                   name="as_map" value="1" autocomplete="off"
+                   id="show_as_table"
+                   onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
+                   {{ data['search']['as_map'] == 0 ? 'checked' : '' }} />
+                <label class="btn btn-sm btn-outline-secondary" title="{{ __('Show as table') }}"
+                    for="show_as_table"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="ti ti-table"></i>
+                </label >
+
+            {% if may_be_located and (count > 0 or data['search']['as_map'] == 1) %}
+                <input type="radio" class="btn-check" role="button"
+                       name="as_map" value="1" autocomplete="off"
+                       id="show_as_map"
+                       onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
+                       {{ data['search']['as_map'] == 1 ? 'checked' : '' }} />
+                <label class="btn btn-sm btn-outline-secondary" title="{{ __('Show as map') }}"
+                    for="show_as_map"
+                    data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="ti ti-map-2"></i>
+                </label >
+            {% endif %}
+        </div>
+    {% endif %}
 
     {% if may_be_browsed %}
-        <label class="form-check form-switch btn btn-sm btn-ghost-info me-1 me-sm-2 px-1 mb-0 flex-column-reverse flex-sm-row"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ __('Toggle browse') }}">
-            <input type="checkbox" class="form-check-input ms-0 me-1 mt-0" role="button"
-                    name="browse" value="1" autocomplete="off"
-                    onclick="toogle('browse','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
-                    {{ data['search']['browse'] == 1 ? 'checked' : '' }} />
-            <span class="form-check-label mb-1 mb-sm-0">
-                <i class="ti fa-lg ti-subtask"></i>
-            </span>
-        </label>
+        <button class="btn btn-sm {{ data['search']['browse'] == 1 ? "btn-secondary" : "btn-ghost-secondary" }} me-2" type="button"
+                title="{{ __('Toggle browse') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                onclick="toogle('browse','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
+            <i class="ti {{ data['search']['browse'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
+            <span class="d-flex align-bottom">
+                <i class="ti ti-subtask"></i>
+            </label>
+        </button>
     {% endif %}
 
     {% if may_be_deleted %}
-        {# <label class="form-check form-switch btn btn-sm btn-ghost-danger me-1 me-sm-2 px-1 mb-0 flex-column-reverse flex-sm-row"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ __('Show the trashbin') }}">
-            <input type="checkbox" class="form-check-input ms-0 me-1 mt-0" role="button"
-                    name="is_deleted" value="1" autocomplete="off"
-                    onclick="toogle('is_deleted','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
-                    {{ data['search']['is_deleted'] == 1 ? 'checked' : '' }} />
-            <span class="form-check-label mb-1 mb-sm-0">
-                <i class="ti fa-lg ti-trash"></i>
-            </span>
-        </label> #}
-
-{#         <button class="btn btn-sm btn-outline-danger me-2" type="button">
-            <input type="checkbox" role="button"
-                    name="is_deleted" value="1" autocomplete="off"
-                    >
-            <label >
-                <i class="ti ti-trash"></i>
-            </label >
-        </button> #}
-
-         <button class="btn btn-sm {{ data['search']['is_deleted'] == 1 ? "btn-danger" : "btn-outline-danger" }} me-2" type="button"
-                 title="{{ __('Show the trashbin') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                 onclick="toogle('is_deleted','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
+        <button class="btn btn-sm {{ data['search']['is_deleted'] == 1 ? "btn-danger" : "btn-ghost-danger" }} me-2" type="button"
+                title="{{ __('Show the trashbin') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                onclick="toogle('is_deleted','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
             <i class="ti {{ data['search']['is_deleted'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
             <span class="d-flex align-bottom">
                 <i class="ti ti-trash"></i>
@@ -107,53 +88,45 @@
     {% endif %}
 
     {% if may_be_unpublished %}
-        <label class="form-check form-switch btn btn-sm btn-ghost-danger me-1 me-sm-2 px-1 mb-0 flex-column-reverse flex-sm-row"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ __('Show unpublished') }}">
-            <input type="checkbox" class="form-check-input ms-0 me-1 mt-0" role="button"
-                    name="unpublished" value="1" autocomplete="off"
-                    onclick="toogle('unpublished','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
-                    {{ data['search']['unpublished'] == 1 ? 'checked' : '' }} />
-            <span class="form-check-label mb-1 mb-sm-0">
-                <i class="fa fa-lg fa-eye-slash"></i>
-            </span>
-        </label>
+        <button class="btn btn-sm {{ data['search']['unpublished'] == 1 ? "btn-warning" : "btn-ghost-warning" }} me-2" type="button"
+                title="{{ __('Show unpublished') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                onclick="toogle('unpublished','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
+            <i class="ti {{ data['search']['unpublished'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
+            <span class="d-flex align-bottom">
+                <i class="ti ti-eye-off"></i>
+            </label>
+        </button>
     {% endif %}
 
-    {% if not hide_search_toggle %}
-        {# <label class="form-check form-switch btn btn-sm btn-ghost-secondary me-1 me-sm-2 px-1 mb-0 flex-column-reverse flex-sm-row"
-                data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-trigger="hover"
-                title="{{ __('Toggle search filters') }}">
-            <input type="checkbox" class="form-check-input ms-0 me-1 mt-0 fold-search" role="button"
-                {{ session('glpifold_search') ? '' : 'checked' }} autocomplete="off" />
-            <span class="form-check-label mb-1 mb-sm-0">
-                <i class="ti fa-lg ti-search"></i>
-            </span>
-        </label> #}
-
+    <div class="btn-group">
         {% set is_filter_active = false %}
         {% if active_savedsearch|length %}
             {% set is_filter_active = true %}
         {% endif %}
-        <button class="btn btn-sm {{ is_filter_active ? "btn-secondary" : "btn-outline-secondary" }} me-2 dropdown-toggle" type="button"
+        {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-outline-secondary" %}
+
+        <button type="button" class="btn btn-sm {{ active_filter_class }} show-saved-searches"
+            data-itemtype="{{ itemtype }}" title="{{ __('Show saved searches') }}">
+            <i class="ti ti-star"></i>
+        </button>
+
+        <button class="btn btn-sm {{ active_filter_class }} me-2 dropdown-toggle" type="button"
                 data-bs-toggle="dropdown" data-bs-auto-close="outside">
-            <span>
-                {% if active_savedsearch|length %}
-                    <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="bottom">
-                        <i class="ti ti-star"></i>
-                        <span>{{ active_savedsearch }}</span>
-                    </span>
-                {% else %}
-                    <i class="ti ti-search"></i>
-                    <span>{{ __('Search') }}</span>
-                {% endif %}
-            </span>
+            {% if active_savedsearch|length %}
+                <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <span>{{ active_savedsearch }}</span>
+                </span>
+            {% else %}
+                <i class="ti ti-search"></i>
+                <span>{{ __('Search') }}</span>
+            {% endif %}
         </button>
         <div class="dropdown-menu dropdown-menu-card" style="width: max-content">
             {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
         </div>
-    {% endif %}
+    </div>
 
-    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdown-export-{{ rand }}"
+    <button class="btn btn-sm btn-ghost-secondary dropdown-toggle" type="button" id="dropdown-export-{{ rand }}"
             data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' data-bs-auto-close="outside">
         <i id="export_dropdown_icon" class="ti ti-dots-vertical"></i>
     </button>
