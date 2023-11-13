@@ -46,6 +46,7 @@
                 {% if active_search_name|length %}
                     {% set is_filter_active = true %}
                 {% endif %}
+                {% set animation_cls = "animate__animated animate__zoomIn" %}
 
                 {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-ghost-secondary" %}
                 {% set bookmark_icon = active_savedsearch ? "ti-bookmarks-filled" : "ti-bookmarks" %}
@@ -68,7 +69,7 @@
                         <span>{{ __('Search') }}</span>
                     {% endif %}
                 </button>
-                <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
+                <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
                     {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
                 </div>
             </div>
@@ -80,7 +81,7 @@
                     {{ __("Order") }}
                 </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
+            <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
                 TODO
             </div>
 
@@ -90,7 +91,7 @@
                     <i class="ti ti-line-height"></i>
                 </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
+            <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
                 TODO
             </div>
         </div>
