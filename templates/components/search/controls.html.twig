@@ -46,13 +46,13 @@
                 {% set is_filter_active = true %}
             {% endif %}
 
-            {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-outline-secondary" %}
+            {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-ghost-secondary" %}
             <button type="button" class="btn btn-sm {{ active_savedsearch_class }} show-saved-searches"
                 data-itemtype="{{ itemtype }}" title="{{ __('Show saved searches') }}">
                 <i class="ti ti-star"></i>
             </button>
 
-            {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-outline-secondary" %}
+            {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-ghost-secondary" %}
             <button class="btn btn-sm {{ active_filter_class }} dropdown-toggle" type="button"
                     data-bs-toggle="dropdown" data-bs-auto-close="outside">
                 {% if active_search_name|length %}
@@ -69,7 +69,7 @@
             </div>
 
             {% if active_search_name|length %}
-                <a class="btn btn-sm btn-outline-secondary" type="button"
+                <a class="btn btn-sm btn-ghost-secondary" type="button"
                 title="{{ __('Reset search') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
                 href="?reset=reset">
                     <i class="ti ti-circle-x"></i>
@@ -86,7 +86,7 @@
                         id="show_as_table"
                         onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
                         {{ data['search']['as_map'] == 0 ? 'checked' : '' }} />
-                        <label class="btn btn-sm btn-outline-secondary" title="{{ __('Show as table') }}"
+                        <label class="btn btn-sm btn-ghost-secondary" title="{{ __('Show as table') }}"
                             for="show_as_table"
                             data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <i class="ti ti-table"></i>
@@ -98,7 +98,7 @@
                             id="show_as_map"
                             onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
                             {{ data['search']['as_map'] == 1 ? 'checked' : '' }} />
-                        <label class="btn btn-sm btn-outline-secondary" title="{{ __('Show as map') }}"
+                        <label class="btn btn-sm btn-ghost-secondary" title="{{ __('Show as map') }}"
                             for="show_as_map"
                             data-bs-toggle="tooltip" data-bs-placement="bottom">
                             <i class="ti ti-map-2"></i>
