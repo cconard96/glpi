@@ -114,15 +114,26 @@
             width: fit-content;
 
             .search-header {
+                height: 45px;
                 border-bottom: 0;
                 position: sticky;
                 top: -1px;
+                left: 0;
                 background-color: inherit;
                 z-index: #{$zindex-sticky + 1};
 
                 .search-controls {
-                    position: sticky;
-                    left: 22px;
+                    width: 100%;
+
+                    .primary-controls {
+                        position: sticky;
+                        left: 18px;
+                    }
+
+                    .secondary-controls {
+                        position: sticky;
+                        right: 23px;
+                    }
                 }
             }
 
@@ -145,7 +156,7 @@
                         th {
                             z-index: $zindex-sticky;
                             position: sticky;
-                            top: 59px;
+                            top: 44px;
                             border: 1px solid $card-border-color;
                             border-left: 0;
                             border-right: 0;
