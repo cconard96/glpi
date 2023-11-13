@@ -32,7 +32,7 @@
  #}
 
 {% if showmassiveactions and count > 0 %}
-    <div class="massiveactions-control card-header search-header ps-3 position-absolute w-100 animate__animated d-none"
+    <div class="massiveactions-control card-header search-header ps-3 position-absolute w-100 animate__animated animate__faster d-none"
          style="z-index: 1022;">
         {% do call('Html::showMassiveActions', [massiveactionparams]) %}
     </div>
@@ -350,13 +350,13 @@ $(document).ready(function() {
 
         if (nb_ma_checked === 0) {
             $('.massiveactions-control')
-                .removeClass('animate__slideInDown')
-                .addClass('animate__slideOutUp')
+                .removeClass('animate__slideInLeft')
+                .addClass('animate__slideOutLeft')
         } else {
             $('.massiveactions-control')
                 .removeClass('d-none')
-                .removeClass('animate__slideOutUp')
-                .addClass('animate__slideInDown');
+                .removeClass('animate__slideOutLeft')
+                .addClass('animate__slideInLeft');
         }
     });
 });
