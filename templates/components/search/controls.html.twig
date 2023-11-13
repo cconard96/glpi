@@ -42,21 +42,22 @@
     <div class="search-controls d-flex justify-content-between">
         <div class="btn-group me-2 primary-controls">
             {% set is_filter_active = false %}
-            {% if active_savedsearch|length %}
+            {% if active_search_name|length %}
                 {% set is_filter_active = true %}
             {% endif %}
-            {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-outline-secondary" %}
 
-            <button type="button" class="btn btn-sm {{ active_filter_class }} show-saved-searches"
+            {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-outline-secondary" %}
+            <button type="button" class="btn btn-sm {{ active_savedsearch_class }} show-saved-searches"
                 data-itemtype="{{ itemtype }}" title="{{ __('Show saved searches') }}">
                 <i class="ti ti-star"></i>
             </button>
 
+            {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-outline-secondary" %}
             <button class="btn btn-sm {{ active_filter_class }} dropdown-toggle" type="button"
                     data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                {% if active_savedsearch|length %}
+                {% if active_search_name|length %}
                     <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="bottom">
-                        <span>{{ active_savedsearch }}</span>
+                        <span>{{ active_search_name }}</span>
                     </span>
                 {% else %}
                     <i class="ti ti-search"></i>
@@ -67,7 +68,7 @@
                 {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
             </div>
 
-            {% if active_savedsearch|length %}
+            {% if active_search_name|length %}
                 <a class="btn btn-sm btn-outline-secondary" type="button"
                 title="{{ __('Reset search') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
                 href="?reset=reset">

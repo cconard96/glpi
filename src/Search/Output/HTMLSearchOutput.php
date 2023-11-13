@@ -37,6 +37,8 @@ namespace Glpi\Search\Output;
 
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Dashboard\Grid;
+use Glpi\Search\CriteriaFilter;
+use Glpi\Search\SearchOption;
 use SavedSearch;
 use Ticket;
 
@@ -108,12 +110,37 @@ abstract class HTMLSearchOutput extends AbstractSearchOutput
 
         \Session::initNavigateListItems($data['itemtype'], '', $href);
 
-        $active_savedsearch_name = '';
+        $active_search_name = '';
+        $active_savedsearch = false;
         if (isset($_SESSION['glpi_loaded_savedsearch'])) {
             $savedsearch = new SavedSearch();
             $savedsearch->getFromDB($_SESSION['glpi_loaded_savedsearch']);
             if ($itemtype === $savedsearch->fields['itemtype']) {
-                $active_savedsearch_name = $savedsearch->getName();
+                $active_search_name = $savedsearch->getName();
+                $active_savedsearch = true;
+            }
+        } else if (count($data['search']['criteria']) > 0) {
+            // check if it isn't the default search
+            $default = CriteriaFilter::getDefaultSearch($itemtype);
+            if ($default != $data['search']['criteria']) {
+                $used_fields = array_column($data['search']['criteria'], 'field');
+                $used_fields = array_unique($used_fields);
+
+                // remove view field
+                $is_view_fields = in_array('view', $used_fields);
+                if ($is_view_fields) {
+                    unset($used_fields[array_search('view', $used_fields)]);
+                }
+
+                $soptions = SearchOption::getOptionsForItemtype($itemtype);
+                $used_soptions = array_intersect_key($soptions, array_flip($used_fields));
+                $used_soptions_names = array_column($used_soptions, 'name');
+
+                if ($is_view_fields) {
+                    $used_soptions_names[] = __('View');
+                }
+
+                $active_search_name = sprintf(__("Filtered by %s"), implode(', ', $used_soptions_names));
             }
         }
 
@@ -154,7 +181,8 @@ abstract class HTMLSearchOutput extends AbstractSearchOutput
             'may_be_browsed'      => $item !== null && \Toolbox::hasTrait($item, \Glpi\Features\TreeBrowse::class),
             'may_be_unpublished'  => $itemtype == 'KnowbaseItem' && $item->canUpdate(),
             'original_params'     => $params,
-            'active_savedsearch'  => $active_savedsearch_name,
+            'active_savedsearch'  => $active_savedsearch,
+            'active_search_name'  => $active_search_name,
         ] + ($params['extra_twig_params'] ?? []));
 
         // Add items in item list
