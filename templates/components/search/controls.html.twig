@@ -40,42 +40,59 @@
 
 <div class="card-header search-header ps-3">
     <div class="search-controls d-flex justify-content-between">
-        <div class="btn-group me-2 primary-controls">
-            {% set is_filter_active = false %}
-            {% if active_search_name|length %}
-                {% set is_filter_active = true %}
-            {% endif %}
-
-            {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-ghost-secondary" %}
-            {% set bookmark_icon = active_savedsearch ? "ti-bookmarks-filled" : "ti-bookmarks" %}
-            <button type="button" class="btn btn-sm {{ active_savedsearch_class }} show-saved-searches"
-                data-itemtype="{{ itemtype }}" title="{{ __('Show saved searches') }}">
-                <i class="ti {{ bookmark_icon }}"></i>
-            </button>
-
-            {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-ghost-secondary" %}
-            <button class="btn btn-sm {{ active_filter_class }} dropdown-toggle" type="button"
-                    data-bs-toggle="dropdown" data-bs-auto-close="outside">
+        <div class="primary-controls">
+            <div class="btn-group me-2">
+                {% set is_filter_active = false %}
                 {% if active_search_name|length %}
-                    <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="bottom">
-                        <span>{{ active_search_name }}</span>
-                    </span>
-                {% else %}
-                    <i class="ti ti-list-search"></i>
-                    <span>{{ __('Search') }}</span>
+                    {% set is_filter_active = true %}
                 {% endif %}
-            </button>
-            <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
-                {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
+
+                {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-ghost-secondary" %}
+                {% set bookmark_icon = active_savedsearch ? "ti-bookmarks-filled" : "ti-bookmarks" %}
+                <button type="button" class="btn btn-sm {{ active_savedsearch_class }} show-saved-searches"
+                    data-itemtype="{{ itemtype }}">
+                    <span title="{{ __('Show saved searches') }}"  data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="ti {{ bookmark_icon }}"></i>
+                    </span>
+                </button>
+
+                {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-ghost-secondary" %}
+                <button class="btn btn-sm {{ active_filter_class }} dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                    {% if active_search_name|length %}
+                        <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                            {{ active_search_name }}
+                        </span>
+                    {% else %}
+                        <i class="ti ti-list-search"></i>
+                        <span>{{ __('Search') }}</span>
+                    {% endif %}
+                </button>
+                <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
+                    {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
+                </div>
             </div>
 
-            {% if active_search_name|length %}
-                <a class="btn btn-sm btn-ghost-secondary" type="button"
-                title="{{ __('Reset search') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                href="?reset=reset">
-                    <i class="ti ti-x"></i>
-                </a>
-            {% endif %}
+            <button class="btn btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
+                        data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                <i class="ti ti-arrows-sort"></i>
+                <span title="{{ __("Reorder the table") }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                    {{ __("Order") }}
+                </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
+                TODO
+            </div>
+
+            <button class="btn btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
+                    data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                <span title="{{ __("Line height") }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti ti-line-height"></i>
+                </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-card" style="width: max-content; max-width: 100vw;">
+                TODO
+            </div>
         </div>
 
         <div class="secondary-controls">
@@ -89,7 +106,7 @@
                         {{ data['search']['as_map'] == 0 ? 'checked' : '' }} />
                         <label class="btn btn-sm btn-ghost-secondary" title="{{ __('Show as table') }}"
                             for="show_as_table"
-                            data-bs-toggle="tooltip" data-bs-placement="bottom">
+                            data-bs-toggle="tooltip" data-bs-placement="top">
                             <i class="ti ti-table"></i>
                         </label >
 
@@ -101,7 +118,7 @@
                             {{ data['search']['as_map'] == 1 ? 'checked' : '' }} />
                         <label class="btn btn-sm btn-ghost-secondary" title="{{ __('Show as map') }}"
                             for="show_as_map"
-                            data-bs-toggle="tooltip" data-bs-placement="bottom">
+                            data-bs-toggle="tooltip" data-bs-placement="top">
                             <i class="ti ti-map-2"></i>
                         </label >
                     {% endif %}
@@ -110,7 +127,7 @@
 
             {% if may_be_browsed %}
                 <button class="btn btn-sm {{ data['search']['browse'] == 1 ? "btn-secondary" : "btn-ghost-secondary" }} me-2" type="button"
-                        title="{{ __('Toggle browse') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                        title="{{ __('Toggle browse') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                         onclick="toogle('browse','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
                     <i class="ti {{ data['search']['browse'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
                     <span class="d-flex align-bottom">
@@ -121,7 +138,7 @@
 
             {% if may_be_deleted %}
                 <button class="btn btn-sm {{ data['search']['is_deleted'] == 1 ? "btn-danger" : "btn-ghost-danger" }} me-2" type="button"
-                        title="{{ __('Show the trashbin') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                        title="{{ __('Show the trashbin') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                         onclick="toogle('is_deleted','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
                     <i class="ti {{ data['search']['is_deleted'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
                     <span class="d-flex align-bottom">
@@ -132,7 +149,7 @@
 
             {% if may_be_unpublished %}
                 <button class="btn btn-sm {{ data['search']['unpublished'] == 1 ? "btn-warning" : "btn-ghost-warning" }} me-2" type="button"
-                        title="{{ __('Show unpublished') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                        title="{{ __('Show unpublished') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                         onclick="toogle('unpublished','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
                     <i class="ti {{ data['search']['unpublished'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
                     <span class="d-flex align-bottom">
@@ -150,7 +167,7 @@
                     <button class="dropdown-item show_displaypreference_modal"
                         type="button"
                         title="{{ __('Select default items to show') }}"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom">
+                        data-bs-toggle="tooltip" data-bs-placement="left">
                         <i class="ti ti-tool"></i>
                         <span> {{ __('Display preferences') }}</span>
                     </button>
