@@ -74,26 +74,18 @@
                 </div>
             </div>
 
-            <button class="btn btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
-                        data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                <i class="ti ti-arrows-sort"></i>
-                <span title="{{ __("Reorder the table") }}" data-bs-toggle="tooltip" data-bs-placement="top">
-                    {{ __("Order") }}
-                </span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
-                TODO
-            </div>
-
-            <button class="btn btn-icon btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
-                    data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                <span title="{{ __("Line height") }}" data-bs-toggle="tooltip" data-bs-placement="top">
-                    <i class="ti ti-line-height"></i>
-                </span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
-                TODO
-            </div>
+            {% if data['search']['as_map'] != 1 %}
+                <button class="btn btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                    <i class="ti ti-arrows-sort"></i>
+                    <span title="{{ __("Reorder the table") }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                        {{ __("Order") }}
+                    </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
+                    TODO
+                </div>
+            {% endif %}
         </div>
 
         <div class="secondary-controls">
