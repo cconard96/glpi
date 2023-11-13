@@ -50,7 +50,7 @@
 
                 {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-ghost-secondary" %}
                 {% set bookmark_icon = active_savedsearch ? "ti-bookmarks-filled" : "ti-bookmarks" %}
-                <button type="button" class="btn btn-sm {{ active_savedsearch_class }} show-saved-searches"
+                <button type="button" class="btn btn-icon btn-sm {{ active_savedsearch_class }} show-saved-searches"
                     data-itemtype="{{ itemtype }}">
                     <span title="{{ __('Show saved searches') }}"  data-bs-toggle="tooltip" data-bs-placement="top">
                         <i class="ti {{ bookmark_icon }}"></i>
@@ -85,7 +85,7 @@
                 TODO
             </div>
 
-            <button class="btn btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
+            <button class="btn btn-icon btn-sm btn-ghost-secondary dropdown-toggle me-2" type="button"
                     data-bs-toggle="dropdown" data-bs-auto-close="outside">
                 <span title="{{ __("Line height") }}" data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="ti ti-line-height"></i>
@@ -105,7 +105,7 @@
                         id="show_as_table"
                         onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
                         {{ data['search']['as_map'] == 0 ? 'checked' : '' }} />
-                        <label class="btn btn-sm btn-ghost-secondary" title="{{ __('Show as table') }}"
+                        <label class="btn btn-icon btn-sm btn-ghost-secondary" title="{{ __('Show as table') }}"
                             for="show_as_table"
                             data-bs-toggle="tooltip" data-bs-placement="top">
                             <i class="ti ti-table"></i>
@@ -117,7 +117,7 @@
                             id="show_as_map"
                             onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
                             {{ data['search']['as_map'] == 1 ? 'checked' : '' }} />
-                        <label class="btn btn-sm btn-ghost-secondary" title="{{ __('Show as map') }}"
+                        <label class="btn btn-icon btn-sm btn-ghost-secondary" title="{{ __('Show as map') }}"
                             for="show_as_map"
                             data-bs-toggle="tooltip" data-bs-placement="top">
                             <i class="ti ti-map-2"></i>
@@ -127,7 +127,7 @@
             {% endif %}
 
             {% if may_be_browsed %}
-                <button class="btn btn-sm {{ data['search']['browse'] == 1 ? "btn-secondary" : "btn-ghost-secondary" }} me-2" type="button"
+                <button class="btn btn-icon btn-sm {{ data['search']['browse'] == 1 ? "btn-secondary" : "btn-ghost-secondary" }} me-2" type="button"
                         title="{{ __('Toggle browse') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                         onclick="toogle('browse','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
                     <i class="ti {{ data['search']['browse'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
@@ -138,7 +138,7 @@
             {% endif %}
 
             {% if may_be_deleted %}
-                <button class="btn btn-sm {{ data['search']['is_deleted'] == 1 ? "btn-danger" : "btn-ghost-danger" }} me-2" type="button"
+                <button class="btn btn-icon btn-sm {{ data['search']['is_deleted'] == 1 ? "btn-danger" : "btn-ghost-danger" }} me-2" type="button"
                         title="{{ __('Show the trashbin') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                         onclick="toogle('is_deleted','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
                     <i class="ti {{ data['search']['is_deleted'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
@@ -149,7 +149,7 @@
             {% endif %}
 
             {% if may_be_unpublished %}
-                <button class="btn btn-sm {{ data['search']['unpublished'] == 1 ? "btn-warning" : "btn-ghost-warning" }} me-2" type="button"
+                <button class="btn btn-icon btn-sm {{ data['search']['unpublished'] == 1 ? "btn-warning" : "btn-ghost-warning" }} me-2" type="button"
                         title="{{ __('Show unpublished') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                         onclick="toogle('unpublished','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
                     <i class="ti {{ data['search']['unpublished'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
@@ -159,7 +159,7 @@
                 </button>
             {% endif %}
 
-            <button class="btn btn-sm btn-ghost-secondary dropdown-toggle" type="button" id="dropdown-export-{{ rand }}"
+            <button class="btn btn-icon btn-sm btn-ghost-secondary dropdown-toggle" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' data-bs-auto-close="outside">
                 <i class="ti ti-dots-vertical"></i>
             </button>
