@@ -137,7 +137,7 @@ abstract class HTMLSearchOutput extends AbstractSearchOutput
                 $used_soptions_names = array_column($used_soptions, 'name');
 
                 if ($is_view_fields) {
-                    $used_soptions_names[] = __('View');
+                    $used_soptions_names[] = _n('View', 'Views', 1);
                 }
 
                 $active_search_name = sprintf(__("Filtered by %s"), implode(', ', $used_soptions_names));
