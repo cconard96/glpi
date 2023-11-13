@@ -47,9 +47,10 @@
             {% endif %}
 
             {% set active_savedsearch_class = active_savedsearch ? "btn-secondary" : "btn-ghost-secondary" %}
+            {% set bookmark_icon = active_savedsearch ? "ti-bookmarks-filled" : "ti-bookmarks" %}
             <button type="button" class="btn btn-sm {{ active_savedsearch_class }} show-saved-searches"
                 data-itemtype="{{ itemtype }}" title="{{ __('Show saved searches') }}">
-                <i class="ti ti-star"></i>
+                <i class="ti {{ bookmark_icon }}"></i>
             </button>
 
             {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-ghost-secondary" %}
@@ -60,7 +61,7 @@
                         <span>{{ active_search_name }}</span>
                     </span>
                 {% else %}
-                    <i class="ti ti-search"></i>
+                    <i class="ti ti-list-search"></i>
                     <span>{{ __('Search') }}</span>
                 {% endif %}
             </button>
@@ -72,7 +73,7 @@
                 <a class="btn btn-sm btn-ghost-secondary" type="button"
                 title="{{ __('Reset search') }}" data-bs-toggle="tooltip" data-bs-placement="bottom"
                 href="?reset=reset">
-                    <i class="ti ti-circle-x"></i>
+                    <i class="ti ti-x"></i>
                 </a>
             {% endif %}
         </div>
