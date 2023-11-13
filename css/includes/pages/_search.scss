@@ -110,21 +110,19 @@
                 border: unset;
             }
 
-            @include media-breakpoint-up(lg) {
-                min-width: 100%;
-                width: fit-content;
+            min-width: 100%;
+            width: fit-content;
 
-                .search-header {
-                    border-bottom: 0;
+            .search-header {
+                border-bottom: 0;
+                position: sticky;
+                top: -1px;
+                background-color: inherit;
+                z-index: #{$zindex-sticky + 1};
+
+                .search-controls {
                     position: sticky;
-                    top: -1px;
-                    background-color: inherit;
-                    z-index: #{$zindex-sticky + 1};
-
-                    .search-controls {
-                        position: sticky;
-                        left: 22px;
-                    }
+                    left: 22px;
                 }
             }
 

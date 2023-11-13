@@ -44,20 +44,20 @@
 
 <div class="card card-sm mt-0 search-card">
     {% if not hide_controls %}
-        <div class="card-header d-flex justify-content-between search-header pe-0">
         {% if data['display_type'] == constant('Search::GLOBAL_SEARCH') %}
-            <h2>{{ itemtype|itemtype_name }}</h2>
+            <div class="card-header d-flex justify-content-between search-header">
+                <h3>{{ itemtype|itemtype_name }}</h3>
 
-            {% if count > (start + constant('Search::GLOBAL_DISPLAY_COUNT')) %}
-                <a href="{{ href }}">
-                    <i class="far fa-eye"></i>
-                    {{ __('View all') }}
-                </a>
-            {% endif %}
+                {% if count > (start + constant('Search::GLOBAL_DISPLAY_COUNT')) %}
+                    <a class="btn btn-ghost-secondary" href="{{ href }}">
+                        <i class="far fa-eye"></i>
+                        <span>{{ __('View all') }}</span>
+                    </a>
+                {% endif %}
+            </div>
         {% else %}
             {{ include('components/search/controls.html.twig') }}
         {% endif %}
-        </div>
     {% endif %}
 
     {% set massive_action_form_id = "massform" ~ normalized_itemtype ~ rand %}
