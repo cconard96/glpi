@@ -57,21 +57,23 @@
                     </span>
                 </button>
 
-                {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-ghost-secondary" %}
-                <button class="btn btn-sm {{ active_filter_class }} dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                    {% if active_search_name|length %}
-                        <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="top">
-                            {{ active_search_name }}
-                        </span>
-                    {% else %}
-                        <i class="ti ti-list-search"></i>
-                        <span>{{ __('Search') }}</span>
-                    {% endif %}
-                </button>
-                <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
-                    {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
-                </div>
+                {% if not user_pref('show_search_form') %}
+                    {% set active_filter_class = is_filter_active ? "btn-secondary" : "btn-ghost-secondary" %}
+                    <button class="btn btn-sm {{ active_filter_class }} dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                        {% if active_search_name|length %}
+                            <span title="{{ __("Search") }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                                {{ active_search_name }}
+                            </span>
+                        {% else %}
+                            <i class="ti ti-list-search"></i>
+                            <span>{{ __('Search') }}</span>
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
+                        {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSearch', [itemtype, original_params]) %}
+                    </div>
+                {% endif %}
             </div>
 
             {% if data['search']['as_map'] != 1 %}

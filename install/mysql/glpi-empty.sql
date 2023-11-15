@@ -2831,6 +2831,7 @@ CREATE TABLE `glpi_entities` (
   `is_group_autoclean` tinyint NOT NULL DEFAULT '-2',
   `is_location_autoclean` tinyint NOT NULL DEFAULT '-2',
   `state_autoclean_mode` int NOT NULL DEFAULT '-2',
+  `show_search_form` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `unicity` (`entities_id`,`name`),
   KEY `name` (`name`),

@@ -588,6 +588,8 @@ final class SearchEngine
      */
     public static function show(string $itemtype, array $params = []): void
     {
+        global $CFG_GLPI;
+
         Profiler::getInstance()->start('SearchEngine::show', Profiler::CATEGORY_SEARCH);
         Plugin::doHook(Hooks::PRE_ITEM_LIST, ['itemtype' => $itemtype, 'options' => []]);
 
@@ -616,7 +618,10 @@ final class SearchEngine
         $output = self::getOutputForLegacyKey($params['display_type'], $params);
         $output::showPreSearchDisplay($itemtype);
 
-        //$search_input_class::showGenericSearch($itemtype, $params);
+        if ($_SESSION['glpishow_search_form']) {
+            $search_input_class::showGenericSearch($itemtype, $params);
+        }
+
         $params = $output::prepareInputParams($itemtype, $params);
         if ((int) $params['browse'] === 1 && \Toolbox::hasTrait($itemtype, TreeBrowse::class)) {
             $itemtype::showBrowseView($itemtype, $params);
