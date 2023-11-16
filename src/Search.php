@@ -378,6 +378,22 @@ class Search
         QueryBuilder::showGenericSearch($itemtype, $params);
     }
 
+
+    /**
+     * Print generic sort form
+     *
+     * Params need to parsed before using Search::manageParams function
+     *
+     * @param class-string<CommonDBTM> $itemtype  Type to display the form
+     * @param array  $params    Array of parameters may include sort, order
+     *
+     * @return void
+     **/
+    public static function showGenericSort($itemtype, array $params)
+    {
+        QueryBuilder::showGenericSort($itemtype, $params);
+    }
+
     /**
      * Display a criteria field set, this function should be called by ajax/search.php
      *
@@ -458,6 +474,24 @@ class Search
     public static function displaySearchoptionValue($request = [])
     {
         return QueryBuilder::displaySearchoptionValue($request);
+    }
+
+
+    /**
+     * Display a criteria field set, this function should be called by ajax/search.php
+     *
+     * @since 9.4
+     *
+     * @param  array  $request we should have these keys of parameters:
+     *                            - itemtype: main itemtype for criteria, sub one for metacriteria
+     *                            - num: index of the criteria
+     *                            - p: params of showGenericSearch method
+     *
+     * @return void
+     */
+    public static function displaySortCriteria($request = [])
+    {
+        QueryBuilder::displaySortCriteria($request);
     }
 
 

@@ -117,4 +117,8 @@ switch ($_REQUEST['action']) {
     case "display_searchoption_value":
         Search::displaySearchoptionValue($_REQUEST);
         break;
+
+    case "display_sort_criteria":
+        Search::displaySortCriteria($_REQUEST);
+        break;
 }

@@ -1,0 +1,61 @@
+{% set rand = random() %}
+
+<div class="card card-sm">
+    <div class="list-group list-group-flush list-group-hoverable" id="sort-criteria-list-{{ rand }}">
+    {% for i in p['order']|keys %}
+        {{ call("Glpi\\Search\\Input\\QueryBuilder::displaySortCriteria", [{
+            itemtype: itemtype,
+            num: i,
+            p: p
+        }]) }}
+    {% endfor %}
+    <a id="more-criteria{{ rand }}" role="button" class="normalcriteria fold-search list-group-item p-2 b-0 d-none"></a>
+    </div>
+
+    <div class="card-footer d-flex">
+        <button id="addsort{{ rand }}" class="btn btn-sm btn-outline-secondary me-1" type="button">
+            <i class="ti ti-square-plus"></i>
+            <span class="d-none d-sm-block">{{ __('Add another sort') }}</span>
+        </button>
+
+        <button class="btn btn-sm btn-primary me-1" type="submit" name="search">
+            <i class="ti ti-arrows-sort"></i>
+            <span class="d-none d-sm-block">{{ __("Sort") }}</span>
+        </button>
+    </div>
+</div>
+
+{% set idor_display_criteria = idor_token(itemtype) %}
+{% set itemtype_escaped = itemtype|escape('js') %}
+{% set nbsearchcountvar = "nbsort" ~ normalized_itemtype ~ random() %}
+{% set ajax_url = config('root_doc') ~ "/ajax/search.php" %}
+<script>
+    let {{ nbsearchcountvar }} = {{ p['sort']|length }};
+
+    $('#addsort{{ rand }}').on('click', function(event) {
+        event.preventDefault();
+        $.post("{{ ajax_url }}", {
+            'action': 'display_sort_criteria',
+            'itemtype': "{{ itemtype_escaped }}",
+            'num': {{ nbsearchcountvar }},
+            'p': {{ p|json_encode|raw }},
+            '_idor_token': "{{ idor_display_criteria }}"
+        }).done(function (content) {
+            $('#sort-criteria-list-{{ rand }}').append(content);
+            {{ nbsearchcountvar }} = {{ nbsearchcountvar }} + 1;
+        });
+    });
+
+    $(document)
+        .off('click', '.remove-order-criteria')
+        .on('click', '.remove-order-criteria', function() {
+        // force removal of tooltip
+        const tooltip = bootstrap.Tooltip.getInstance($(this)[0]);
+        if (tooltip !== null) {
+            tooltip.dispose();
+        }
+
+        const rowID = $(this).data('rowid');
+        $('#' + rowID).remove();
+    });
+</script>

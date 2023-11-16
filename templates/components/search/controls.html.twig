@@ -40,6 +40,12 @@
 
 <div class="card-header search-header ps-3">
     <div class="search-controls d-flex justify-content-between">
+
+        {% set mainform = mainform ?? true %}
+        {% set showaction = showaction ?? true %}
+        {% if mainform and showaction %}
+        <form name="searchform{{ normalized_itemtype }}" class="search-form-container" method="get" action="{{ p['target'] }}">
+        {% endif %}
         <div class="primary-controls">
             <div class="btn-group me-2">
                 {% set is_filter_active = false %}
@@ -81,14 +87,20 @@
                             data-bs-toggle="dropdown" data-bs-auto-close="outside">
                     <i class="ti ti-arrows-sort"></i>
                     <span title="{{ __("Reorder the table") }}" data-bs-toggle="tooltip" data-bs-placement="top">
-                        {{ __("Order") }}
+                        {{ __("Sort") }}
                     </span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-card {{ animation_cls }}" style="width: max-content; max-width: 100vw;">
-                    TODO
+                    {% do call('Glpi\\Search\\Input\\QueryBuilder::showGenericSort', [itemtype, original_params]) %}
                 </div>
             {% endif %}
         </div>
+
+
+        {% if mainform and showaction %}
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+        </form>
+        {% endif %}
 
         <div class="secondary-controls">
             {% set can_select_view = may_be_located %}

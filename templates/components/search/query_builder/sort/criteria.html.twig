@@ -1,0 +1,37 @@
+{% import 'components/form/fields_macros.html.twig' as fields %}
+
+{% set rand = random() %}
+{% set dd_options = {
+    rand: rand,
+    full_width: true,
+    input_class: 'col-12',
+    full_width_adapt_column: false,
+    no_label: true,
+    mb: 'mb-0',
+} %}
+
+<div class="list-group-item border-0 p-2" id="{{ rowid }}">
+    <div class="row g-1">
+        <div class="col-auto">
+            <button class="btn btn-sm btn-icon btn-ghost-secondary remove-order-criteria" type="button" data-rowid="{{ rowid }}"
+                    data-bs-toggle="tooltip" data-bs-placement="left" title="{{ __('Delete a sort') }}">
+                <i class="ti ti-square-rounded-minus" alt="-"></i>
+            </button>
+        </div>
+
+        <div class="col-auto">
+            {% set sort_value = order['soption_id'] ?? '' %}
+            {{ fields.dropdownArrayField("sort" ~ "[]", sort_value, values, '', dd_options) }}
+        </div>
+
+        <div class="col-auto">
+            {{ fields.dropdownArrayField("order" ~ "[]", order['order'], {
+                'ASC': "<i class='ti ti-sort-ascending me-1'></i>" ~ __('ASC'),
+                'DESC': "<i class='ti ti-sort-descending me-1'></i>" ~ __('DESC'),
+            }, '', dd_options|merge({
+                'templateResult': 'dropdownTemplateHtml',
+                'templateSelection': 'dropdownTemplateHtml',
+            })) }}
+        </div>
+    </div>
+</div>

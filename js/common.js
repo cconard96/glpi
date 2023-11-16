@@ -824,6 +824,8 @@ var templateResult = function(result) {
     var _elt = $('<span></span>');
     _elt.attr('title', result.title);
 
+    console.log(result);
+
     if (typeof query.term !== 'undefined' && typeof result.rendered_text !== 'undefined') {
         _elt.html(result.rendered_text);
     } else {
@@ -886,6 +888,11 @@ var templateSelection = function (selection) {
     var _elt = $('<span></span>');
     _elt.html(escapeMarkupText(text));
     return _elt;
+};
+
+var dropdownTemplateHtml = function (option) {
+    console.log(option);
+    return $(`<span>${option.text}</span>`);
 };
 
 var templateItilStatus = function(option) {
