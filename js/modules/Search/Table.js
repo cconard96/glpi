@@ -284,9 +284,13 @@ window.GLPI.Search.Table = class Table extends GenericView {
             this.onSearch();
         });
 
-        $(sort_container).on('change', 'select[name^="sort"], select[name^="order"]', (e) => {
+        $(document).on('change', 'select[name^="sort"], select[name^="order"]', (e) => {
             e.preventDefault();
             console.log('sort changed');
+            this.onSortContainerChange(sort_container);
+        });
+        $(sort_container).on('click', '.add_sort', (e) => {
+            e.preventDefault();
             this.onSortContainerChange(sort_container);
         });
     }
