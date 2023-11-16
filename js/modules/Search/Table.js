@@ -166,7 +166,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
         try {
             const sort_state = this.getSortState();
             const limit = $(form_el).find('select.search-limit-dropdown').first().val();
-            const search_form_values = $(ajax_container).find('.search-form-container').serializeArray();
+            const search_form_values = $(ajax_container).closest('.search-container').find('.search-form-container').serializeArray();
             let search_criteria = {};
             search_form_values.forEach((v) => {
                 search_criteria[v['name']] = v['value'];
