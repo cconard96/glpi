@@ -1,8 +1,8 @@
 {% set rand = random() %}
 
-<div class="card card-sm">
+<div class="card card-sm sort-container">
     <div class="list-group list-group-flush list-group-hoverable" id="sort-criteria-list-{{ rand }}">
-    {% for i in p['order']|keys %}
+    {% for i in p['sort']|keys %}
         {{ call("Glpi\\Search\\Input\\QueryBuilder::displaySortCriteria", [{
             itemtype: itemtype,
             num: i,
@@ -16,11 +16,6 @@
         <button id="addsort{{ rand }}" class="btn btn-sm btn-outline-secondary me-1" type="button">
             <i class="ti ti-square-plus"></i>
             <span class="d-none d-sm-block">{{ __('Add another sort') }}</span>
-        </button>
-
-        <button class="btn btn-sm btn-primary me-1" type="submit" name="search">
-            <i class="ti ti-arrows-sort"></i>
-            <span class="d-none d-sm-block">{{ __("Sort") }}</span>
         </button>
     </div>
 </div>

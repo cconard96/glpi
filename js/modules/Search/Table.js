@@ -151,6 +151,28 @@ window.GLPI.Search.Table = class Table extends GenericView {
         this.refreshResults();
     }
 
+    onSortContainerChange(sort_container) {
+        const sorts = [];
+        const orders = [];
+
+        $(sort_container).find('select[name^="order"]').each(function() {
+            orders.push($(this).val());
+        });
+        $(sort_container).find('select[name^="sort"]').each(function() {
+            sorts.push($(this).val());
+        });
+
+        $.each(sorts, (i, sort) => {
+            const col = this.getElement().find('thead th[data-searchopt-id="'+sort+'"]');
+            if (col.length > 0) {
+                col.attr('data-sort-order', orders[i]);
+                col.attr('data-sort-num', i);
+            }
+        });
+
+        this.refreshResults();
+    }
+
     refreshResults(search_overrides = {}) {
         this.showLoadingSpinner();
         const el = this.getElement();
@@ -230,6 +252,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
         super.registerListeners();
         const ajax_container = this.getResultsView().getAJAXContainer();
         const search_container = ajax_container.closest('.search-container');
+        const sort_container = ajax_container.find('.sort-container');
 
         $(ajax_container).on('click', 'table.search-results th[data-searchopt-id]', (e) => {
             e.stopPropagation();
@@ -259,6 +282,12 @@ window.GLPI.Search.Table = class Table extends GenericView {
         $(search_container).on('click', '.search-form-container button[name="search"]', (e) => {
             e.preventDefault();
             this.onSearch();
+        });
+
+        $(sort_container).on('change', 'select[name^="sort"], select[name^="order"]', (e) => {
+            e.preventDefault();
+            console.log('sort changed');
+            this.onSortContainerChange(sort_container);
         });
     }
 
