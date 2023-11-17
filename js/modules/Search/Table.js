@@ -263,6 +263,20 @@ window.GLPI.Search.Table = class Table extends GenericView {
                 this.getElement().trigger('search_refresh', [this.getElement()]);
                 this.hideLoadingSpinner();
                 this.shiftSelectAllCheckbox();
+
+                // Restore panel states
+                if (is_search_criteria_open) {
+                    ajax_container.find('.dropdown-menu .search-form.card')
+                        .closest('.dropdown-menu')
+                        .siblings('button[data-bs-toggle="dropdown"]')
+                        .click();
+                }
+                if (is_sort_criteria_open) {
+                    ajax_container.find('.dropdown-menu .sort-container.card')
+                        .closest('.dropdown-menu')
+                        .siblings('button[data-bs-toggle="dropdown"]')
+                        .click();
+                }
             }, () => {
                 handle_search_failure();
             });
