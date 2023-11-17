@@ -153,14 +153,9 @@ window.GLPI.Search.Table = class Table extends GenericView {
         this.refreshResults();
     }
 
-    onSortContainerChange(sort_container, force_update = false) {
+    onSortContainerChange(sort_container) {
         const sorts = [];
         const orders = [];
-
-        // Do nothing if there are no sort options yet. This can happen the first time the Add Sort button is clicked.
-        if (!force_update && $(sort_container).find('select[name^="sort"]').length === 0) {
-            return;
-        }
 
         $(sort_container).find('select[name^="order"]').each(function() {
             orders.push($(this).val());
@@ -342,10 +337,10 @@ window.GLPI.Search.Table = class Table extends GenericView {
                 num: sort_count + 1,
                 p: sort_state,
                 _idor_token: idor_token
-            }).done(function (content) {
+            }).done((content) => {
                 sort_container.find('.list-group').append(content);
+                this.onSortContainerChange(sort_container);
             });
-            this.onSortContainerChange(sort_container);
         });
         $(sort_container).on('click', '.remove-order-criteria', (e) => {
             e.preventDefault();
@@ -359,7 +354,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
             const rowID = $(this).data('rowid');
             $('#' + rowID).remove();
 
-            this.onSortContainerChange(sort_container, true);
+            this.onSortContainerChange(sort_container);
         });
     }
 
