@@ -109,7 +109,7 @@
                     <input type="radio" class="btn-check" role="button"
                         name="as_map" value="1" autocomplete="off"
                         id="show_as_table"
-                        onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
+                        onclick="toogle('as_map','','',''); document.forms['searchform{{ normalized_itemtype }}'].submit();"
                         {{ data['search']['as_map'] == 0 ? 'checked' : '' }} />
                         <label class="btn btn-icon btn-sm btn-ghost-secondary" title="{{ __('Show as table') }}"
                             for="show_as_table"
@@ -121,7 +121,7 @@
                         <input type="radio" class="btn-check" role="button"
                             name="as_map" value="1" autocomplete="off"
                             id="show_as_map"
-                            onclick="toogle('as_map','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();"
+                            onclick="toogle('as_map','','',''); document.forms['searchform{{ normalized_itemtype }}'].submit();"
                             {{ data['search']['as_map'] == 1 ? 'checked' : '' }} />
                         <label class="btn btn-icon btn-sm btn-ghost-secondary" title="{{ __('Show as map') }}"
                             for="show_as_map"
@@ -135,33 +135,33 @@
             {% if may_be_browsed %}
                 <button class="btn btn-icon btn-sm {{ data['search']['browse'] == 1 ? "btn-secondary" : "btn-ghost-secondary" }} me-2" type="button"
                         title="{{ __('Toggle browse') }}" data-bs-toggle="tooltip" data-bs-placement="top"
-                        onclick="toogle('browse','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
+                        onclick="toogle('browse','','',''); document.forms['searchform{{ normalized_itemtype }}'].submit();">
                     <i class="ti {{ data['search']['browse'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
                     <span class="d-flex align-bottom">
                         <i class="ti ti-subtask"></i>
-                    </label>
+                    </span>
                 </button>
             {% endif %}
 
             {% if may_be_deleted %}
                 <button class="btn btn-icon btn-sm {{ data['search']['is_deleted'] == 1 ? "btn-danger" : "btn-ghost-danger" }} me-2" type="button"
                         title="{{ __('Show the trashbin') }}" data-bs-toggle="tooltip" data-bs-placement="top"
-                        onclick="toogle('is_deleted','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
+                        onclick="toogle('is_deleted','','',''); document.forms['searchform{{ normalized_itemtype }}'].submit();">
                     <i class="ti {{ data['search']['is_deleted'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
                     <span class="d-flex align-bottom">
                         <i class="ti ti-trash"></i>
-                    </label>
+                    </span>
                 </button>
             {% endif %}
 
             {% if may_be_unpublished %}
                 <button class="btn btn-icon btn-sm {{ data['search']['unpublished'] == 1 ? "btn-warning" : "btn-ghost-warning" }} me-2" type="button"
                         title="{{ __('Show unpublished') }}" data-bs-toggle="tooltip" data-bs-placement="top"
-                        onclick="toogle('unpublished','','',''); document.forms['searchform{{ itemtype|lower }}'].submit();">
+                        onclick="toogle('unpublished','','',''); document.forms['searchform{{ normalized_itemtype }}'].submit();">
                     <i class="ti {{ data['search']['unpublished'] == 1 ? "ti-checkbox" : "ti-square" }}"></i>
                     <span class="d-flex align-bottom">
                         <i class="ti ti-eye-off"></i>
-                    </label>
+                    </span>
                 </button>
             {% endif %}
 
