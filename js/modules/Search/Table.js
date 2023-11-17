@@ -289,7 +289,6 @@ window.GLPI.Search.Table = class Table extends GenericView {
         super.registerListeners();
         const ajax_container = this.getResultsView().getAJAXContainer();
         const search_container = ajax_container.closest('.search-container');
-        const sort_container = ajax_container.find('.sort-container');
 
         $(ajax_container).on('click', 'table.search-results th[data-searchopt-id]', (e) => {
             e.stopPropagation();
@@ -321,12 +320,13 @@ window.GLPI.Search.Table = class Table extends GenericView {
             this.onSearch();
         });
 
-        $(document).on('change', 'select[name^="sort"], select[name^="order"]', (e) => {
+        $(ajax_container).on('change', 'select[name^="sort"], select[name^="order"]', (e) => {
             e.preventDefault();
             console.log('sort changed');
-            this.onSortContainerChange(sort_container);
+            this.onSortContainerChange(ajax_container.find('.sort-container'));
         });
-        $(sort_container).on('click', '.add_sort', (e) => {
+        $(ajax_container).on('click', '.sort-container .add_sort', (e) => {
+            const sort_container = ajax_container.find('.sort-container');
             e.preventDefault();
             const sort_state = this.getSortState();
             const sort_count = sort_state['sort'].length;
@@ -342,7 +342,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
                 this.onSortContainerChange(sort_container);
             });
         });
-        $(sort_container).on('click', '.remove-order-criteria', (e) => {
+        $(ajax_container).on('click', '.sort-container .remove-order-criteria', (e) => {
             e.preventDefault();
 
             // force removal of tooltip
@@ -354,7 +354,7 @@ window.GLPI.Search.Table = class Table extends GenericView {
             const rowID = $(e.currentTarget).data('rowid');
             $('#' + rowID).remove();
 
-            this.onSortContainerChange(sort_container);
+            this.onSortContainerChange(ajax_container.find('.sort-container'));
         });
     }
 
