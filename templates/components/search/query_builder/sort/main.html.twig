@@ -1,6 +1,9 @@
 {% set rand = random() %}
 
+{% set idor_display_criteria = idor_token(itemtype) %}
+
 <div class="card card-sm sort-container">
+    <input type="hidden" name="_idor_token" value="{{ idor_display_criteria }}" />
     <div class="list-group list-group-flush list-group-hoverable" id="sort-criteria-list-{{ rand }}">
     {% for i in p['sort']|keys %}
         {{ call("Glpi\\Search\\Input\\QueryBuilder::displaySortCriteria", [{
@@ -19,38 +22,3 @@
         </button>
     </div>
 </div>
-
-{% set idor_display_criteria = idor_token(itemtype) %}
-{% set itemtype_escaped = itemtype|escape('js') %}
-{% set nbsearchcountvar = "nbsort" ~ normalized_itemtype ~ random() %}
-{% set ajax_url = config('root_doc') ~ "/ajax/search.php" %}
-<script>
-    let {{ nbsearchcountvar }} = {{ p['sort']|length }};
-
-    $('#addsort{{ rand }}').on('click', function(event) {
-        event.preventDefault();
-        $.post("{{ ajax_url }}", {
-            'action': 'display_sort_criteria',
-            'itemtype': "{{ itemtype_escaped }}",
-            'num': {{ nbsearchcountvar }},
-            'p': {{ p|json_encode|raw }},
-            '_idor_token': "{{ idor_display_criteria }}"
-        }).done(function (content) {
-            $('#sort-criteria-list-{{ rand }}').append(content);
-            {{ nbsearchcountvar }} = {{ nbsearchcountvar }} + 1;
-        });
-    });
-
-    $(document)
-        .off('click', '.remove-order-criteria')
-        .on('click', '.remove-order-criteria', function() {
-        // force removal of tooltip
-        const tooltip = bootstrap.Tooltip.getInstance($(this)[0]);
-        if (tooltip !== null) {
-            tooltip.dispose();
-        }
-
-        const rowID = $(this).data('rowid');
-        $('#' + rowID).remove();
-    });
-</script>

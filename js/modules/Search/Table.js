@@ -31,6 +31,8 @@
  * ---------------------------------------------------------------------
  */
 
+/* global bootstrap */
+
 import GenericView from './GenericView.js';
 
 // Explicitly bind to window so Jest tests work properly
@@ -151,15 +153,27 @@ window.GLPI.Search.Table = class Table extends GenericView {
         this.refreshResults();
     }
 
-    onSortContainerChange(sort_container) {
+    onSortContainerChange(sort_container, force_update = false) {
         const sorts = [];
         const orders = [];
+
+        // Do nothing if there are no sort options yet. This can happen the first time the Add Sort button is clicked.
+        if (!force_update && $(sort_container).find('select[name^="sort"]').length === 0) {
+            return;
+        }
 
         $(sort_container).find('select[name^="order"]').each(function() {
             orders.push($(this).val());
         });
         $(sort_container).find('select[name^="sort"]').each(function() {
             sorts.push($(this).val());
+        });
+
+        // Remove data-sort-num from all headers and change all data-sort-order to nosort to reset the sort state
+        this.getElement().find('thead th').each((i, c) => {
+            const col = $(c);
+            col.attr('data-sort-num', null);
+            col.attr('data-sort-order', 'nosort');
         });
 
         $.each(sorts, (i, sort) => {
@@ -291,7 +305,33 @@ window.GLPI.Search.Table = class Table extends GenericView {
         });
         $(sort_container).on('click', '.add_sort', (e) => {
             e.preventDefault();
+            const sort_state = this.getSortState();
+            const sort_count = sort_state['sort'].length;
+            const idor_token = sort_container.find('input[name="_idor_token"]').val();
+            $.post(CFG_GLPI.root_doc + '/ajax/search.php', {
+                action: 'display_sort_criteria',
+                itemtype: this.getItemtype(),
+                num: sort_count + 1,
+                p: sort_state,
+                _idor_token: idor_token
+            }).done(function (content) {
+                sort_container.find('.list-group').append(content);
+            });
             this.onSortContainerChange(sort_container);
+        });
+        $(sort_container).on('click', '.remove-order-criteria', (e) => {
+            e.preventDefault();
+
+            // force removal of tooltip
+            const tooltip = bootstrap.Tooltip.getInstance($(this)[0]);
+            if (tooltip !== null) {
+                tooltip.dispose();
+            }
+
+            const rowID = $(this).data('rowid');
+            $('#' + rowID).remove();
+
+            this.onSortContainerChange(sort_container, true);
         });
     }
 
