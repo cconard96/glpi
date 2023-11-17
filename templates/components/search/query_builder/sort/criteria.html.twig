@@ -10,6 +10,22 @@
     mb: 'mb-0',
 } %}
 
+{% set order_dropdown_template %}
+    (option) => {
+        if (!option.id) {
+            return option.text;
+        }
+
+        let container = document.createElement('span');
+        if (option.id === 'ASC') {
+            container.innerHTML = '<i class="ti ti-sort-ascending me-1"></i>' + option.text;
+        } else if (option.id === 'DESC') {
+            container.innerHTML = '<i class="ti ti-sort-descending me-1"></i>' + option.text;
+        }
+
+        return container;
+    }
+{% endset %}
 <div class="list-group-item border-0 p-2" id="{{ rowid }}">
     <div class="row g-1">
         <div class="col-auto">
@@ -26,11 +42,11 @@
 
         <div class="col-auto">
             {{ fields.dropdownArrayField("order" ~ "[]", order['order'], {
-                'ASC': "<i class='ti ti-sort-ascending me-1'></i>" ~ __('ASC'),
-                'DESC': "<i class='ti ti-sort-descending me-1'></i>" ~ __('DESC'),
+                'ASC': __('ASC'),
+                'DESC': __('DESC'),
             }, '', dd_options|merge({
-                'templateResult': 'dropdownTemplateHtml',
-                'templateSelection': 'dropdownTemplateHtml',
+                'templateResult': order_dropdown_template,
+                'templateSelection': order_dropdown_template,
             })) }}
         </div>
     </div>
