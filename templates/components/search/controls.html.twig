@@ -336,7 +336,7 @@ $(document).ready(function() {
 
    $('#copy_names_to_clipboard').click(function(e) {
       // Get target link
-      var link = $(this).find('a').prop('href');
+      const link = $(e.currentTarget).prop('href');
 
       // Show loading indicator
       $('#export_dropdown_icon').removeClass('ti-file-download');
