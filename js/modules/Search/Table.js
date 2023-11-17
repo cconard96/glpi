@@ -199,10 +199,24 @@ window.GLPI.Search.Table = class Table extends GenericView {
             window.location.reload();
         };
 
+        // panel states
+        const is_search_criteria_open = ajax_container.find('.dropdown-menu .search-form.card')
+            .closest('.dropdown-menu')
+            .siblings('button[data-bs-toggle="dropdown"]')
+            .hasClass('show');
+        const is_sort_criteria_open = ajax_container.find('.dropdown-menu .sort-container.card')
+            .closest('.dropdown-menu')
+            .siblings('button[data-bs-toggle="dropdown"]')
+            .hasClass('show');
+
         try {
             const sort_state = this.getSortState();
             const limit = $(form_el).find('select.search-limit-dropdown').first().val();
-            const search_form_values = $(ajax_container).closest('.search-container').find('.search-form-container').serializeArray();
+            let search_form_values = $(ajax_container).closest('.search-container').find('.search-form-container').serializeArray();
+            // Drop sort and order from search form values as we rely on the data on the table headers as the source of truth
+            search_form_values = search_form_values.filter((v) => {
+                return v['name'] !== 'sort[]' && v['name'] !== 'order[]';
+            });
             let search_criteria = {};
             search_form_values.forEach((v) => {
                 search_criteria[v['name']] = v['value'];
