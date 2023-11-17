@@ -346,12 +346,12 @@ window.GLPI.Search.Table = class Table extends GenericView {
             e.preventDefault();
 
             // force removal of tooltip
-            const tooltip = bootstrap.Tooltip.getInstance($(this)[0]);
+            const tooltip = bootstrap.Tooltip.getInstance($(e.currentTarget)[0]);
             if (tooltip !== null) {
                 tooltip.dispose();
             }
 
-            const rowID = $(this).data('rowid');
+            const rowID = $(e.currentTarget).data('rowid');
             $('#' + rowID).remove();
 
             this.onSortContainerChange(sort_container);
