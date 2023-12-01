@@ -682,6 +682,37 @@ final class AssetController extends AbstractController
             ]
         ];
 
+        $schemas['SoftwareInstallation'] = [
+            'x-itemtype' => \Item_SoftwareVersion::class,
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'x-readonly' => true
+                ],
+                'itemtype' => ['type' => Doc\Schema::TYPE_STRING],
+                'items_id' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT64],
+                'softwareversion' => [
+                    'x-itemtype' => \SoftwareVersion::class,
+                    'x-full-schema' => 'SoftwareVersion',
+                    'type' => Doc\Schema::TYPE_OBJECT,
+                    'x-join' => [
+                        'table' => \SoftwareVersion::getTable(),
+                        'fkey' => \SoftwareVersion::getForeignKeyField(),
+                        'field' => 'id',
+                    ],
+                    'properties' => array_filter($schemas['SoftwareVersion']['properties'], static fn ($key) => in_array($key, [
+                        'id', 'name', 'software', 'arch', 'operating_system'
+                    ]), ARRAY_FILTER_USE_KEY)
+                ],
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_deleted' => ['type' => Doc\Schema::TYPE_BOOLEAN],
+                'is_dynamic' => ['type' => Doc\Schema::TYPE_BOOLEAN],
+                'date_install' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+            ]
+        ];
+
         $schemas['Rack'] = [
             'x-itemtype' => \Rack::class,
             'type' => Doc\Schema::TYPE_OBJECT,
@@ -1926,5 +1957,33 @@ final class AssetController extends AbstractController
     public function deleteSoftwareVersion(Request $request): Response
     {
         return Search::deleteBySchema($this->getKnownSchema('SoftwareVersion'), $request->getAttributes(), $request->getParameters());
+    }
+
+    public static function getSoftwareTypes(): array
+    {
+        /** @var array $CFG_GLPI */
+        global $CFG_GLPI;
+
+        return $CFG_GLPI['software_types'];
+    }
+
+    #[Route(path: '/{itemtype}/{id}/Software', methods: ['GET'], requirements: [
+        'itemtype' => [self::class, 'getSoftwareTypes'],
+        'id' => '\d+'
+    ], tags: ['Assets'])]
+    #[Doc\Route(
+        description: 'Get all installed software for an item',
+        responses: [
+            ['schema' => 'SoftwareInstallation[]']
+        ]
+    )]
+    public function listItemSoftware(Request $request): Response
+    {
+        $filters = $request->hasParameter('filter') ? $request->getParameter('filter') : '';
+        $filters .= ';itemtype==' . $request->getAttribute('itemtype');
+        $filters .= ';items_id==' . $request->getAttribute('id');
+        $request->setParameter('filter', $filters);
+
+        return Search::searchBySchema($this->getKnownSchema('SoftwareInstallation'), $request->getParameters());
     }
 }
