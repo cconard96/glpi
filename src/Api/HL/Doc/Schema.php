@@ -73,7 +73,9 @@ class Schema implements \ArrayAccess
         /** @var array|null $enum */
         private ?array $enum = null,
         private ?string $pattern = null,
-        private mixed $default = null
+        private mixed $default = null,
+        private ?string $description = null,
+        private array $extension_properties = [],
     ) {
         if ($this->format === null) {
             $this->format = self::getDefaultFormatForType($this->type);
@@ -170,6 +172,12 @@ class Schema implements \ArrayAccess
         if ($this->default !== null) {
             $r['default'] = $this->default;
         }
+        if ($this->description !== null) {
+            $r['description'] = $this->description;
+        }
+        foreach ($this->extension_properties as $key => $value) {
+            $r[$key] = $value;
+        }
         return $r;
     }
 
@@ -193,6 +201,13 @@ class Schema implements \ArrayAccess
             $enum = $schema['enum'];
         }
         $default = $schema['default'] ?? null;
+        $description = $schema['description'] ?? null;
+        $extension_properties = [];
+        foreach ($schema as $key => $value) {
+            if (str_starts_with($key, 'x-')) {
+                $extension_properties[$key] = $value;
+            }
+        }
         return new Schema(
             type: $type,
             format: $format,
@@ -200,7 +215,9 @@ class Schema implements \ArrayAccess
             items: $items,
             enum: $enum,
             pattern: $pattern,
-            default: $default
+            default: $default,
+            description: $description,
+            extension_properties: $extension_properties
         );
     }
 
@@ -336,13 +353,28 @@ class Schema implements \ArrayAccess
         return $format_match;
     }
 
-    public function isValid(array $content): bool
+    public function isValid(array $content, string|null $operation = null): bool
     {
         $flattened_schema = self::flattenProperties($this->toArray()['properties'], '', false);
 
         foreach ($flattened_schema as $sk => $sv) {
+            $ignored = false;
             // Get value from original content by the array path $sk
             $cv = ArrayPathAccessor::getElementByArrayPath($content, $sk);
+            if ($cv === null) {
+                if ($operation === 'read' && ($sv['x-writeonly'] ?? false)) {
+                    $ignored = true;
+                } else if ($operation === 'write' && ($sv['x-readonly'] ?? false)) {
+                    $ignored = true;
+                } else {
+                    // Property was expected but not found
+                    return false;
+                }
+            }
+            if ($ignored) {
+                // Property was not found, but it wasn't applicable to the operation
+                continue;
+            }
 
             // Verify that the type is correct
             if (!self::validateTypeAndFormat($sv['type'], $sv['format'] ?? '', $cv)) {

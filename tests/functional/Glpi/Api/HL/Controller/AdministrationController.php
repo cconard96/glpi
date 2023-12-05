@@ -491,274 +491,38 @@ class AdministrationController extends \HLAPITestCase
     public function testCreateUpdateDeleteUser()
     {
         $this->login();
-
-        $unique_id = __FUNCTION__;
-
-        // Create a new user
-        $request = new Request('POST', '/Administration/User');
-        $request->setParameter('username', $unique_id);
-        $request->setParameter('password', $unique_id);
-        $request->setParameter('password2', $unique_id);
-        $request->setParameter('firstname', 'FirstName');
-        $request->setParameter('realname', 'RealName');
-
-        $new_item_location = null;
-        $this->api->call($request, function ($call) use (&$new_item_location) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->headers(function ($headers) use (&$new_item_location) {
-                    $this->array($headers)->hasKey('Location');
-                    $this->string($headers['Location'])->isNotEmpty();
-                    $new_item_location = $headers['Location'];
-                });
-        });
-
-        // Get the new user
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) use ($unique_id) {
-                    $this->string($content['username'])->isEqualTo($unique_id);
-                    $this->string($content['firstname'])->isEqualTo('FirstName');
-                    $this->string($content['realname'])->isEqualTo('RealName');
-                });
-        });
-
-        // Try logging in with the new user
-        $this->login($unique_id, $unique_id);
-        // Log back in with the test user
-        $this->login();
-
-        // Update the new user
-        $request = new Request('PATCH', $new_item_location);
-        $request->setParameter('firstname', 'NewFirstName');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Get the new user again and verify that the firstname has been updated
-        $this->api->call(new Request('GET', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->string($content['firstname'])->isEqualTo('NewFirstName');
-                });
-        });
-
-        // Delete the new user
-        $this->api->call(new Request('DELETE', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Try getting the new user again (should be OK but is_deleted=1)
-        $this->api->call(new Request('GET', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(fn ($content) => $this->boolean((bool) $content['is_deleted'])->isTrue());
-        });
-
-        // Actually delete the new user
-        $request = new Request('DELETE', $new_item_location);
-        $request->setParameter('force', 1);
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Try getting the new user again (should be a 404)
-        $this->api->call(new Request('GET', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isNotFoundError();
-        });
+        $this->api
+            ->autoTestCRUD('/Administration/User', [
+                'username'  => 'testuser',
+                'password'  => 'testuser',
+                'password2' => 'testuser',
+                'firstname' => 'Test',
+                'realname'  => 'User',
+            ], [
+                'username'  => 'testuser2',
+                'firstname' => 'Test2',
+                'realname'  => 'User2',
+            ]);
     }
 
     public function testCreateUpdateDeleteGroup()
     {
         $this->login('glpi', 'glpi');
-
-        $unique_id = __FUNCTION__;
-
-        // Create a new group
-        $request = new Request('POST', '/Administration/Group');
-        $request->setParameter('name', $unique_id);
-
-        $new_item_location = null;
-        $this->api->call($request, function ($call) use (&$new_item_location) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->headers(function ($headers) use (&$new_item_location) {
-                    $this->array($headers)->hasKey('Location');
-                    $this->string($headers['Location'])->isNotEmpty();
-                    $new_item_location = $headers['Location'];
-                });
-        });
-
-        // Get the new group
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(fn ($content) => $this->string($content['name'])->isEqualTo($unique_id));
-        });
-
-        // Update the new group
-        $request = new Request('PATCH', $new_item_location);
-        $request->setParameter('name', $unique_id . '2');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Get the new group again and verify that the name has been updated
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) use ($unique_id) {
-                    $this->string($content['name'])->isEqualTo($unique_id . '2');
-                });
-        });
-
-        // Delete the new group
-        $this->api->call(new Request('DELETE', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Try getting the new group again (should be a 404)
-        $this->api->call(new Request('GET', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isNotFoundError();
-        });
+        $this->api->autoTestCRUD('/Administration/Group');
     }
 
     public function testCreateUpdateDeleteProfile()
     {
         $this->login();
-
-        $unique_id = __FUNCTION__;
-
-        // Create a new profile
-        $request = new Request('POST', '/Administration/Profile');
-        $request->setParameter('name', $unique_id);
-
-        $new_item_location = null;
-        $this->api->call($request, function ($call) use (&$new_item_location) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->headers(function ($headers) use (&$new_item_location) {
-                    $this->array($headers)->hasKey('Location');
-                    $this->string($headers['Location'])->isNotEmpty();
-                    $new_item_location = $headers['Location'];
-                });
-        });
-
-        // Get the new profile
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(fn ($content) => $this->string($content['name'])->isEqualTo($unique_id));
-        });
-
-        // Update the new profile
-        $request = new Request('PATCH', $new_item_location);
-        $request->setParameter('name', $unique_id . '2');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Get the new profile again and verify that the name has been updated
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) use ($unique_id) {
-                    $this->string($content['name'])->isEqualTo($unique_id . '2');
-                });
-        });
-
-        // Delete the new profile
-        $this->api->call(new Request('DELETE', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Try getting the new profile again (should be a 404)
-        $this->api->call(new Request('GET', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isNotFoundError();
-        });
+        $this->api->autoTestCRUD('/Administration/Profile');
     }
 
     public function testCreateUpdateDeleteEntity()
     {
-        $this->login('glpi', 'glpi');
-
-        $unique_id = __FUNCTION__;
-
-        // Create a new entity
-        $request = new Request('POST', '/Administration/Entity');
-        $request->setParameter('name', $unique_id);
-        $request->setParameter('parent', getItemByTypeName('Entity', '_test_root_entity', true));
-
-        $new_item_location = null;
-        $this->api->call($request, function ($call) use (&$new_item_location) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->headers(function ($headers) use (&$new_item_location) {
-                    $this->array($headers)->hasKey('Location');
-                    $this->string($headers['Location'])->isNotEmpty();
-                    $new_item_location = $headers['Location'];
-                });
-        });
-
-        // Get the new entity
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(fn ($content) => $this->string($content['name'])->isEqualTo($unique_id));
-        });
-
-        // Update the new entity
-        $request = new Request('PATCH', $new_item_location);
-        $request->setParameter('name', $unique_id . '2');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Get the new entity again and verify that the name has been updated
-        $this->api->call(new Request('GET', $new_item_location), function ($call) use ($unique_id) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) use ($unique_id) {
-                    $this->string($content['name'])->isEqualTo($unique_id . '2');
-                });
-        });
-
-        // Delete the new entity
-        $this->api->call(new Request('DELETE', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isOK();
-        });
-
-        // Try getting the new entity again (should be a 404)
-        $this->api->call(new Request('GET', $new_item_location), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response->isNotFoundError();
-        });
+        $this->login();
+        $this->api
+            ->autoTestCRUD('/Administration/Entity', [
+                'parent' => getItemByTypeName('Entity', '_test_root_entity', true)
+            ]);
     }
 }
