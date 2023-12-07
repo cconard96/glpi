@@ -37,17 +37,12 @@ namespace tests\units\Glpi\Api\HL\Controller;
 
 use Glpi\Api\HL\Controller\AbstractController;
 use Glpi\Http\Request;
+use const atoum\atoum\phing\task\path;
 
 class AdministrationController extends \HLAPITestCase
 {
     public function testSearchUsers()
     {
-        $this->api->call(new Request('GET', '/Administration/User'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isUnauthorizedError();
-        });
-
         $this->login();
         $this->api->call(new Request('GET', '/Administration/User'), function ($call) {
             /** @var \HLAPICallAsserter $call */
@@ -65,77 +60,20 @@ class AdministrationController extends \HLAPITestCase
                 });
         });
 
-        // Test a basic RSQL filter
-        $request = new Request('GET', '/Administration/User');
-        $request->setParameter('filter', 'username==' . TU_USER);
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->hasSize(1);
-                    $user = $content[0];
-                    $this->integer($user['id'])->isGreaterThan(0);
-                    $this->string($user['username'])->isEqualTo(TU_USER);
-                    $this->array($user['emails'])->size->isGreaterThanOrEqualTo(1);
-                });
-        });
-
-        $request = new Request('GET', '/Administration/User');
-        $request->setParameter('filter', 'emails.email=like=*glpi.com');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->hasSize(1);
-                    $user = $content[0];
-                    $this->integer($user['id'])->isGreaterThan(0);
-                    $this->string($user['username'])->isEqualTo(TU_USER);
-                    $this->array($user['emails'])->size->isGreaterThanOrEqualTo(1);
-                });
-        });
-    }
-
-    public function testSearchUserPagination()
-    {
-        $this->login();
-
-        $seen_usernames = [];
-        for ($i = 0; $i < 4; $i++) {
-            $request = new Request('GET', '/Administration/User');
-            $request->setParameter('start', $i);
-            $request->setParameter('limit', 1);
-            $this->api->call($request, function ($call) use ($i, &$seen_usernames) {
-                /** @var \HLAPICallAsserter $call */
-                $call->response
-                    ->status(fn ($status) => $this->integer($status)->isEqualTo(206))
-                    ->jsonContent(function ($content) use (&$seen_usernames) {
-                        $this->array($content)->hasSize(1);
-                        $user = $content[0];
-                        $seen_usernames[] = $user['username'];
-                    })
-                    ->headers(function ($headers) use ($i) {
-                        $this->array($headers)->hasKey('Content-Range');
-                        $this->string($headers['Content-Range'])->matches('/' . $i . '-' . $i . '\/\d+/');
-                    });
-            });
-        }
-        // All seen usernames should be unique
-        $this->integer(count($seen_usernames))->isEqualTo(count(array_unique($seen_usernames)));
-
-        // Search users with high limit to get all users
-        $request = new Request('GET', '/Administration/User');
-        $request->setParameter('limit', 1000);
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->status(fn ($status) => $this->integer($status)->isEqualTo(200))
-                ->headers(function ($headers) {
-                    $this->array($headers)->hasKey('Content-Range');
-                    $this->string($headers['Content-Range'])->matches('/0-\d+\/\d+/');
-                });
-        });
+        $this->api->autoTestSearch('/Administration/User', [
+            [
+                'firstname' => 'Test',
+                'realname'  => 'User',
+            ],
+            [
+                'firstname' => 'Test2',
+                'realname'  => 'User2',
+            ],
+            [
+                'firstname' => 'Test3',
+                'realname'  => 'User3',
+            ]
+        ], 'username');
     }
 
     public function testUserSearchByEmail()
@@ -157,116 +95,41 @@ class AdministrationController extends \HLAPITestCase
 
     public function testSearchGroups()
     {
-        $this->api->call(new Request('GET', '/Administration/Group'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isUnauthorizedError();
-        });
-
-        $this->login();
-        $this->api->call(new Request('GET', '/Administration/Group'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->isNotEmpty();
-                    foreach ($content as $v) {
-                        $this->boolean(is_array($v))->isTrue();
-                        $this->array($v)->hasKeys(['id', 'name', 'comment']);
-                    }
-                });
-        });
-
-        // Test a basic RSQL filter
-        $request = new Request('GET', '/Administration/Group');
-        $request->setParameter('filter', 'name==_test_group_1');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->hasSize(1);
-                    $user = $content[0];
-                    $this->integer($user['id'])->isGreaterThan(0);
-                    $this->string($user['name'])->isEqualTo('_test_group_1');
-                });
-        });
+        $this->login('glpi', 'glpi');
+        $this->api->autoTestSearch('/Administration/Group', [
+            ['name' => __FUNCTION__ . '_1'],
+            ['name' => __FUNCTION__ . '_2'],
+            ['name' => __FUNCTION__ . '_3']
+        ]);
     }
 
     public function testSearchEntities()
     {
-        $this->api->call(new Request('GET', '/Administration/Entity'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isUnauthorizedError();
-        });
-
-        $this->login('glpi', 'glpi');
-        $this->api->call(new Request('GET', '/Administration/Entity'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->isNotEmpty();
-                    foreach ($content as $v) {
-                        $this->boolean(is_array($v))->isTrue();
-                        $this->array($v)->hasKeys(['id', 'name', 'comment']);
-                    }
-                });
-        });
-
-        // Test a basic RSQL filter
-        $request = new Request('GET', '/Administration/Entity');
-        $request->setParameter('filter', 'name==_test_root_entity');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->hasSize(1);
-                    $user = $content[0];
-                    $this->integer($user['id'])->isGreaterThan(0);
-                    $this->string($user['name'])->isEqualTo('_test_root_entity');
-                });
-        });
+        $this->login();
+        $this->api->autoTestSearch('/Administration/Entity', [
+            [
+                'name' => __FUNCTION__ . '_1',
+                'parent' => getItemByTypeName('Entity', '_test_root_entity', true)
+            ],
+            [
+                'name' => __FUNCTION__ . '_2',
+                'parent' => getItemByTypeName('Entity', '_test_root_entity', true)
+            ],
+            [
+                'name' => __FUNCTION__ . '_3',
+                'parent' => getItemByTypeName('Entity', '_test_root_entity', true)
+            ]
+        ]);
     }
 
     public function testSearchProfiles()
     {
-        $this->api->call(new Request('GET', '/Administration/Profile'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isUnauthorizedError();
-        });
-
         $this->login();
-        $this->api->call(new Request('GET', '/Administration/Profile'), function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->isNotEmpty();
-                    foreach ($content as $v) {
-                        $this->boolean(is_array($v))->isTrue();
-                        $this->array($v)->hasKeys(['id', 'name', 'comment']);
-                    }
-                });
-        });
-
-        // Test a basic RSQL filter
-        $request = new Request('GET', '/Administration/Profile');
-        $request->setParameter('filter', 'name==Super-Admin');
-        $this->api->call($request, function ($call) {
-            /** @var \HLAPICallAsserter $call */
-            $call->response
-                ->isOK()
-                ->jsonContent(function ($content) {
-                    $this->array($content)->hasSize(1);
-                    $user = $content[0];
-                    $this->integer($user['id'])->isGreaterThan(0);
-                    $this->string($user['name'])->isEqualTo('Super-Admin');
-                });
-        });
+        $this->api->autoTestSearch('/Administration/Profile', [
+            ['name' => __FUNCTION__ . '_1'],
+            ['name' => __FUNCTION__ . '_2'],
+            ['name' => __FUNCTION__ . '_3'],
+        ]);
     }
 
     protected function getItemProvider()
