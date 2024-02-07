@@ -35,6 +35,7 @@
 
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Http\Response;
+use Glpi\Toolbox\Sanitizer;
 
 class QueuedWebhook extends CommonDBChild
 {
@@ -251,7 +252,7 @@ class QueuedWebhook extends CommonDBChild
         if ($response !== null) {
             $input['last_status_code'] = $response->getStatusCode();
             if ($queued_webhook->fields['save_response_body']) {
-                $input['response_body'] = (string)$response->getBody();
+                $input['response_body'] = Sanitizer::sanitize((string)$response->getBody());
             }
 
             if ($webhook->fields['log_in_item_history']) {
