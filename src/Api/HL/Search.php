@@ -40,6 +40,7 @@ use Glpi\Api\HL\Controller\AbstractController;
 use Glpi\Api\HL\Doc;
 use Glpi\Http\JSONResponse;
 use Glpi\Http\Response;
+use Glpi\Toolbox\Sanitizer;
 use QueryExpression;
 use QueryUnion;
 use RuntimeException;
@@ -694,6 +695,11 @@ final class Search
     {
         $itemtype = self::getItemtypeFromSchema($schema);
         $input = self::getInputParamsBySchema($schema, $request_params);
+        foreach ($input as $k => $v) {
+            if (is_string($v)) {
+                $input[$k] = Sanitizer::sanitize($v);
+            }
+        }
 
         /** @var CommonDBTM $item */
         $item = new $itemtype();
@@ -724,6 +730,11 @@ final class Search
             unset($request_attrs['entity']);
         }
         $input = self::getInputParamsBySchema($schema, $request_params);
+        foreach ($input as $k => $v) {
+            if (is_string($v)) {
+                $input[$k] = Sanitizer::sanitize($v);
+            }
+        }
         $input['id'] = $items_id;
         /** @var CommonDBTM $item */
         $item = new $itemtype();
