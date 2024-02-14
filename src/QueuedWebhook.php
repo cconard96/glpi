@@ -36,6 +36,7 @@
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Http\Response;
 use Glpi\Toolbox\Sanitizer;
+use GuzzleHttp\Exception\RequestException;
 
 class QueuedWebhook extends CommonDBChild
 {
@@ -242,7 +243,11 @@ class QueuedWebhook extends CommonDBChild
                 "webhook",
                 "Error sending webhook {$webhook->fields['name']} ({$webhook->getID()}): " . $e->getMessage()
             );
-            $response = $e->getResponse();
+            if ($e instanceof RequestException) {
+                $response = $e->getResponse();
+            } else {
+                $response = null;
+            }
         }
         $input = [
             'id' => $ID,
