@@ -46,32 +46,25 @@ class Item_RemoteManagement extends CommonDBChild
     public const SUPREMO = 'supremo';
     public const RUSTDESK = 'rustdesk';
 
-
     public static function getTypeName($nb = 0)
     {
         return __('Remote management');
     }
 
-
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         $nb = 0;
-        switch ($item->getType()) {
-            default:
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = countElementsInTable(
-                        self::getTable(),
-                        [
-                            'items_id'     => $item->getID(),
-                            'itemtype'     => $item->getType()
-                        ]
-                    );
-                }
-                return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
+        if ($_SESSION['glpishow_count_on_tabs']) {
+            $nb = countElementsInTable(
+                self::getTable(),
+                [
+                    'items_id' => $item->getID(),
+                    'itemtype' => $item::class
+                ]
+            );
         }
-        return '';
+        return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
     }
-
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
@@ -79,13 +72,12 @@ class Item_RemoteManagement extends CommonDBChild
         return true;
     }
 
-
     /**
      * Get remote managements related to a given item
      *
-     * @param CommonDBTM $item  Item instance
-     * @param string     $sort  Field to sort on
-     * @param string     $order Sort order
+     * @param CommonDBTM  $item  Item instance
+     * @param ?string     $sort  Field to sort on
+     * @param ?string     $order Sort order
      *
      * @return DBmysqlIterator
      */
@@ -94,14 +86,17 @@ class Item_RemoteManagement extends CommonDBChild
         /** @var \DBmysql $DB */
         global $DB;
 
-        $iterator = $DB->request([
+        $criteria = [
             'FROM'      => self::getTable(),
             'WHERE'     => [
                 'itemtype'     => $item->getType(),
                 'items_id'     => $item->fields['id']
             ]
-        ]);
-        return $iterator;
+        ];
+        if ($sort !== null) {
+            $criteria['ORDER'] = [$sort . ' ' . ($order ?? 'ASC')];
+        }
+        return $DB->request($criteria);
     }
 
     /**
@@ -115,19 +110,16 @@ class Item_RemoteManagement extends CommonDBChild
     public static function showForItem(CommonDBTM $item, $withtemplate = 0)
     {
         $ID = $item->fields['id'];
-        $itemtype = $item->getType();
+        $itemtype = $item::class;
 
-        if (
-            !$item->getFromDB($ID)
-            || !$item->can($ID, READ)
-        ) {
+        if (!$item->getFromDB($ID) || !$item->can($ID, READ)) {
             return false;
         }
         $canedit = $item->canEdit($ID);
 
         if (
             $canedit
-            && !(!empty($withtemplate) && ($withtemplate == 2))
+            && !(!empty($withtemplate) && ($withtemplate === 2))
         ) {
             echo "<div class='center firstbloc'>" .
                "<a class='btn btn-primary' href='" . self::getFormURL() . "?itemtype=$itemtype&items_id=$ID&amp;withtemplate=" .
@@ -200,7 +192,6 @@ class Item_RemoteManagement extends CommonDBChild
         echo "</div>";
     }
 
-
     /**
      * Get remote management system link
      *
@@ -210,36 +201,19 @@ class Item_RemoteManagement extends CommonDBChild
     {
         $link = '<a href="%s" target="_blank">%s</a>';
         $id = Html::entities_deep($this->fields['remoteid']);
-        $href = null;
-        switch ($this->fields['type']) {
-            case self::TEAMVIEWER:
-                $href = "https://start.teamviewer.com/$id";
-                break;
-            case self::ANYDESK:
-                $href = "anydesk:$id";
-                break;
-            case self::SUPREMO:
-                $href = "supremo:$id";
-                break;
-            case self::RUSTDESK:
-                $href = "rustdesk://$id";
-                break;
-        }
+        $href = match ($this->fields['type']) {
+            self::TEAMVIEWER => "https://start.teamviewer.com/$id",
+            self::ANYDESK => "anydesk:$id",
+            self::SUPREMO => "supremo:$id",
+            self::RUSTDESK => "rustdesk://$id",
+            default => null,
+        };
 
-        if ($href === null) {
-            return $id;
-        } else {
-            return sprintf(
-                $link,
-                $href,
-                $id
-            );
-        }
+        return $href === null ? $id : sprintf($link, $href, $id);
     }
 
     public function rawSearchOptions()
     {
-
         $tab = [];
 
         $tab[] = [
@@ -249,7 +223,7 @@ class Item_RemoteManagement extends CommonDBChild
 
         $tab[] = [
             'id'                 => '1',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'remoteid',
             'name'               => __('ID'),
             'datatype'           => 'itemlink',
@@ -258,7 +232,7 @@ class Item_RemoteManagement extends CommonDBChild
 
         $tab[] = [
             'id'                 => '2',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'type',
             'name'               => _n('Type', 'Types', 1),
             'datatype'           => 'string',
@@ -308,11 +282,9 @@ class Item_RemoteManagement extends CommonDBChild
         return $tab;
     }
 
-
     public function showForm($ID, array $options = [])
     {
-        $itemtype = null;
-        if (isset($options['itemtype']) && !empty($options['itemtype'])) {
+        if (!empty($options['itemtype'])) {
             $itemtype = $options['itemtype'];
         } else if (isset($this->fields['itemtype']) && !empty($this->fields['itemtype'])) {
             $itemtype = $this->fields['itemtype'];
@@ -335,7 +307,7 @@ class Item_RemoteManagement extends CommonDBChild
 
         $this->showFormHeader($options);
 
-        if ($this->isNewID($ID)) {
+        if (self::isNewID($ID)) {
             echo "<input type='hidden' name='items_id' value='" . $options['items_id'] . "'>";
             echo "<input type='hidden' name='itemtype' value='" . $options['itemtype'] . "'>";
         }
@@ -386,12 +358,10 @@ class Item_RemoteManagement extends CommonDBChild
 
     public function getForbiddenStandardMassiveAction()
     {
-
         $forbidden   = parent::getForbiddenStandardMassiveAction();
         $forbidden[] = 'update';
         return $forbidden;
     }
-
 
     public static function getIcon()
     {
