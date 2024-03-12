@@ -34,6 +34,7 @@
  */
 
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\Features\AssignableAsset;
 use Glpi\RichText\RichText;
 use Glpi\Socket;
 use Glpi\Toolbox\DataExport;
@@ -4613,6 +4614,11 @@ JAVASCRIPT;
                     $condition = Plugin::doOneHook($plug['plugin'], 'addDefaultWhere', $itemtype);
                 }
                 break;
+        }
+
+        if (Toolbox::hasTrait($itemtype, AssignableAsset::class)) {
+            /** @var AssignableAsset $itemtype */
+            $condition .= (new DBmysqlIterator(null))->analyseCrit($itemtype::getAssignableVisiblityCriteria());
         }
 
        /* Hook to restrict user right on current itemtype */

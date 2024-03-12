@@ -43,6 +43,7 @@ class Monitor extends CommonDBTM
     use Glpi\Features\DCBreadcrumb;
     use Glpi\Features\Clonable;
     use Glpi\Features\Inventoriable;
+    use Glpi\Features\AssignableAsset;
 
    // From CommonDBTM
     public $dohistory                   = true;
@@ -495,7 +496,6 @@ class Monitor extends CommonDBTM
 
         return $tab;
     }
-
 
     public static function getIcon()
     {

@@ -43,6 +43,7 @@ class Phone extends CommonDBTM
 {
     use Glpi\Features\Clonable;
     use Glpi\Features\Inventoriable;
+    use Glpi\Features\AssignableAsset;
 
    // From CommonDBTM
     public $dohistory                   = true;
@@ -502,7 +503,6 @@ class Phone extends CommonDBTM
 
         return $tab;
     }
-
 
     public static function getIcon()
     {

@@ -218,6 +218,7 @@ class MassiveAction extends DbTestCase
 
        // Set rights if needed
         if ($has_right) {
+            $this->login();
             $_SESSION['glpiactiveentities'] = [
                 $item->getEntityID()
             ];

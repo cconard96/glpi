@@ -43,6 +43,7 @@ class Printer extends CommonDBTM
 {
     use Glpi\Features\Clonable;
     use Glpi\Features\Inventoriable;
+    use Glpi\Features\AssignableAsset;
 
    // From CommonDBTM
     public $dohistory                   = true;
@@ -806,7 +807,6 @@ class Printer extends CommonDBTM
     {
         return $this->restore(["id" => $ID]);
     }
-
 
     public static function getIcon()
     {
