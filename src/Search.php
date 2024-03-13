@@ -472,7 +472,7 @@ class Search
        // Default values of parameters
         $p['criteria']            = [];
         $p['metacriteria']        = [];
-        $p['sort']                = ['1'];
+        $p['sort']                = [0];
         $p['order']               = ['ASC'];
         $p['start']               = 0;//
         $p['is_deleted']          = 0;
@@ -577,6 +577,9 @@ class Search
         $data['search']['no_search']   = true;
 
         $data['toview'] = self::addDefaultToView($itemtype, $params);
+        if ($p['sort'] === [0]) {
+            $p['sort'] = [array_values($data['toview'])[0]];
+        }
         $data['meta_toview'] = [];
         if (!$forcetoview) {
            // Add items to display depending of personal prefs
@@ -641,7 +644,10 @@ class Search
 
        // Special case for CommonITILObjects : put ID in front
         if (is_a($itemtype, CommonITILObject::class, true)) {
-            array_unshift($data['toview'], 2);
+            $id_opt = self::getOptionNumber($itemtype, 'id');
+            if ($id_opt > 0) {
+                array_unshift($data['toview'], $id_opt);
+            }
         }
 
         $limitsearchopt   = self::getCleanedOptions($itemtype);
@@ -3877,28 +3883,65 @@ JAVASCRIPT;
         $item   = null;
         $entity_check = true;
 
-        if ($itemtype != AllAssets::getType()) {
+        if ($itemtype !== \AllAssets::getType()) {
             $item = getItemForItemtype($itemtype);
             $entity_check = $item->isEntityAssign();
         }
-       // Add first element (name)
-        array_push($toview, 1);
 
-        if (isset($params['as_map']) && $params['as_map'] == 1) {
-           // Add location name when map mode
-            array_push($toview, ($itemtype == 'Location' ? 1 : ($itemtype == 'Ticket' ? 83 : 3)));
+        if ($itemtype !== \AllAssets::getType()) {
+            // Add the related search option for the 'name' OR 'id' field. If none is found, add the search option 1 (how it was handled before).
+            // Since not all itemtypes have ID set to 1, it used to add other, heavier search options like content in the case of Followups.
+            $options = array_filter(self::getOptions($itemtype, false), static fn($o) => is_numeric($o), ARRAY_FILTER_USE_KEY);
+            $id_field = array_filter($options, static function ($option) use ($itemtype) {
+                return $option['field'] === 'id' && $option['table'] === $itemtype::getTable();
+            });
+            $name_field = array_filter($options, static function ($option) use ($itemtype) {
+                return $option['field'] === 'name' && $option['table'] === $itemtype::getTable();
+            });
+        } else {
+            $id_field = [];
+            $name_field = [];
         }
 
-       // Add entity view :
+        if (count($name_field) > 0) {
+            $toview[] = array_keys($name_field)[0];
+        } elseif (count($id_field) > 0) {
+            $toview[] = array_keys($id_field)[0];
+        } else {
+            // Fallback to whatever option is ID 1
+            $toview[] = 1;
+        }
+
+        if (isset($params['as_map']) && (int)$params['as_map'] === 1) {
+            if ($itemtype !== \AllAssets::getType()) {
+                // Add location name when map mode
+                $loc_opt = self::getOptionNumber($itemtype, 'completename', 'Location');
+                if ($loc_opt > 0) {
+                    $toview[] = $loc_opt;
+                }
+            } else {
+                $toview[] = 3;
+            }
+        }
+
+        // Add entity view :
         if (
-            Session::isMultiEntitiesMode()
+            \Session::isMultiEntitiesMode()
             && $entity_check
             && (isset($CFG_GLPI["union_search_type"][$itemtype])
-              || ($item && $item->maybeRecursive())
-              || isset($_SESSION['glpiactiveentities']) && (count($_SESSION["glpiactiveentities"]) > 1))
+                || ($item && $item->maybeRecursive())
+                || isset($_SESSION['glpiactiveentities']) && (count($_SESSION["glpiactiveentities"]) > 1))
         ) {
-            array_push($toview, 80);
+            if ($itemtype !== \AllAssets::getType()) {
+                $entity_opt = self::getOptionNumber($itemtype, 'completename', 'Entity');
+                if ($entity_opt > 0) {
+                    $toview[] = $entity_opt;
+                }
+            } else {
+                $toview[] = 80;
+            }
         }
+
         return $toview;
     }
 
@@ -8185,15 +8228,16 @@ HTML;
      *
      * Get an option number in the SEARCH_OPTION array
      *
-     * @param class-string<CommonDBTM> $itemtype  Item type
-     * @param string $field     Name
+     * @param class-string<\CommonDBTM> $itemtype Item type the search option belongs to
+     * @param string $field Name of the field
+     * @param class-string<\CommonDBTM>|null $meta_itemtype If specified, the itemtype that provides the search option. This affects the table used to match the search option.
      *
      * @return integer
      **/
-    public static function getOptionNumber($itemtype, $field)
+    public static function getOptionNumber($itemtype, $field, $meta_itemtype = null)
     {
-
-        $table = $itemtype::getTable();
+        $meta_itemtype ??= $itemtype;
+        $table = $meta_itemtype::getTable();
         $opts  = self::getOptions($itemtype);
 
         foreach ($opts as $num => $opt) {
