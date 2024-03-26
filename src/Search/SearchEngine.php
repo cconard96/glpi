@@ -52,6 +52,7 @@ use Glpi\Search\Output\Ods;
 use Glpi\Search\Output\Pdf;
 use Glpi\Search\Output\TableSearchOutput;
 use Glpi\Search\Output\Xlsx;
+use Glpi\Search\Provider\HLAPIProvider;
 use Glpi\Search\Provider\SearchProviderInterface;
 use Glpi\Search\Provider\SQLProvider;
 use Plugin;
@@ -556,6 +557,9 @@ final class SearchEngine
     private static function getSearchProviderClass(array $params = []): string
     {
         // TODO Maybe have a plugin hook here for custom search provider classes
+        if ($params['experimental_hlapi_search'] ?? false) {
+            return HLAPIProvider::class;
+        }
         return SQLProvider::class;
     }
 
@@ -616,8 +620,7 @@ final class SearchEngine
     {
         $data = self::prepareDataForSearch($itemtype, $params, $forced_display);
         $search_provider_class = self::getSearchProviderClass($params);
-        $search_provider_class::constructSQL($data);
-        $search_provider_class::constructData($data);
+        $search_provider_class::prepareData($data);
 
         return $data;
     }

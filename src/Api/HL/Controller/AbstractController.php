@@ -114,8 +114,7 @@ abstract class AbstractController
     }
 
     /**
-     * @return array
-     * @phpstan-return array<string, Doc\Schema>
+     * @return array<string, Doc\Schema>
      */
     final public static function getKnownSchemas(): array
     {

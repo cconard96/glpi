@@ -771,4 +771,9 @@ final class SearchOption implements \ArrayAccess
 
         return $generated_id;
     }
+
+    public function toArray(): array
+    {
+        return $this->search_opt_array;
+    }
 }

@@ -41,8 +41,18 @@ namespace Glpi\Search\Provider;
  * Search providers query one or more types of data sources to get matching data.
  *
  * @internal Not for use outside {@link Search} class and the "Glpi\Search" namespace.
+ * @phpstan-type SearchDataColumn array{itemtype: string, id: int, name: string, meta: '0'|'1', searchopt: array}
+ * @phpstan-type SearchData array{data: array{execution_time: float, totalcount: int, begin: int, end: int, cols: array, rows: array, items: array, currentuser: string, count: int}}
  */
 interface SearchProviderInterface
 {
-    public static function prepareData(array &$data, array $options): array;
+    /**
+     * Injects prepared data into the data array and also returns it.
+     * @param array $data
+     * @param-out SearchData $data
+     * @param array $options
+     * @return array
+     * @phpstan-return SearchData
+     */
+    public static function prepareData(array &$data, array $options = []): array;
 }

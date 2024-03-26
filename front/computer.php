@@ -39,6 +39,14 @@ Session::checkRightsOr(Computer::$rightname, [READ, READ_ASSIGNED]);
 
 Html::header(Computer::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "assets", "computer");
 
+\Glpi\Debug\Profiler::getInstance()->start('Computer Search - HLAPI');
+$_GET['experimental_hlapi_search'] = 1;
 Search::show('Computer');
+\Glpi\Debug\Profiler::getInstance()->stop('Computer Search - HLAPI');
+
+\Glpi\Debug\Profiler::getInstance()->start('Computer Search - Standard');
+unset($_GET['experimental_hlapi_search']);
+Search::show('Computer');
+\Glpi\Debug\Profiler::getInstance()->stop('Computer Search - Standard');
 
 Html::footer();
