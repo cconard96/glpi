@@ -39,6 +39,7 @@ use Glpi\Api\HL\Controller\AbstractController;
 use Glpi\Api\HL\Doc\Schema;
 use Glpi\Api\HL\Router;
 use Glpi\Api\HL\Search;
+use Glpi\Debug\Profiler;
 use Glpi\Search\SearchOption;
 use Glpi\Toolbox\ArrayPathAccessor;
 
@@ -53,6 +54,7 @@ final class HLAPIProvider implements SearchProviderInterface
 {
     public static function prepareData(array &$data, array $options = []): array
     {
+        Profiler::getInstance()->start('get search options');
         $all_opts = SearchOption::getOptionsForItemtype($data['itemtype']);
         $to_view_opt = [];
         foreach ($data['toview'] as $opt_id) {
@@ -65,32 +67,58 @@ final class HLAPIProvider implements SearchProviderInterface
                 }
             }
         }
+        Profiler::getInstance()->stop('get search options');
+        Profiler::getInstance()->start('get schema for ' . $data['itemtype']);
         $main_schema = self::getSchemaForItemtype($data['itemtype']);
-        $flattened_props = Schema::flattenProperties($main_schema['properties']);
+        Profiler::getInstance()->stop('get schema for ' . $data['itemtype']);
+        Profiler::getInstance()->start('create search option lookups');
+        //$flattened_props = Schema::flattenProperties($main_schema['properties']);
         $lookup = self::getSchemaPropertyLookupTable($main_schema, $to_view_opt);
         $lookup = array_filter($lookup, static fn ($path) => $path !== null);
         $reverse_lookup = array_flip($lookup);
+        Profiler::getInstance()->stop('create search option lookups');
 
         // We will build a new schema with the exact data we need for the search and nothing more
-        $schema_for_search = $main_schema;
-        $schema_for_search['properties'] = [];
-        foreach ($to_view_opt as $opt_key => $opt) {
-            $path = $lookup[$opt_key] ?? null;
-            if ($path === null) {
-                continue;
-            }
-            $prop_key = explode('.', $path);
-            $prop_key = end($prop_key);
-            $new_path = str_replace('.', '.properties.', $path);
-            ArrayPathAccessor::setElementByArrayPath($schema_for_search['properties'], $new_path, ArrayPathAccessor::getElementByArrayPath($flattened_props, $path));
-        }
+//        $schema_for_search = $main_schema;
+//        $schema_for_search['properties'] = [];
+//        foreach ($to_view_opt as $opt_key => $opt) {
+//            $path = $lookup[$opt_key] ?? null;
+//            if ($path === null) {
+//                continue;
+//            }
+//            $prop_key = explode('.', $path);
+//            $prop_key = end($prop_key);
+//            $new_path = str_replace('.', '.properties.', $path);
+//            ArrayPathAccessor::setElementByArrayPath($schema_for_search['properties'], $new_path, ArrayPathAccessor::getElementByArrayPath($flattened_props, $path));
+//        }
+        // Manually remove unwanted props. This will be replaced with actual logic later.
+        unset(
+            $main_schema['properties']['comment'],
+            $main_schema['properties']['date_creation'],
+            $main_schema['properties']['status'],
+            $main_schema['properties']['is_recursive'],
+            $main_schema['properties']['user_tech'],
+            $main_schema['properties']['group_tech'],
+            $main_schema['properties']['user'],
+            $main_schema['properties']['group'],
+            $main_schema['properties']['contact'],
+            $main_schema['properties']['contact_num'],
+            $main_schema['properties']['otherserial'],
+            $main_schema['properties']['uuid'],
+            $main_schema['properties']['autoupdatesystem'],
+        );
+
 
         $timer_start = microtime(true);
+        Profiler::getInstance()->start('search by schema');
         $response = Search::searchBySchema($main_schema, [
             'start' => $data['search']['start'],
             'limit' => $data['search']['list_limit'],
         ]);
+        Profiler::getInstance()->stop('search by schema');
         $data['data']['execution_time'] = microtime(true) - $timer_start;
+
+        Profiler::getInstance()->start('format results');
         $results = json_decode((string) $response->getBody(), true);
         $content_range = $response->getHeaderLine('Content-Range');
         $data['data']['totalcount'] = (int) explode('/', $content_range)[1];
@@ -153,6 +181,7 @@ final class HLAPIProvider implements SearchProviderInterface
             }
             $data['data']['rows'][] = $row;
         }
+        Profiler::getInstance()->stop('format results');
 
         return $data;
     }

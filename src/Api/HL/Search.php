@@ -43,6 +43,9 @@ use Glpi\Api\HL\RSQL\Lexer;
 use Glpi\Api\HL\RSQL\Parser;
 use Glpi\Api\HL\RSQL\RSQLException;
 use Glpi\DBAL\QueryFunction;
+use Glpi\Debug\Profile;
+use Glpi\Debug\Profiler;
+use Glpi\Debug\ProfilerSection;
 use Glpi\Http\JSONResponse;
 use Glpi\Http\Response;
 use Glpi\DBAL\QueryExpression;
@@ -89,6 +92,10 @@ final class Search
      */
     private array $fkey_tables = [];
     private \DBmysql $db_read;
+    /**
+     * @var array Cache of various reference conversions.
+     */
+    private array $refs_cache = [];
 
     private function __construct(array $schema, array $request_params)
     {
@@ -101,6 +108,17 @@ final class Search
         $this->union_search_mode = count($this->tables) > 1;
         $this->rsql_parser = new Parser($this);
         $this->db_read = \DBConnection::getReadConnection();
+        $this->generateRefs();
+    }
+
+    private function generateRefs(): void
+    {
+        foreach ($this->flattened_properties as $prop_name => $prop) {
+            $this->refs_cache['prop_to_dbfield'][$prop_name] = $this->getSQLFieldForProperty($prop_name);
+            $this->refs_cache['prop_to_dbalias'][$prop_name] = str_replace('.', chr(0x1F), $prop_name);
+        }
+        $this->refs_cache['dbfield_to_prop'] = array_flip($this->refs_cache['prop_to_dbfield']);
+        $this->refs_cache['dbalias_to_prop'] = array_flip($this->refs_cache['prop_to_dbalias']);
     }
 
     /**
@@ -127,12 +145,11 @@ final class Search
 
     /**
      * Check if a property is within a join or is itself a join in the case of scalar joined properties.
-     * @param string $prop_name The property name
+     * @param string $prop_name The property name in dot notation
      * @return bool
      */
     private function isJoinedProperty(string $prop_name): bool
     {
-        $prop_name = str_replace(chr(0x1F), '.', $prop_name);
         if (isset($this->joins[$prop_name])) {
             return true;
         }
@@ -142,6 +159,11 @@ final class Search
         }, ARRAY_FILTER_USE_KEY)) > 0;
     }
 
+    /**
+     * Get the SQL field name for the specified property.
+     * @param string $prop_name The property name in dot notation
+     * @return string The SQL field name
+     */
     public function getSQLFieldForProperty(string $prop_name): string
     {
         $prop = $this->flattened_properties[$prop_name];
@@ -178,7 +200,7 @@ final class Search
 
     /**
      * Get the SQL SELECT criteria required to get the data for the specified property.
-     * @param string $prop_name The property name
+     * @param string $prop_name The property name in dot notation
      * @param bool $distinct_groups Whether to use DISTINCT in GROUP_CONCAT
      * @return QueryExpression|null
      */
@@ -197,7 +219,7 @@ final class Search
         if (array_key_exists('type', $prop) && $prop['type'] !== Doc\Schema::TYPE_OBJECT) {
             if (!isset($prop['x-mapper'])) {
                 // Do not select fields mapped after the results are retrieved
-                $sql_field = $this->getSQLFieldForProperty($prop_name);
+                $sql_field = $this->refs_cache['prop_to_dbfield'][$prop_name];
                 $expression = $this->db_read::quoteName($sql_field);
                 if (str_contains($sql_field, '.')) {
                     $join_name = $this->getJoinNameForProperty($prop_name);
@@ -546,6 +568,10 @@ final class Search
         return false;
     }
 
+    /**
+     * @param string $join The join property name in dot notation
+     * @return string The matching property name in dot notation
+     */
     private function getPrimaryKeyPropertyForJoin(string $join): string
     {
         // If this is a scalar property join, simply return the property named the same as the join
@@ -576,10 +602,15 @@ final class Search
         throw new RuntimeException("Cannot find primary key property for join $join");
     }
 
+    /**
+     * @param string $prop_name The property name in dot notation or with '.' replaced by chr(0x1F)
+     * @return string The join name in dot notation
+     */
     private function getJoinNameForProperty(string $prop_name): string
     {
-        if (array_key_exists(str_replace(chr(0x1F), '.', $prop_name), $this->joins)) {
-            $join_name = str_replace(chr(0x1F), '.', $prop_name);
+        $prop_name_dn = str_replace(chr(0x1F), '.', $prop_name);
+        if (array_key_exists($prop_name_dn, $this->joins)) {
+            $join_name = $prop_name_dn;
         } else {
             $join_name = substr($prop_name, 0, strrpos($prop_name, chr(0x1F)));
             $join_name = str_replace(chr(0x1F), '.', $join_name);
@@ -906,6 +937,7 @@ final class Search
         $fetched_records = [];
 
         foreach ($records as $schema_name => $dehydrated_records) {
+            Profiler::getInstance()->start('hydrate for schema ' . $schema_name, 'hlapi');
             // Clear lookup cache between schemas just in case.
             $this->fkey_tables = [];
             foreach ($dehydrated_records as $row) {
@@ -935,6 +967,7 @@ final class Search
                         continue;
                     }
 
+                    Profiler::getInstance()->start('build criteria for hydrated records', 'hlapi');
                     $criteria = [
                         'SELECT' => [],
                     ];
@@ -981,7 +1014,7 @@ final class Search
                             // Property can only be written to, not read. We shouldn't be getting it here.
                             continue;
                         }
-                        $sql_field = $this->getSQLFieldForProperty($prop_name);
+                        $sql_field = $this->refs_cache['prop_to_dbfield'][$prop_name];
                         $field_parts = explode('.', $sql_field);
                         $field_only = end($field_parts);
                         // Handle translatable fields
@@ -1023,9 +1056,13 @@ final class Search
                         }
                     }
 
+                    Profiler::getInstance()->stop('build criteria for hydrated records');
                     // Fetch the data for the current dehydrated record
+                    Profiler::getInstance()->start('fetch hydrated records', 'hlapi');
                     $it = $this->db_read->request($criteria);
+                    Profiler::getInstance()->stop('fetch hydrated records');
                     $this->validateIterator($it);
+                    Profiler::getInstance()->start('pre-assemble records', 'hlapi');
                     foreach ($it as $data) {
                         $cleaned_data = [];
                         foreach ($data as $k => $v) {
@@ -1034,10 +1071,14 @@ final class Search
                         $fkey_local_name = trim(strrchr($fkey, chr(0x1F)) ?: $fkey, chr(0x1F));
                         $fetched_records[$table][$data[$fkey_local_name]] = $cleaned_data;
                     }
+                    Profiler::getInstance()->stop('pre-assemble records');
                 }
 
+                Profiler::getInstance()->start('assemble hydrated records', 'hlapi');
                 $hydrated_records[] = $this->assembleHydratedRecords($row, $schema_name, $fetched_records);
+                Profiler::getInstance()->stop('assemble hydrated records');
             }
+            Profiler::getInstance()->stop('hydrate for schema ' . $schema_name);
         }
         return $hydrated_records;
     }
@@ -1057,10 +1098,17 @@ final class Search
             throw new \RuntimeException('Schema must be an object type');
         }
         // Initialize a new search
+        Profiler::getInstance()->start('initialize search', 'hlapi');
         $search = new self($schema, $request_params);
+        Profiler::getInstance()->stop('initialize search');
+        Profiler::getInstance()->start('get matching records', 'hlapi');
         $ids = $search->getMatchingRecords();
+        Profiler::getInstance()->stop('get matching records');
+        Profiler::getInstance()->start('hydrate records', 'hlapi');
         $results = $search->hydrateRecords($ids);
+        Profiler::getInstance()->stop('hydrate records');
 
+        Profiler::getInstance()->start('handle mapped fields', 'hlapi');
         $mapped_props = array_filter($search->getFlattenedProperties(), static function ($prop) {
             return isset($prop['x-mapper']);
         });
@@ -1077,8 +1125,10 @@ final class Search
             }
             $result = Doc\Schema::fromArray($schema)->castProperties($result);
         }
+        Profiler::getInstance()->stop('handle mapped fields');
         unset($result);
 
+        Profiler::getInstance()->start('find total count', 'hlapi');
         // Count the total number of results with the same criteria, but without the offset and limit
         $criteria = $search->getSearchCriteria();
         // We only need the total count, so we don't need to hydrate the records
@@ -1087,6 +1137,7 @@ final class Search
         foreach ($all_records as $schema_name => $records) {
             $total_count += count($records);
         }
+        Profiler::getInstance()->stop('find total count');
 
         return [
             'results' => array_values($results),
