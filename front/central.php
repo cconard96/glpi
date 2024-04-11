@@ -52,11 +52,14 @@ if (isset($_GET["embed"]) && isset($_GET["dashboard"])) {
     exit;
 }
 
+// The referer may not always be available
+$referer = $_SERVER['HTTP_REFERER'] ?? $CFG_GLPI['root_doc'];
+
 // Change profile system
 if (isset($_REQUEST['newprofile'])) {
     if (isset($_SESSION["glpiprofiles"][$_REQUEST['newprofile']])) {
         Session::changeProfile($_REQUEST['newprofile']);
-        if (Session::getCurrentInterface() == "helpdesk") {
+        if (Session::getCurrentInterface() === "helpdesk") {
             if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']) {
                 Html::redirect($CFG_GLPI['root_doc'] . "/front/helpdesk.public.php?create_ticket=1");
             } else {
@@ -64,9 +67,9 @@ if (isset($_REQUEST['newprofile'])) {
             }
         }
         $_SESSION['_redirected_from_profile_selector'] = true;
-        Html::redirect($_SERVER['HTTP_REFERER']);
+        Html::redirect($referer);
     }
-    Html::redirect(preg_replace("/entities_id.*/", "", $_SERVER['HTTP_REFERER']));
+    Html::redirect(preg_replace("/entities_id.*/", "", $referer));
 }
 
 // Manage entity change
@@ -79,7 +82,7 @@ if (isset($_GET["active_entity"])) {
             ($_GET["active_entity"] == $_SESSION["glpiactive_entity"])
             && isset($_SERVER['HTTP_REFERER'])
         ) {
-            Html::redirect(preg_replace("/(\?|&|" . urlencode('?') . "|" . urlencode('&') . ")?(entities_id|active_entity).*/", "", $_SERVER['HTTP_REFERER']));
+            Html::redirect(preg_replace("/(\?|&|" . urlencode('?') . "|" . urlencode('&') . ")?(entities_id|active_entity).*/", "", $referer));
         }
     }
 }
