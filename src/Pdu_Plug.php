@@ -50,22 +50,18 @@ class Pdu_Plug extends CommonDBRelation
         return _n('PDU plug', 'PDU plugs', $nb);
     }
 
-
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         $nb = 0;
-        switch ($item->getType()) {
-            default:
-                $field = $item->getType() == PDU::getType() ? 'pdus_id' : 'plugs_id';
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = countElementsInTable(
-                        self::getTable(),
-                        [$field  => $item->getID()]
-                    );
-                }
-                return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
+
+        $field = $item::class === PDU::class ? 'pdus_id' : 'plugs_id';
+        if ($_SESSION['glpishow_count_on_tabs']) {
+            $nb = countElementsInTable(
+                self::getTable(),
+                [$field  => $item->getID()]
+            );
         }
-        return '';
+        return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
     }
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
@@ -79,7 +75,7 @@ class Pdu_Plug extends CommonDBRelation
      *
      * @param  PDU $pdu PDU instance
      *
-     * @return void
+     * @return void|false
      */
     public static function showItems(PDU $pdu)
     {

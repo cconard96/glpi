@@ -50,25 +50,21 @@ class Item_Rack extends CommonDBRelation
         return _n('Item', 'Item', $nb);
     }
 
-
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
         $nb = 0;
-        switch ($item->getType()) {
-            default:
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = countElementsInTable(
-                        self::getTable(),
-                        ['racks_id'  => $item->getID()]
-                    );
-                    $nb += countElementsInTable(
-                        PDU_Rack::getTable(),
-                        ['racks_id'  => $item->getID()]
-                    );
-                }
-                return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
+
+        if ($_SESSION['glpishow_count_on_tabs']) {
+            $nb = countElementsInTable(
+                self::getTable(),
+                ['racks_id'  => $item->getID()]
+            );
+            $nb += countElementsInTable(
+                PDU_Rack::getTable(),
+                ['racks_id'  => $item->getID()]
+            );
         }
-        return '';
+        return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
     }
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
@@ -99,19 +95,19 @@ class Item_Rack extends CommonDBRelation
                 foreach ($ids as $id) {
                     if ($item->can($id, UPDATE, $input)) {
                         $relation_criteria = [
-                            'itemtype' => $item->getType(),
+                            'itemtype' => $item::class,
                             'items_id' => $item->getID()
                         ];
-                        if (countElementsInTable(Item_Rack::getTable(), $relation_criteria) > 0) {
+                        if (countElementsInTable(self::getTable(), $relation_criteria) > 0) {
                             if ($item_rack->deleteByCriteria($relation_criteria)) {
-                                $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);
+                                $ma->itemDone($item::class, $id, MassiveAction::ACTION_OK);
                             } else {
-                                $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_KO);
+                                $ma->itemDone($item::class, $id, MassiveAction::ACTION_KO);
                                 $ma->addMessage($item->getErrorMessage(ERROR_ON_ACTION));
                             }
                         }
                     } else {
-                        $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_NORIGHT);
+                        $ma->itemDone($item::class, $id, MassiveAction::ACTION_NORIGHT);
                         $ma->addMessage($item->getErrorMessage(ERROR_RIGHT));
                     }
                 }
@@ -125,7 +121,7 @@ class Item_Rack extends CommonDBRelation
         $rand = mt_rand();
         $canedit = $rack->canEdit($rack->getID());
 
-        echo "<h2>" . __("Racked items") . "</h2>";
+        echo "<h2>" . __s("Racked items") . "</h2>";
 
         $entries = [];
         foreach ($items as $row) {
@@ -172,13 +168,13 @@ class Item_Rack extends CommonDBRelation
         $link = new self();
 
         $data = [];
-        //all rows; empty
+        // all rows; empty
         for ($i = (int)$rack->fields['number_units']; $i > 0; --$i) {
             $data[Rack::FRONT][$i] = false;
             $data[Rack::REAR][$i] = false;
         }
 
-        //fill rows
+        // fill rows
         $outbound = [];
         foreach ($items as $row) {
             $rel  = new self();
@@ -207,6 +203,7 @@ class Item_Rack extends CommonDBRelation
                 'reserved'  => (bool) $row['is_reserved'],
             ];
 
+            /** @var class-string<CommonDBTM> $model_class */
             $model_class = $item->getType() . 'Model';
             $modelsfield = $model_class::getForeignKeyField();
             $model = new $model_class();
@@ -218,12 +215,12 @@ class Item_Rack extends CommonDBRelation
                         - $model->fields['required_units'];
                 }
 
-                if ($model->fields['is_half_rack'] == 1) {
+                if ((int) $model->fields['is_half_rack'] === 1) {
                     $gs_item['half_rack'] = true;
                     $gs_item['width'] = 1;
                     $row['position'] .= "_" . $gs_item['x'];
-                    if ($row['orientation'] == Rack::REAR) {
-                        $gs_item['x'] = $row['hpos'] == 2 ? 0 : 1;
+                    if ($row['orientation'] === Rack::REAR) {
+                        $gs_item['x'] = (int) $row['hpos'] === 2 ? 0 : 1;
                     }
                 }
 
@@ -247,14 +244,13 @@ class Item_Rack extends CommonDBRelation
 
                 //add to other side if needed
                 if (
-                    $model == null
+                    $model === null
                     || $model->fields['depth'] >= 1
                 ) {
                     $gs_item['rear'] = true;
                     $flip_orientation = (int) !((bool) $row['orientation']);
                     if ($gs_item['half_rack']) {
                         $gs_item['x'] = (int) !((bool) $gs_item['x']);
-                        //$row['position'] = substr($row['position'], 0, -2)."_".$gs_item['x'];
                     }
                     $data[$flip_orientation][$row['position']] = [
                         'row'     => $row,
@@ -365,7 +361,7 @@ class Item_Rack extends CommonDBRelation
     /**
      * Print racks items
      * @param  Rack   $rack the current rack instance
-     * @return void
+     * @return void|false
      */
     public static function showItems(Rack $rack)
     {
@@ -401,7 +397,7 @@ class Item_Rack extends CommonDBRelation
                 //        %2$s is the name of the item (used for headings of a list)
                 sprintf(
                     __('%1$s = %2$s'),
-                    $rack->getTypeName(1),
+                    $rack::getTypeName(1),
                     $rack->getName()
                 )
             );
@@ -478,7 +474,7 @@ JAVASCRIPT;
 
                 for ($i = 0; $i < $model->fields['required_units']; $i++) {
                     $units[$row['orientation']][$row['position'] + $i] = 1;
-                    if ($model->fields['depth'] == 1) {
+                    if ((int) $model->fields['depth'] === 1) {
                         $other_side = (int) !(bool) $row['orientation'];
                         $units[$other_side][$row['position'] + $i] = 1;
                     }
@@ -894,27 +890,18 @@ JAVASCRIPT;
         return '';
     }
 
-
     /**
      * Return an i html tag with a dedicated icon for the itemtype
-     * @param  string $itemtype  A rackable itemtype
+     * @param class-string<CommonDBTM> $itemtype  A rackable itemtype
      * @return string           The i html tag
      */
     private static function getItemIcon($itemtype = "")
     {
-        $icon = "";
-        switch ($itemtype) {
-            case "Computer":
-                $icon = "ti ti-server";
-                break;
-            case "Reserved":
-                $icon = "ti ti-lock";
-                break;
-
-            default:
-                $icon = $itemtype::getIcon();
-                break;
-        }
+        $icon = match ($itemtype) {
+            "Computer" => "ti ti-server",
+            "Reserved" => "ti ti-lock",
+            default => $itemtype::getIcon(),
+        };
 
         if (!empty($icon)) {
             $icon = "<i class='item_rack_icon $icon'></i>";
@@ -952,28 +939,16 @@ JAVASCRIPT;
         $orientation = !$this->isNewItem() ? $this->fields['orientation'] : null;
 
        //check for requirements
-        if (
-            ($this->isNewItem() && (!isset($input['itemtype']) || empty($input['itemtype'])))
-            || (isset($input['itemtype']) && empty($input['itemtype']))
-        ) {
+        if ($this->isNewItem() && empty($input['itemtype'])) {
             $error_detected[] = __('An item type is required');
         }
-        if (
-            ($this->isNewItem() && (!isset($input['items_id']) || empty($input['items_id'])))
-            || (isset($input['items_id']) && empty($input['items_id']))
-        ) {
+        if ($this->isNewItem() && empty($input['items_id'])) {
             $error_detected[] = __('An item is required');
         }
-        if (
-            ($this->isNewItem() && (!isset($input['racks_id']) || empty($input['racks_id'])))
-            || (isset($input['racks_id']) && empty($input['racks_id']))
-        ) {
+        if ($this->isNewItem() && empty($input['racks_id'])) {
             $error_detected[] = __('A rack is required');
         }
-        if (
-            ($this->isNewItem() && (!isset($input['position']) || empty($input['position'])))
-            || (isset($input['position']) && empty($input['position']))
-        ) {
+        if ($this->isNewItem() && empty($input['position'])) {
             $error_detected[] = __('A position is required');
         }
 
@@ -1010,6 +985,7 @@ JAVASCRIPT;
 
             $item = new $itemtype();
             $item->getFromDB($items_id);
+            /** @var class-string<CommonDBTM> $model_class */
             $model_class = $item->getType() . 'Model';
             $modelsfield = $model_class::getForeignKeyField();
             $model = new $model_class();
@@ -1022,13 +998,13 @@ JAVASCRIPT;
                     $required_units = $model->fields['required_units'];
                 }
                 if ($model->fields['is_half_rack'] == 1) {
-                    if ($this->isNewItem() && !isset($input['hpos']) || $input['hpos'] == 0) {
+                    if ($this->isNewItem() && empty($input['hpos'])) {
                         $error_detected[] = __('You must define an horizontal position for this item');
                     }
                     $width = 0.5;
                 }
                 if ($model->fields['depth'] != 1) {
-                    if ($this->isNewItem() && !isset($input['orientation'])) {
+                    if ($this->isNewItem() && empty($input['orientation'])) {
                         $error_detected[] = __('You must define an orientation for this item');
                     }
                     $depth = $model->fields['depth'];
@@ -1047,10 +1023,10 @@ JAVASCRIPT;
                     if (isset($filled[$current_position])) {
                         $content_filled = $filled[$current_position];
 
-                        if ($hpos == Rack::POS_NONE || $hpos == Rack::POS_LEFT) {
+                        if ($hpos === Rack::POS_NONE || $hpos === Rack::POS_LEFT) {
                             $d = 0;
                             while ($d / 4 < $depth) {
-                                $pos = ($orientation == Rack::REAR) ? 3 - $d : $d;
+                                $pos = ($orientation === Rack::REAR) ? 3 - $d : $d;
                                 $val = 1;
                                 if (isset($content_filled[Rack::POS_LEFT][$pos]) && $content_filled[Rack::POS_LEFT][$pos] != 0) {
                                     $error_detected[] = __('Not enough space available to place item');
@@ -1060,10 +1036,10 @@ JAVASCRIPT;
                             }
                         }
 
-                        if ($hpos == Rack::POS_NONE || $hpos == Rack::POS_RIGHT) {
+                        if ($hpos === Rack::POS_NONE || $hpos === Rack::POS_RIGHT) {
                             $d = 0;
                             while ($d / 4 < $depth) {
-                                $pos = ($orientation == Rack::REAR) ? 3 - $d : $d;
+                                $pos = ($orientation === Rack::REAR) ? 3 - $d : $d;
                                 $val = 1;
                                 if (isset($content_filled[Rack::POS_RIGHT][$pos]) && $content_filled[Rack::POS_RIGHT][$pos] != 0) {
                                     $error_detected[] = __('Not enough space available to place item');
@@ -1096,14 +1072,11 @@ JAVASCRIPT;
     {
         $rack = new Rack();
         $rack->getFromDB($this->fields['racks_id']);
-        $name = sprintf(
-            __('Item for rack "%1$s"'),
+        return sprintf(
+            __s('Item for rack "%1$s"'),
             $rack->getName()
         );
-
-        return $name;
     }
-
 
     public static function getIcon()
     {

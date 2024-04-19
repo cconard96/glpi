@@ -62,7 +62,7 @@ class Rack extends CommonDBTM
 
     public static function getTypeName($nb = 0)
     {
-       //TRANS: Test of comment for translation (mark : //TRANS)
+        //TRANS: Test of comment for translation (mark : //TRANS)
         return _n('Rack', 'Racks', $nb);
     }
 
@@ -93,7 +93,7 @@ class Rack extends CommonDBTM
             ],
             [
                 'id'                 => '180',
-                'table'              => Rack::getTable(),
+                'table'              => self::getTable(),
                 'field'              => 'name',
                 'name'               => __('Name'),
                 'datatype'           => 'dropdown',
@@ -123,16 +123,10 @@ class Rack extends CommonDBTM
         ];
     }
 
-
     /**
      * Print the rack form
      *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return boolean item found
+     * @inheritDoc
      **/
     public function showForm($ID, array $options = [])
     {
@@ -144,14 +138,13 @@ class Rack extends CommonDBTM
         return true;
     }
 
-
     public function rawSearchOptions()
     {
         $tab = parent::rawSearchOptions();
 
         $tab[] = [
             'id'                 => '2',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'id',
             'name'               => __('ID'),
             'massiveaction'      => false, // implicit field is id
@@ -187,7 +180,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '5',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'serial',
             'name'               => __('Serial number'),
             'datatype'           => 'string',
@@ -195,7 +188,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '6',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'otherserial',
             'name'               => __('Inventory number'),
             'datatype'           => 'string',
@@ -211,7 +204,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '8',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'number_units',
             'name'               => __('Number of units'),
             'datatype'           => 'number'
@@ -219,7 +212,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '16',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'comment',
             'name'               => __('Comments'),
             'datatype'           => 'text'
@@ -227,7 +220,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '19',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'date_mod',
             'name'               => __('Last update'),
             'datatype'           => 'datetime',
@@ -236,7 +229,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '121',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'date_creation',
             'name'               => __('Creation date'),
             'datatype'           => 'datetime',
@@ -273,7 +266,7 @@ class Rack extends CommonDBTM
 
         $tab[] = [
             'id'                 => '61',
-            'table'              => $this->getTable(),
+            'table'              => static::getTable(),
             'field'              => 'template_name',
             'name'               => __('Template name'),
             'datatype'           => 'text',
@@ -330,9 +323,8 @@ class Rack extends CommonDBTM
 
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
     {
-
-        switch ($item->getType()) {
-            case DCRoom::getType():
+        switch ($item::class) {
+            case DCRoom::class:
                 $nb = 0;
                 if ($_SESSION['glpishow_count_on_tabs']) {
                     $nb = countElementsInTable(
@@ -346,16 +338,15 @@ class Rack extends CommonDBTM
                 return self::createTabEntry(
                     self::getTypeName(Session::getPluralNumber()),
                     $nb,
-                    $item::getType()
+                    $item::class
                 );
-             break;
         }
         return '';
     }
 
     public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
     {
-        switch ($item->getType()) {
+        switch ($item::class) {
             case DCRoom::getType():
                 self::showForRoom($item);
                 break;
@@ -745,9 +736,8 @@ JAVASCRIPT;
             if (isset($input["id"]) && ($input["id"] > 0)) {
                 $input["_oldID"] = $input["id"];
             }
-            unset($input['id']);
-            unset($input['withtemplate']);
-            if (!isset($input['bgcolor']) || empty($input['bgcolor'])) {
+            unset($input['id'], $input['withtemplate']);
+            if (empty($input['bgcolor'])) {
                 $input['bgcolor'] = '#FEC95C';
             }
 
@@ -778,15 +768,14 @@ JAVASCRIPT;
      */
     private function prepareInput($input)
     {
-
-        if (!array_key_exists('dcrooms_id', $input) || $input['dcrooms_id'] == 0) {
+        if (!array_key_exists('dcrooms_id', $input) || (int) $input['dcrooms_id'] === 0) {
            // Position is not set if room not selected
             return $input;
         }
 
-        if ($input['position'] == 0) {
+        if ((int) $input['position'] === 0) {
             Session::addMessageAfterRedirect(
-                __('Position must be set'),
+                __s('Position must be set'),
                 true,
                 ERROR
             );
@@ -807,7 +796,7 @@ JAVASCRIPT;
         if ($existing > 0) {
             Session::addMessageAfterRedirect(
                 sprintf(
-                    __('%1$s position is not available'),
+                    __s('%1$s position is not available'),
                     $input['position']
                 ),
                 true,
@@ -821,7 +810,8 @@ JAVASCRIPT;
     /**
      * Get already filled places
      *
-     * @param string $current Current position to exclude; defaults to null
+     * @param class-string<CommonDBTM> $itemtype
+     * @param int    $items_id
      *
      * @return array [x => [left => [depth, depth, depth, depth]], [right => [depth, depth, depth, depth]]]
      */
@@ -848,7 +838,7 @@ JAVASCRIPT;
             $depth = 1;
             $model_class = $item->getType() . 'Model';
             $modelsfield = $model_class::getForeignKeyField();
-            if ($item->fields[$modelsfield] != 0) {
+            if ($item->fields[$modelsfield] !== 0) {
                 $model = new $model_class();
                 if ($model->getFromDB($item->fields[$modelsfield])) {
                     $units = $model->fields['required_units'];
@@ -859,7 +849,7 @@ JAVASCRIPT;
             $position = $row['position'];
             if (
                 empty($itemtype) || empty($items_id)
-                || $itemtype != $row['itemtype'] || $items_id != $row['items_id']
+                || $itemtype !== $row['itemtype'] || $items_id !== $row['items_id']
             ) {
                 while (--$units >= 0) {
                     $content_filled = [
@@ -871,12 +861,12 @@ JAVASCRIPT;
                         $content_filled = $filled[$position + $units];
                     }
 
-                    if ($row['hpos'] == self::POS_NONE || $row['hpos'] == self::POS_LEFT) {
+                    if ($row['hpos'] === self::POS_NONE || $row['hpos'] === self::POS_LEFT) {
                         $d = 0;
                         while ($d / 4 < $depth) {
-                            $pos = ($row['orientation'] == self::REAR) ? 3 - $d : $d;
+                            $pos = ($row['orientation'] === self::REAR) ? 3 - $d : $d;
                             $val = 1;
-                            if (isset($content_filled[self::POS_LEFT][$pos]) && $content_filled[self::POS_LEFT][$pos] != 0) {
+                            if (isset($content_filled[self::POS_LEFT][$pos]) && $content_filled[self::POS_LEFT][$pos] !== 0) {
                                 trigger_error('Several elements exists in rack at same place :(', E_USER_WARNING);
                                 $val += $content_filled[self::POS_LEFT][$pos];
                             }
@@ -885,12 +875,12 @@ JAVASCRIPT;
                         }
                     }
 
-                    if ($row['hpos'] == self::POS_NONE || $row['hpos'] == self::POS_RIGHT) {
+                    if ($row['hpos'] === self::POS_NONE || $row['hpos'] === self::POS_RIGHT) {
                         $d = 0;
                         while ($d / 4 < $depth) {
-                            $pos = ($row['orientation'] == self::REAR) ? 3 - $d : $d;
+                            $pos = ($row['orientation'] === self::REAR) ? 3 - $d : $d;
                             $val = 1;
-                            if (isset($content_filled[self::POS_RIGHT][$pos]) && $content_filled[self::POS_RIGHT][$pos] != 0) {
+                            if (isset($content_filled[self::POS_RIGHT][$pos]) && $content_filled[self::POS_RIGHT][$pos] !== 0) {
                                 trigger_error('Several elements exists in rack at same place :(', E_USER_WARNING);
                                 $val += $content_filled[self::POS_RIGHT][$pos];
                             }
@@ -918,7 +908,6 @@ JAVASCRIPT;
 
     public function cleanDBonPurge()
     {
-
         $this->deleteChildrenAndRelationsFromDb(
             [
                 Item_Rack::class,
@@ -969,7 +958,6 @@ JAVASCRIPT;
             </div><!-- // .grid-stack-item-content -->
          </div>"; // .grid-stack-item
     }
-
 
     public static function getIcon()
     {

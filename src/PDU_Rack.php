@@ -45,10 +45,10 @@ class PDU_Rack extends CommonDBRelation
     public static $mustBeAttached_1      = false;
     public static $mustBeAttached_2      = false;
 
-    const SIDE_LEFT   = 1;
-    const SIDE_RIGHT  = 2;
-    const SIDE_TOP    = 3;
-    const SIDE_BOTTOM = 4;
+    public const SIDE_LEFT   = 1;
+    public const SIDE_RIGHT  = 2;
+    public const SIDE_TOP    = 3;
+    public const SIDE_BOTTOM = 4;
 
     public static function getTypeName($nb = 0)
     {
@@ -94,19 +94,19 @@ class PDU_Rack extends CommonDBRelation
        //check for requirements
         if ($this->isNewItem()) {
             if (!isset($input['pdus_id'])) {
-                $error_detected[] = __('A pdu is required');
+                $error_detected[] = __s('A pdu is required');
             }
 
             if (!isset($input['racks_id'])) {
-                $error_detected[] = __('A rack is required');
+                $error_detected[] = __s('A rack is required');
             }
 
             if (!isset($input['position'])) {
-                $error_detected[] = __('A position is required');
+                $error_detected[] = __s('A position is required');
             }
 
             if (!isset($input['side'])) {
-                $error_detected[] = __('A side is required');
+                $error_detected[] = __s('A side is required');
             }
         }
 
@@ -116,7 +116,7 @@ class PDU_Rack extends CommonDBRelation
         $side     = $input['side'] ?? $this->fields['side'] ?? null;
 
         if (!count($error_detected)) {
-           //check if required U are available at position
+            // check if required U are available at position
             $required_units = 1;
 
             $rack = new Rack();
@@ -139,14 +139,14 @@ class PDU_Rack extends CommonDBRelation
                 && ($position > $rack->fields['number_units']
                  || $position + $required_units  > $rack->fields['number_units'] + 1)
             ) {
-                $error_detected[] = __('Item is out of rack bounds');
+                $error_detected[] = __s('Item is out of rack bounds');
             } else {
                 for ($i = 0; $i < $required_units; $i++) {
                     if (
                         $filled[$position + $i] > 0
                         && $filled[$position + $i] != $pdus_id
                     ) {
-                        $error_detected[] = __('Not enough space available to place item');
+                        $error_detected[] = __s('Not enough space available to place item');
                         break;
                     }
                 }
@@ -211,7 +211,7 @@ class PDU_Rack extends CommonDBRelation
         $used = [];
         foreach (
             $DB->request([
-                'FROM' => $this->getTable()
+                'FROM' => static::getTable()
             ]) as $not_racked
         ) {
             $used[] = $not_racked['pdus_id'];
@@ -307,7 +307,7 @@ class PDU_Rack extends CommonDBRelation
         /** @var \DBmysql $DB */
         global $DB;
 
-        echo "<h2>" . __("Side pdus") . "</h2>";
+        echo "<h2>" . __s("Side pdus") . "</h2>";
 
         $pdu     = new PDU();
         $canedit = $rack->canEdit($rack->getID());
@@ -468,9 +468,8 @@ class PDU_Rack extends CommonDBRelation
 
     public static function showFirstForm($racks_id = 0)
     {
-
         $rand = mt_rand();
-        echo "<label for='dropdown_sub_form$rand'>" . __("The pdu will be") . "</label>&nbsp;";
+        echo "<label for='dropdown_sub_form$rand'>" . __s("The pdu will be") . "</label>&nbsp;";
         Dropdown::showFromArray('sub_form', [
             'racked'    => __('racked'),
             'side_rack' => __('placed at rack side'),
@@ -480,7 +479,7 @@ class PDU_Rack extends CommonDBRelation
             'rand'                => $rand,
         ]);
 
-        $pra_url = PDU_Rack::getFormURL() . "?racks_id=$racks_id&ajax=true";
+        $pra_url = self::getFormURL() . "?racks_id=$racks_id&ajax=true";
         $ira_url = Item_Rack::getFormURL() . "?_onlypdu=true&orientation=0&position=1&racks_id=$racks_id&ajax=true";
 
         $js = <<<JAVASCRIPT
@@ -488,9 +487,9 @@ class PDU_Rack extends CommonDBRelation
          var sub_form = $('#dropdown_sub_form{$rand}').val();
 
          var form_url = "";
-         if (sub_form == "racked") {
+         if (sub_form === "racked") {
             form_url = "{$ira_url}";
-         } else if (sub_form == "side_rack") {
+         } else if (sub_form === "side_rack") {
             form_url = "{$pra_url}";
          }
 
@@ -507,9 +506,6 @@ JAVASCRIPT;
 
     public static function showVizForRack(Rack $rack, $side)
     {
-        /** @var array $CFG_GLPI */
-        global $CFG_GLPI;
-
         $rand  = mt_rand();
         $num_u = $rack->fields['number_units'];
         $pdu   = new PDU();
@@ -711,16 +707,12 @@ JAVASCRIPT;
      */
     public static function getOtherSide($side)
     {
-        switch ($side) {
-            case self::SIDE_TOP:
-                return self::SIDE_BOTTOM;
-            case self::SIDE_BOTTOM:
-                return self::SIDE_TOP;
-            case self::SIDE_LEFT:
-                return self::SIDE_RIGHT;
-            case self::SIDE_RIGHT:
-                return self::SIDE_LEFT;
-        }
-        return false;
+        return match ($side) {
+            self::SIDE_TOP => self::SIDE_BOTTOM,
+            self::SIDE_BOTTOM => self::SIDE_TOP,
+            self::SIDE_LEFT => self::SIDE_RIGHT,
+            self::SIDE_RIGHT => self::SIDE_LEFT,
+            default => false,
+        };
     }
 }
