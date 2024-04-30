@@ -4983,6 +4983,7 @@ HTML;
 
         $start       = intval($_GET["start"] ?? 0);
 
+        $user_config_type = $tech ? 'linkuser_tech_types' : 'linkuser_types';
         if ($tech) {
             $itemtypes = array_merge($CFG_GLPI['linkuser_tech_types'], $CFG_GLPI['linkgroup_tech_types']);
             $field_user  = 'users_id_tech';
@@ -5012,9 +5013,7 @@ HTML;
         ]);
         $number = 0;
 
-        $criteria = [
-            $field_user => $ID,
-        ];
+        $criteria = [];
         if ($iterator->count() > 0) {
             $groups_ids = [];
             foreach ($iterator as $data) {
@@ -5023,7 +5022,6 @@ HTML;
             }
             $criteria = [
                 'OR' => [
-                    $criteria,
                     [
                         Group_Item::getTable() . '.groups_id' => $groups_ids,
                         Group_Item::getTable() . '.type' => $tech ? Group_Item::GROUP_TYPE_TECH : Group_Item::GROUP_TYPE_NORMAL,
@@ -5059,6 +5057,11 @@ HTML;
                     'WHERE'   => $criteria,
                     'GROUPBY' => "$itemtable.id",
                 ];
+                if (in_array($itemtype, $CFG_GLPI[$user_config_type])) {
+                    $iterator_params['WHERE']['OR'][] = [
+                        $field_user => $ID
+                    ];
+                }
 
                 if ($item->maybeTemplate()) {
                     $iterator_params['WHERE']['is_template'] = 0;

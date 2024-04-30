@@ -53,6 +53,7 @@ class DataHelpersExtension extends AbstractExtension
             new TwigFilter('formatted_datetime', [$this, 'getFormattedDatetime']),
             new TwigFilter('formatted_duration', [$this, 'getFormattedDuration']),
             new TwigFilter('formatted_number', [$this, 'getFormattedNumber']),
+            new TwigFilter('formatted_integer', [$this, 'getFormattedNumber']),
             new TwigFilter('formatted_size', [$this, 'getFormattedSize']),
             new TwigFilter('html_to_text', [$this, 'getTextFromHtml']),
             new TwigFilter('long2ip', 'long2ip'),
@@ -113,6 +114,18 @@ class DataHelpersExtension extends AbstractExtension
             return null;
         }
         return Html::timestampToString($duration, $display_seconds);
+    }
+
+    /**
+     * Return integer formatted to user preferred format.
+     *
+     * @param mixed $number Number to display
+     *
+     * @return string
+     */
+    public function getFormattedInteger($number): string
+    {
+        return Html::formatNumber($number, forcedecimal: 0);
     }
 
     /**
