@@ -392,7 +392,7 @@
                         ) }}
                      {% endif %}
 
-                     {% if item.isField('groups_id_tech') %}
+                     {% if item.isField('groups_id_tech') or (item is usingtrait('Glpi\\Features\\AssignableItem') and item.GROUP_TYPE_TECH in item.groupTypes()) %}
                         {{ fields.dropdownField(
                            'Group',
                            'groups_id_tech',
@@ -401,6 +401,7 @@
                            field_options|merge({
                               'entity': item.fields['entities_id'],
                               'condition': {'is_assign': 1},
+                              'multiple': item is usingtrait('Glpi\\Features\\AssignableItem') ? true : false
                            })
                         ) }}
                      {% endif %}
@@ -534,7 +535,7 @@
                         ) }}
                      {% endif %}
 
-                     {% if item.isField('groups_id') %}
+                     {% if item.isField('groups_id') or (item is usingtrait('Glpi\\Features\\AssignableItem') and item.GROUP_TYPE_NORMAL in item.groupTypes()) %}
                         {{ fields.dropdownField(
                            'Group',
                            'groups_id',
@@ -543,6 +544,7 @@
                            field_options|merge({
                               'entity': item.fields['entities_id'],
                               'condition': {'is_itemgroup': 1},
+                              'multiple': item is usingtrait('Glpi\\Features\\AssignableItem') ? true : false
                            })
                         ) }}
                      {% endif %}

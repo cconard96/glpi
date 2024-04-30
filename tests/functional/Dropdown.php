@@ -39,7 +39,7 @@ use CommonDBTM;
 use Computer;
 use DbTestCase;
 use Generator;
-use Glpi\Features\AssignableAsset;
+use Glpi\Features\AssignableItem;
 use Glpi\Socket;
 use Glpi\Toolbox\Sanitizer;
 use Item_DeviceSimcard;
@@ -1907,7 +1907,7 @@ class Dropdown extends DbTestCase
     {
         $this->login();
 
-        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableAsset::class))->isTrue();
+        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableItem::class))->isTrue();
 
         // Create group for the user
         $group = new \Group();
@@ -1997,7 +1997,7 @@ class Dropdown extends DbTestCase
     {
         $this->login();
 
-        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableAsset::class))->isTrue();
+        $this->boolean(\Toolbox::hasTrait($itemtype, AssignableItem::class))->isTrue();
 
         // Create group for the user
         $group = new \Group();

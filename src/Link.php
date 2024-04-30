@@ -33,6 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
+use Glpi\Features\AssignableItem;
 use Glpi\Toolbox\Sanitizer;
 use Glpi\Toolbox\URL;
 
@@ -394,19 +395,18 @@ class Link extends CommonDBTM
                 $link
             );
         }
-        if (
-            strstr($link, "[GROUP]")
-            && $item->isField('groups_id')
-        ) {
-            $link = str_replace(
-                "[GROUP]",
-                Dropdown::getDropdownName(
-                    "glpi_groups",
-                    $item->getField('groups_id')
-                ),
-                $link
-            );
+        if (Toolbox::hasTrait($item::class, AssignableItem::class)) {
+            if (in_array(Group_Item::GROUP_TYPE_NORMAL, $item->getGroupTypes(), true)) {
+                $group_names = array_map(static fn ($group_id) => Dropdown::getDropdownName('glpi_groups', $group_id), $item->fields['groups_id']);
+                // GROUP - BC for < GLPI 11
+                $group = count($group_names) > 0 ? array_shift($group_names) : '';
+            }
+        } else {
+            $vars['GROUPS'] = [];
+            // GROUP - BC for < GLPI 11
+            $group = $item->isField('groups_id') ? Dropdown::getDropdownName('glpi_groups', $item->getField('groups_id')) : '';
         }
+        $link = str_replace($link, '[GROUP]', $group);
         if (
             strstr($link, "[REALNAME]")
             && $item->isField('realname')

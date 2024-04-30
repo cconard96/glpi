@@ -35,6 +35,7 @@
 
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Event;
+use Glpi\Features\AssignableItem;
 use Glpi\Features\CacheableListInterface;
 use Glpi\Plugin\Hooks;
 use Glpi\RichText\RichText;
@@ -1039,6 +1040,17 @@ class CommonDBTM extends CommonGLPI
          * @var \DBmysql $DB
          */
         global $CFG_GLPI, $DB;
+
+        if (Toolbox::hasTrait(static::class, AssignableItem::class)) {
+            $group_item = new Group_Item();
+            $group_item->deleteByCriteria(
+                [
+                    'itemtype' => static::class,
+                    'items_id' => $this->getID()
+                ],
+                true
+            );
+        }
 
         if (in_array($this->getType(), $CFG_GLPI['agent_types'])) {
            // Agent does not extends CommonDBConnexity
@@ -3522,11 +3534,18 @@ class CommonDBTM extends CommonGLPI
             $this->isField('groups_id')
             && ($this->getType() != 'Group')
         ) {
-            $tmp = Dropdown::getDropdownName("glpi_groups", $this->getField('groups_id'));
-            if ((strlen($tmp) != 0) && ($tmp != '&nbsp;')) {
-                $toadd[] = ['name'  => Group::getTypeName(1),
-                    'value' => $tmp
-                ];
+            $groups = $this->fields['groups_id'];
+            if (!is_array($groups)) {
+                $groups = [$groups];
+            }
+            foreach ($groups as $group) {
+                $tmp = Dropdown::getDropdownName("glpi_groups", $group);
+                if ($tmp !== '' && $tmp !== '&nbsp;') {
+                    $toadd[] = [
+                        'name'  => Group::getTypeName(1),
+                        'value' => $tmp
+                    ];
+                }
             }
         }
 

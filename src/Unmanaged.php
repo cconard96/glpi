@@ -35,6 +35,7 @@
  */
 
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\Features\AssignableItem;
 
 /**
  * Not managed devices from inventory
@@ -42,6 +43,7 @@ use Glpi\Application\View\TemplateRenderer;
 class Unmanaged extends CommonDBTM
 {
     use Glpi\Features\Inventoriable;
+    use AssignableItem;
 
    // From CommonDBTM
     public $dohistory                   = true;
@@ -191,6 +193,66 @@ class Unmanaged extends CommonDBTM
             'name'               => __('Status'),
             'datatype'           => 'dropdown',
             'condition'          => ['is_visible_unmanaged' => 1]
+        ];
+
+        $tab[] = [
+            'id'                 => '24',
+            'table'              => User::getTable(),
+            'field'              => 'name',
+            'linkfield'          => 'users_id_tech',
+            'name'               => __('Technician in charge'),
+            'datatype'           => 'dropdown',
+            'right'              => 'own_ticket'
+        ];
+
+        $tab[] = [
+            'id'                 => '49',
+            'table'              => Group::getTable(),
+            'field'              => 'completename',
+            'linkfield'          => 'groups_id',
+            'name'               => __('Group in charge'),
+            'condition'          => ['is_assign' => 1],
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => 'glpi_groups_items',
+                    'joinparams'         => [
+                        'jointype'           => 'itemtype_item',
+                        'condition'          => ['NEWTABLE.type' => Group_Item::GROUP_TYPE_TECH]
+                    ]
+                ]
+            ],
+            'forcegroupby'       => true,
+            'massiveaction'      => false,
+            'datatype'           => 'dropdown'
+        ];
+
+        $tab[] = [
+            'id'                 => '70',
+            'table'              => User::getTable(),
+            'field'              => 'name',
+            'name'               => User::getTypeName(1),
+            'datatype'           => 'dropdown',
+            'right'              => 'all'
+        ];
+
+        $tab[] = [
+            'id'                 => '71',
+            'table'              => Group::getTable(),
+            'field'              => 'completename',
+            'name'               => Group::getTypeName(1),
+            'condition'          => ['is_itemgroup' => 1],
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => 'glpi_groups_items',
+                    'joinparams'         => [
+                        'jointype'           => 'itemtype_item',
+                        'condition'          => ['NEWTABLE.type' => Group_Item::GROUP_TYPE_NORMAL]
+                    ]
+                ]
+            ],
+            'forcegroupby'       => true,
+            'massiveaction'      => false,
+            'datatype'           => 'dropdown'
         ];
 
         return $tab;

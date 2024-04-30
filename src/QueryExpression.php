@@ -40,17 +40,20 @@ class QueryExpression
 {
     private $expression;
 
+    private ?string $alias;
+
     /**
      * Create a query expression
      *
      * @param string $value Query parameter value, defaults to '?'
      */
-    public function __construct($expression)
+    public function __construct($expression, ?string $alias = null)
     {
         if (empty($expression)) {
             throw new \RuntimeException('Cannot build an empty expression');
         }
         $this->expression = $expression;
+        $this->alias = $alias;
     }
 
     /**
@@ -60,7 +63,13 @@ class QueryExpression
      */
     public function getValue()
     {
-        return $this->expression;
+        /** @var \DBmysql $DB */
+        global $DB;
+        $sql = $this->expression;
+        if (!empty($this->alias)) {
+            $sql .= ' AS ' . $DB::quoteName($this->alias);
+        }
+        return $sql;
     }
 
 

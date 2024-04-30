@@ -514,7 +514,7 @@ class DBmysqlIterator implements SeekableIterator, Countable
     /**
      * Generate the SQL statement for a array of criteria
      *
-     * @param string[] $crit Criteria
+     * @param array $crit Criteria
      * @param string   $bool Boolean operator (default AND)
      *
      * @return string

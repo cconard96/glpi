@@ -255,6 +255,7 @@ $CFG_GLPI["linkuser_types"]               = ['Computer', 'Monitor', 'NetworkEqui
     'SoftwareLicense', 'Certificate', 'Appliance', 'Item_DeviceSimcard', 'Line'
 ];
 
+// Each type in this array must use the AssignableItem trait to support multiple groups and the expanded read/update permissions
 $CFG_GLPI["linkgroup_types"]              = ['Computer', 'Consumable', 'Monitor', 'NetworkEquipment',
     'Peripheral', 'Phone', 'Printer', 'Software',
     'SoftwareLicense', 'Certificate', 'Appliance', 'Item_DeviceSimcard', 'Line'
@@ -262,12 +263,13 @@ $CFG_GLPI["linkgroup_types"]              = ['Computer', 'Consumable', 'Monitor'
 
 $CFG_GLPI["linkuser_tech_types"]          = ['Computer', 'ConsumableItem', 'Monitor', 'NetworkEquipment',
     'Peripheral', 'Phone', 'Printer', 'Software',
-    'SoftwareLicense', 'Certificate', 'Appliance', 'DatabaseInstance'
+    'SoftwareLicense', 'Certificate', 'Appliance', 'DatabaseInstance', 'Enclosure'
 ];
 
+// Each type in this array must use the AssignableItem trait to support multiple groups and the expanded read/update permissions
 $CFG_GLPI["linkgroup_tech_types"]         = ['Computer', 'ConsumableItem', 'Monitor', 'NetworkEquipment',
     'Peripheral', 'Phone', 'Printer', 'Software',
-    'SoftwareLicense', 'Certificate', 'Appliance', 'DatabaseInstance'
+    'SoftwareLicense', 'Certificate', 'Appliance', 'DatabaseInstance', 'Enclosure'
 ];
 
 $CFG_GLPI["location_types"]               = ['Budget', 'CartridgeItem', 'ConsumableItem',

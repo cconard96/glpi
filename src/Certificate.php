@@ -34,6 +34,7 @@
  */
 
 use Glpi\Application\View\TemplateRenderer;
+use Glpi\Features\AssignableItem;
 
 /**
  * @since 9.2
@@ -47,6 +48,10 @@ use Glpi\Application\View\TemplateRenderer;
 class Certificate extends CommonDBTM
 {
     use Glpi\Features\Clonable;
+    use AssignableItem {
+        prepareInputForAdd as prepareInputForAddAssignableItem;
+        post_updateItem as post_updateItemAssignableItem;
+    }
 
     public $dohistory           = true;
     public static $rightname           = "certificate";
@@ -265,9 +270,20 @@ class Certificate extends CommonDBTM
             'id'                 => '49',
             'table'              => 'glpi_groups',
             'field'              => 'completename',
-            'linkfield'          => 'groups_id_tech',
+            'linkfield'          => 'groups_id',
             'name'               => __('Group in charge'),
             'condition'          => ['is_assign' => 1],
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => 'glpi_groups_items',
+                    'joinparams'         => [
+                        'jointype'           => 'itemtype_item',
+                        'condition'          => ['NEWTABLE.type' => Group_Item::GROUP_TYPE_TECH]
+                    ]
+                ]
+            ],
+            'forcegroupby'       => true,
+            'massiveaction'      => false,
             'datatype'           => 'dropdown'
         ];
 
@@ -297,6 +313,17 @@ class Certificate extends CommonDBTM
             'field'              => 'completename',
             'name'               => Group::getTypeName(1),
             'condition'          => ['is_itemgroup' => 1],
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => 'glpi_groups_items',
+                    'joinparams'         => [
+                        'jointype'           => 'itemtype_item',
+                        'condition'          => ['NEWTABLE.type' => Group_Item::GROUP_TYPE_NORMAL]
+                    ]
+                ]
+            ],
+            'forcegroupby'       => true,
+            'massiveaction'      => false,
             'datatype'           => 'dropdown'
         ];
 
@@ -473,7 +500,10 @@ class Certificate extends CommonDBTM
 
     public function prepareInputForAdd($input)
     {
-
+        $input = $this->prepareInputForAddAssignableItem($input);
+        if ($input === false) {
+            return false;
+        }
         if (isset($input["id"]) && ($input["id"] > 0)) {
             $input["_oldID"] = $input["id"];
         }
@@ -839,7 +869,7 @@ class Certificate extends CommonDBTM
 
     public function post_updateItem($history = true)
     {
+        $this->post_updateItemAssignableItem($history);
         $this->cleanAlerts([Alert::END]);
-        parent::post_updateItem($history);
     }
 }

@@ -35,6 +35,7 @@
 
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssetImage;
+use Glpi\Features\AssignableItem;
 
 /**
  * SoftwareLicense Class
@@ -43,6 +44,12 @@ class SoftwareLicense extends CommonTreeDropdown
 {
     use Glpi\Features\Clonable;
     use AssetImage;
+    use AssignableItem {
+        prepareInputForAdd as prepareInputForAddAssignableItem;
+        prepareInputForUpdate as prepareInputForUpdateAssignableItem;
+        post_addItem as post_addItemAssignableItem;
+        post_updateItem as post_updateItemAssignableItem;
+    }
 
    /// TODO move to CommonDBChild ?
    // From CommonDBTM
@@ -90,7 +97,10 @@ class SoftwareLicense extends CommonTreeDropdown
      **/
     public function prepareInputForAdd($input)
     {
-
+        $input = $this->prepareInputForAddAssignableItem($input);
+        if ($input === false) {
+            return false;
+        }
         $input = parent::prepareInputForAdd($input);
 
         if (!isset($this->input['softwares_id']) || !$this->input['softwares_id']) {
@@ -124,8 +134,10 @@ class SoftwareLicense extends CommonTreeDropdown
      **/
     public function prepareInputForUpdate($input)
     {
-
-        $input = parent::prepareInputForUpdate($input);
+        $input = $this->prepareInputForUpdateAssignableItem($input);
+        if ($input === false) {
+            return false;
+        }
 
        // Update number : compute validity indicator
         if (isset($input['number'])) {
@@ -204,6 +216,7 @@ class SoftwareLicense extends CommonTreeDropdown
 
     public function post_addItem()
     {
+        $this->post_addItemAssignableItem();
         $itemtype = 'Software';
         $dupid    = $this->fields["softwares_id"];
 
@@ -227,7 +240,7 @@ class SoftwareLicense extends CommonTreeDropdown
      **/
     public function post_updateItem($history = true)
     {
-
+        $this->post_updateItemAssignableItem($history);
         if (in_array("is_valid", $this->updates)) {
             Software::updateValidityIndicator($this->fields["softwares_id"]);
         }
@@ -508,9 +521,20 @@ class SoftwareLicense extends CommonTreeDropdown
             'id'                 => '49',
             'table'              => 'glpi_groups',
             'field'              => 'completename',
-            'linkfield'          => 'groups_id_tech',
+            'linkfield'          => 'groups_id',
             'name'               => __('Group in charge of the license'),
             'condition'          => ['is_assign' => 1],
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => 'glpi_groups_items',
+                    'joinparams'         => [
+                        'jointype'           => 'itemtype_item',
+                        'condition'          => ['NEWTABLE.type' => Group_Item::GROUP_TYPE_TECH]
+                    ]
+                ]
+            ],
+            'forcegroupby'       => true,
+            'massiveaction'      => false,
             'datatype'           => 'dropdown'
         ];
 
@@ -540,6 +564,17 @@ class SoftwareLicense extends CommonTreeDropdown
             'field'              => 'completename',
             'name'               => Group::getTypeName(1),
             'condition'          => ['is_itemgroup' => 1],
+            'joinparams'         => [
+                'beforejoin'         => [
+                    'table'              => 'glpi_groups_items',
+                    'joinparams'         => [
+                        'jointype'           => 'itemtype_item',
+                        'condition'          => ['NEWTABLE.type' => Group_Item::GROUP_TYPE_NORMAL]
+                    ]
+                ]
+            ],
+            'forcegroupby'       => true,
+            'massiveaction'      => false,
             'datatype'           => 'dropdown'
         ];
 
