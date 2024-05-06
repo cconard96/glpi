@@ -2382,17 +2382,16 @@ class CommonDBTM extends CommonGLPI
      * Have I the global right to add an item for the Object
      * May be overloaded if needed (ex Ticket)
      *
-     * @since 0.83
-     *
-     * @param string $type itemtype of object to add
+     * @param class-string<CommonDBTM> $type itemtype of object to add
      *
      * @return boolean
-     **/
-    public function canAddItem($type)
+     * @since 0.83
+     *
+     */
+    public function canAddItem(string $type): bool
     {
         return $this->can($this->getID(), UPDATE);
     }
-
 
     /**
      * Have I the right to "create" the Object
@@ -2403,15 +2402,13 @@ class CommonDBTM extends CommonGLPI
      *
      * @return boolean
      **/
-    public function canCreateItem()
+    public function canCreateItem(): bool
     {
-
         if (!$this->checkEntity()) {
             return false;
         }
         return true;
     }
-
 
     /**
      * Have I the right to "update" the Object
@@ -2422,15 +2419,13 @@ class CommonDBTM extends CommonGLPI
      *
      * @return boolean
      **/
-    public function canUpdateItem()
+    public function canUpdateItem(): bool
     {
-
         if (!$this->checkEntity(true)) {
             return false;
         }
         return true;
     }
-
 
     /**
      * Have I the right to "delete" the Object
@@ -2441,43 +2436,38 @@ class CommonDBTM extends CommonGLPI
      *
      * @return boolean
      **/
-    public function canDeleteItem()
+    public function canDeleteItem(): bool
     {
-
         if (!$this->checkEntity(true)) {
             return false;
         }
         return true;
     }
-
 
     /**
      * Have I the right to "purge" the Object
      *
      * Default is true and check entity if the objet is entity assign
      *
-     * @since 0.85
-     *
      * @return boolean
-     **/
-    public function canPurgeItem()
+     * @since 0.85
+     */
+    public function canPurgeItem(): bool
     {
-
         if (!$this->checkEntity(true)) {
             return false;
         }
 
-       // Can purge an object with Infocom only if can purge Infocom
+        // Can purge an object with Infocom only if can purge Infocom
         if (Infocom::canApplyOn($this)) {
             $infocom = new Infocom();
 
-            if ($infocom->getFromDBforDevice($this->getType(), $this->fields['id'])) {
-                return $infocom->canPurge();
+            if ($infocom->getFromDBforDevice(static::class, $this->fields['id'])) {
+                return $infocom::canPurge();
             }
         }
         return true;
     }
-
 
     /**
      * Have I the right to "view" the Object
@@ -2485,9 +2475,8 @@ class CommonDBTM extends CommonGLPI
      *
      * @return boolean
      **/
-    public function canViewItem()
+    public function canViewItem(): bool
     {
-
         if (!$this->checkEntity(true)) {
             return false;
         }
@@ -2496,19 +2485,16 @@ class CommonDBTM extends CommonGLPI
         return true;
     }
 
-
     /**
      * Have i right to see action button
      *
      * @param integer $ID ID to check
      *
-     * @since 0.85
-     *
      * @return boolean
-     **/
-    public function canEdit($ID)
+     * @since 0.85
+     */
+    public function canEdit(int $ID): bool
     {
-
         if ($this->maybeDeleted()) {
             return ($this->can($ID, CREATE)
                  || $this->can($ID, UPDATE)
@@ -2520,7 +2506,6 @@ class CommonDBTM extends CommonGLPI
               || $this->can($ID, PURGE));
     }
 
-
     /**
      * Can I change recursive flag to false
      * check if there is "linked" object in another entity
@@ -2529,7 +2514,7 @@ class CommonDBTM extends CommonGLPI
      *
      * @return boolean
      **/
-    public function canUnrecurs()
+    public function canUnrecurs(): bool
     {
         /**
          * @var array $CFG_GLPI
@@ -2688,7 +2673,6 @@ class CommonDBTM extends CommonGLPI
         }
         return true;
     }
-
 
     /**
      * check if this action can be done on this field of this item by massive actions
@@ -2891,17 +2875,7 @@ class CommonDBTM extends CommonGLPI
         return true;
     }
 
-
-    /**
-     * Check right on an item
-     *
-     * @param integer $ID    ID of the item (-1 if new item)
-     * @param mixed   $right Right to check : r / w / recursive / READ / UPDATE / DELETE
-     * @param array   $input array of input data (used for adding item) (default NULL)
-     *
-     * @return boolean
-     **/
-    public function can($ID, $right, array &$input = null)
+    public function can(int $ID, int $right, array &$input = null): bool
     {
         if (Session::isInventory()) {
             return true;
@@ -3119,17 +3093,15 @@ class CommonDBTM extends CommonGLPI
         }
     }
 
-
     /**
      * Get global right on an object
      *
-     * @param mixed $right Right to check : c / r / w / d / READ / UPDATE / CREATE / DELETE
+     * @param int $right READ / UPDATE / CREATE / DELETE
      *
      * @return bool
      **/
-    public function canGlobal($right)
+    public function canGlobal(int $right): bool
     {
-
         switch ($right) {
             case READ:
                 return static::canView();

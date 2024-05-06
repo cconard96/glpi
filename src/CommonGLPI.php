@@ -152,12 +152,12 @@ class CommonGLPI implements CommonGLPIInterface
      * so, id and input parameters are unused.
      *
      * @param integer $ID    ID of the item (-1 if new item)
-     * @param mixed   $right Right to check : r / w / recursive / READ / UPDATE / DELETE
-     * @param array   $input array of input data (used for adding item) (default NULL)
+     * @param int $right READ / UPDATE / DELETE (See constants in `inc/define.php`)
+     * @param array|null &$input array of input data (used for adding item)
      *
      * @return boolean
      **/
-    public function can($ID, $right, array &$input = null)
+    public function can(int $ID, int $right, array &$input = null): bool
     {
         switch ($right) {
             case READ:
@@ -185,7 +185,7 @@ class CommonGLPI implements CommonGLPIInterface
      *
      * @return boolean
      **/
-    public static function canCreate()
+    public static function canCreate(): bool
     {
         if (static::$rightname) {
             return Session::haveRight(static::$rightname, CREATE);
@@ -203,7 +203,7 @@ class CommonGLPI implements CommonGLPIInterface
      *
      * @return boolean
      **/
-    public static function canView()
+    public static function canView(): bool
     {
         if (static::$rightname) {
             return Session::haveRight(static::$rightname, READ);
@@ -215,12 +215,12 @@ class CommonGLPI implements CommonGLPIInterface
     /**
      * Have I the global right to "update" the Object
      *
-     * Default is calling canCreate
+     * Default is calling canCreate`
      * May be overloaded if needed
      *
      * @return boolean
      **/
-    public static function canUpdate()
+    public static function canUpdate(): bool
     {
         if (static::$rightname) {
             return Session::haveRight(static::$rightname, UPDATE);
@@ -236,7 +236,7 @@ class CommonGLPI implements CommonGLPIInterface
      *
      * @return boolean
      **/
-    public static function canDelete()
+    public static function canDelete(): bool
     {
         if (static::$rightname) {
             return Session::haveRight(static::$rightname, DELETE);
@@ -252,7 +252,7 @@ class CommonGLPI implements CommonGLPIInterface
      *
      * @return boolean
      **/
-    public static function canPurge()
+    public static function canPurge(): bool
     {
         if (static::$rightname) {
             return Session::haveRight(static::$rightname, PURGE);

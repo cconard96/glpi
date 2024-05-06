@@ -83,7 +83,7 @@ abstract class RuleCommonITILObject extends Rule
         return true;
     }
 
-    public function canUnrecurs()
+    public function canUnrecurs(): bool
     {
         return true;
     }

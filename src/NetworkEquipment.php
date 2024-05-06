@@ -167,7 +167,7 @@ class NetworkEquipment extends CommonDBTM
      *
      * @return boolean
      **/
-    public function canUnrecurs()
+    public function canUnrecurs(): bool
     {
         /** @var \DBmysql $DB */
         global $DB;

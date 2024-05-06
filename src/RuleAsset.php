@@ -65,7 +65,7 @@ class RuleAsset extends Rule
     }
 
 
-    public function canUnrecurs()
+    public function canUnrecurs(): bool
     {
         return true;
     }

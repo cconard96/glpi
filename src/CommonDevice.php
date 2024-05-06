@@ -190,11 +190,11 @@ abstract class CommonDevice extends CommonDropdown
      *
      * Overloaded from CommonDBTM
      *
-     * @since 0.85
-     *
      * @return boolean
-     **/
-    public function canUnrecurs()
+     **@since 0.85
+     *
+     */
+    public function canUnrecurs(): bool
     {
         /** @var \DBmysql $DB */
         global $DB;

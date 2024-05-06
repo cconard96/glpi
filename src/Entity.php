@@ -230,13 +230,13 @@ class Entity extends CommonTreeDropdown
         return _n('Entity', 'Entities', $nb);
     }
 
-    public static function canCreate()
+    public static function canCreate(): bool
     {
         // Do not show the create button if no recusive access on current entity
         return parent::canCreate() && Session::haveRecursiveAccessToEntity(Session::getActiveEntity());
     }
 
-    public function canCreateItem()
+    public function canCreateItem(): bool
     {
        // Check the parent
         return Session::haveRecursiveAccessToEntity($this->getField('entities_id'));
@@ -246,7 +246,7 @@ class Entity extends CommonTreeDropdown
     /**
      * @since 0.84
      **/
-    public static function canUpdate()
+    public static function canUpdate(): bool
     {
 
         return (Session::haveRightsOr(self::$rightname, [UPDATE, self::UPDATEHELPDESK])
@@ -254,14 +254,14 @@ class Entity extends CommonTreeDropdown
     }
 
 
-    public function canUpdateItem()
+    public function canUpdateItem(): bool
     {
        // Check the current entity
         return Session::haveAccessToEntity($this->getField('id'));
     }
 
 
-    public function canViewItem()
+    public function canViewItem(): bool
     {
        // Check the current entity
         return Session::haveAccessToEntity($this->getField('id'));

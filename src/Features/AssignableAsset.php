@@ -40,12 +40,12 @@ use Session;
 
 trait AssignableAsset
 {
-    public static function canView()
+    public static function canView(): bool
     {
         return Session::haveRightsOr(static::$rightname, [READ, READ_ASSIGNED]);
     }
 
-    public function canViewItem()
+    public function canViewItem(): bool
     {
         if (!parent::canViewItem()) {
             return false;
@@ -62,12 +62,12 @@ trait AssignableAsset
         return true;
     }
 
-    public static function canUpdate()
+    public static function canUpdate(): bool
     {
         return Session::haveRightsOr(static::$rightname, [UPDATE, UPDATE_ASSIGNED]);
     }
 
-    public function canUpdateItem()
+    public function canUpdateItem(): bool
     {
         if (!parent::canUpdateItem()) {
             return false;

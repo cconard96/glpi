@@ -143,7 +143,7 @@ abstract class CommonITILActor extends CommonDBRelation
     }
 
 
-    public function canUpdateItem()
+    public function canUpdateItem(): bool
     {
 
         return (parent::canUpdateItem()
@@ -155,7 +155,7 @@ abstract class CommonITILActor extends CommonDBRelation
     /**
      * @since 0.84
      **/
-    public function canDeleteItem()
+    public function canDeleteItem(): bool
     {
 
         return (parent::canDeleteItem()
