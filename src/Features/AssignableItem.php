@@ -44,7 +44,7 @@ trait AssignableItem
 {
     public static function canView()
     {
-        return Session::haveRightsOr(static::$rightname, [READ, READ_ASSIGNED]);
+        return Session::haveRightsOr(static::$rightname, [READ, READ_ASSIGNED, READ_OWNED]);
     }
 
     public function canViewItem()
@@ -60,9 +60,17 @@ trait AssignableItem
         if (!$is_assigned && $this->isField('groups_id_tech')) {
             $is_assigned = count(array_intersect($this->fields['groups_id_tech'] ?? [], $_SESSION['glpigroups'] ?? [])) > 0;
         }
+        $is_owned = false;
+        if ($this->isField('users_id')) {
+            $is_owned = $this->fields['users_id'] === $_SESSION['glpiID'];
+        }
+        if (!$is_owned && $this->isField('groups_id')) {
+            $is_owned = count(array_intersect($this->fields['groups_id'] ?? [], $_SESSION['glpigroups'] ?? [])) > 0;
+        }
 
         if (!Session::haveRight(static::$rightname, READ)) {
-            return $is_assigned && Session::haveRight(static::$rightname, READ_ASSIGNED);
+            return ($is_assigned && Session::haveRight(static::$rightname, READ_ASSIGNED))
+                || ($is_owned && Session::haveRight(static::$rightname, READ_OWNED));
         }
 
         // Has global READ right
@@ -71,7 +79,7 @@ trait AssignableItem
 
     public static function canUpdate()
     {
-        return Session::haveRightsOr(static::$rightname, [UPDATE, UPDATE_ASSIGNED]);
+        return Session::haveRightsOr(static::$rightname, [UPDATE, UPDATE_ASSIGNED, UPDATE_OWNED]);
     }
 
     public function canUpdateItem()
@@ -87,9 +95,17 @@ trait AssignableItem
         if (!$is_assigned && $this->isField('groups_id_tech')) {
             $is_assigned = count(array_intersect($this->fields['groups_id_tech'] ?? [], $_SESSION['glpigroups'] ?? [])) > 0;
         }
+        $is_owned = false;
+        if ($this->isField('users_id')) {
+            $is_owned = $this->fields['users_id'] === $_SESSION['glpiID'];
+        }
+        if (!$is_owned && $this->isField('groups_id')) {
+            $is_owned = count(array_intersect($this->fields['groups_id'] ?? [], $_SESSION['glpigroups'] ?? [])) > 0;
+        }
 
         if (!Session::haveRight(static::$rightname, UPDATE)) {
-            return $is_assigned && Session::haveRight(static::$rightname, UPDATE_ASSIGNED);
+            return ($is_assigned && Session::haveRight(static::$rightname, UPDATE_ASSIGNED))
+                || ($is_owned && Session::haveRight(static::$rightname, UPDATE_OWNED));
         }
 
         // Has global UPDATE right
@@ -98,40 +114,41 @@ trait AssignableItem
 
     public static function getAssignableVisiblityCriteria()
     {
-        /** @var \DBmysql $DB */
-        global $DB;
-
-        if (Session::haveRight(static::$rightname, READ)) {
-            $condition = [new QueryExpression('1')];
-        } elseif (Session::haveRight(static::$rightname, READ_ASSIGNED)) {
-            $item_table     = static::getTable();
-            $relation_table = Group_Item::getTable();
-
-            $condition = [
-                $item_table . '.users_id_tech' => $_SESSION['glpiID'],
-            ];
-            if (count($_SESSION['glpigroups']) > 0) {
-                $condition = [
-                    'OR' => [
-                        $condition,
-                        $item_table . '.id' => new QuerySubQuery([
-                            'SELECT'     => $relation_table . '.items_id',
-                            'FROM'       => $relation_table,
-                            'WHERE' => [
-                                'itemtype'  => static::class,
-                                'groups_id' => $_SESSION['glpigroups'],
-                                'type'      => Group_Item::GROUP_TYPE_TECH,
-                            ]
-                        ]),
-                    ]
-                ];
-            }
-        } else {
-            $condition = [new QueryExpression('0')];
+        if (!Session::haveRightsOr(static::$rightname, [READ, READ_ASSIGNED, READ_OWNED])) {
+            return [new QueryExpression('0')];
         }
 
-        // Use a unique key for condition to make result usage safe for `array + array` and `array_merge` operations.
-        return [crc32(serialize($condition)) => $condition];
+        if (Session::haveRight(static::$rightname, READ)) {
+            return [new QueryExpression('1')];
+        }
+
+        $or = [];
+        if (Session::haveRight(static::$rightname, READ_ASSIGNED)) {
+            $or[] = [
+                'users_id_tech' => $_SESSION['glpiID'],
+            ];
+            if (count($_SESSION['glpigroups'])) {
+                $or[] = [
+                    'groups_id_tech' => $_SESSION['glpigroups'],
+                ];
+            }
+        }
+        if (Session::haveRight(static::$rightname, READ_OWNED)) {
+            $or[] = [
+                'users_id' => $_SESSION['glpiID'],
+            ];
+            if (count($_SESSION['glpigroups'])) {
+                $or[] = [
+                    'groups_id' => $_SESSION['glpigroups'],
+                ];
+            }
+        }
+
+        // Add another layer to the array to prevent losing duplicates keys if the
+        // result of the function is merged with another array
+        $criteria = [crc32(serialize($or)) => ['OR' => $or]];
+
+        return $criteria;
     }
 
     /**
@@ -145,8 +162,10 @@ trait AssignableItem
         $rights = parent::getRights($interface);
         $rights[READ] = __('View all');
         $rights[READ_ASSIGNED] = __('View assigned');
+        $rights[READ_OWNED] = __('View owned');
         $rights[UPDATE] = __('Update all');
         $rights[UPDATE_ASSIGNED] = __('Update assigned');
+        $rights[UPDATE_OWNED] = __('Update owned');
         return $rights;
     }
 
