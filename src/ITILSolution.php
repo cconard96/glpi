@@ -112,7 +112,7 @@ class ITILSolution extends CommonDBChild
         return $item->canSolve();
     }
 
-    public function canEdit(int $ID): bool
+    public function canEdit($ID): bool
     {
         return $this->item->maySolve();
     }

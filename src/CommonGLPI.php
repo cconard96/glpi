@@ -157,7 +157,7 @@ class CommonGLPI implements CommonGLPIInterface
      *
      * @return boolean
      **/
-    public function can(int $ID, int $right, array &$input = null): bool
+    public function can($ID, int $right, array &$input = null): bool
     {
         switch ($right) {
             case READ:

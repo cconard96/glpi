@@ -2493,7 +2493,7 @@ class CommonDBTM extends CommonGLPI
      * @return boolean
      * @since 0.85
      */
-    public function canEdit(int $ID): bool
+    public function canEdit($ID): bool
     {
         if ($this->maybeDeleted()) {
             return ($this->can($ID, CREATE)
@@ -2875,7 +2875,7 @@ class CommonDBTM extends CommonGLPI
         return true;
     }
 
-    public function can(int $ID, int $right, array &$input = null): bool
+    public function can($ID, int $right, array &$input = null): bool
     {
         if (Session::isInventory()) {
             return true;
