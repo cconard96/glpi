@@ -1915,7 +1915,6 @@ class User extends CommonDBTM
 
         if (
             is_resource($ldap_connection)
-            || (class_exists(\Ldap\Connection::class) && $ldap_connection instanceof \Ldap\Connection)
         ) {
            //Set all the search fields
             $this->fields['password'] = "";
