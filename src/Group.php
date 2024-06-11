@@ -807,8 +807,10 @@ class Group extends CommonTreeDropdown
         $ID = $this->fields['id'];
         if ($tech) {
             $title = __('Managed items');
+            $types = $CFG_GLPI['linkgroup_tech_types'];
         } else {
             $title = __('Used items');
+            $types = $CFG_GLPI['linkgroup_types'];
         }
 
         $tree = Session::getSavedOption(__CLASS__, 'tree', 0);
