@@ -5197,7 +5197,12 @@ JAVASCRIPT
             $selected = $options['selected'];
             unset($options['selected']);
         }
-        $select = sprintf(
+        $select = '';
+        $original_field_name = rtrim($name, '[]');
+        if (isset($options['multiple']) && $options['multiple']) {
+            $select .= "<input type='hidden' name='$original_field_name' value=''>";
+        }
+        $select .= sprintf(
             '<select name="%1$s" %2$s>',
             self::cleanInputText($name),
             self::parseAttributes($options)
