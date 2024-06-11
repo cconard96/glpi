@@ -122,24 +122,43 @@ trait AssignableItem
             return [new QueryExpression('1')];
         }
 
+        $item_table     = static::getTable();
+        $relation_table = Group_Item::getTable();
+
         $or = [];
         if (Session::haveRight(static::$rightname, READ_ASSIGNED)) {
             $or[] = [
-                'users_id_tech' => $_SESSION['glpiID'],
+                $item_table . '.users_id_tech' => $_SESSION['glpiID'],
             ];
-            if (count($_SESSION['glpigroups'])) {
+            if (count($_SESSION['glpigroups']) > 0) {
                 $or[] = [
-                    'groups_id_tech' => $_SESSION['glpigroups'],
+                    $item_table . '.id' => new QuerySubQuery([
+                        'SELECT'     => $relation_table . '.items_id',
+                        'FROM'       => $relation_table,
+                        'WHERE' => [
+                            'itemtype'  => static::class,
+                            'groups_id' => $_SESSION['glpigroups'],
+                            'type'      => Group_Item::GROUP_TYPE_TECH,
+                        ]
+                    ])
                 ];
             }
         }
         if (Session::haveRight(static::$rightname, READ_OWNED)) {
             $or[] = [
-                'users_id' => $_SESSION['glpiID'],
+                $item_table . '.users_id' => $_SESSION['glpiID'],
             ];
-            if (count($_SESSION['glpigroups'])) {
+            if (count($_SESSION['glpigroups']) > 0) {
                 $or[] = [
-                    'groups_id' => $_SESSION['glpigroups'],
+                    $item_table . '.id' => new QuerySubQuery([
+                        'SELECT'     => $relation_table . '.items_id',
+                        'FROM'       => $relation_table,
+                        'WHERE' => [
+                            'itemtype'  => static::class,
+                            'groups_id' => $_SESSION['glpigroups'],
+                            'type'      => Group_Item::GROUP_TYPE_NORMAL,
+                        ]
+                    ])
                 ];
             }
         }
