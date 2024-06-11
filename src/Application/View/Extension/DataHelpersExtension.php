@@ -125,7 +125,7 @@ class DataHelpersExtension extends AbstractExtension
      */
     public function getFormattedInteger($number): string
     {
-        return Html::formatNumber($number, forcedecimal: 0);
+        return Html::formatNumber($number, false, 0);
     }
 
     /**

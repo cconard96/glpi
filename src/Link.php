@@ -395,7 +395,7 @@ class Link extends CommonDBTM
                 $link
             );
         }
-        if (Toolbox::hasTrait($item::class, AssignableItem::class)) {
+        if (Toolbox::hasTrait(get_class($item), AssignableItem::class)) {
             if (in_array(Group_Item::GROUP_TYPE_NORMAL, $item->getGroupTypes(), true)) {
                 $group_names = array_map(static fn ($group_id) => Dropdown::getDropdownName('glpi_groups', $group_id), $item->fields['groups_id']);
                 // GROUP - BC for < GLPI 11
