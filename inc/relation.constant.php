@@ -673,10 +673,6 @@ $RELATION = [
             'groups_id_tech',
             'groups_id',
         ],
-        'glpi_assets_assets'         => [
-            'groups_id_tech',
-            'groups_id',
-        ],
         'glpi_cartridgeitems'        => [
             'groups_id_tech',
             'groups_id',
