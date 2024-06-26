@@ -137,21 +137,33 @@ class HasPlugCapacity extends DbTestCase
                 'entities_id' => $root_entity_id,
             ]
         );
+        $plug_1           = $this->createItem(
+            \Plug::class,
+            [
+                'name' => __FUNCTION__ . '1',
+            ]
+        );
+        $plug_2           = $this->createItem(
+            \Plug::class,
+            [
+                'name' => __FUNCTION__ . '2',
+            ]
+        );
 
         $av_item_1 = $this->createItem(
             \Item_Plug::class,
             [
-                'name'         => 'vm item 1',
                 'itemtype'     => $item_1::class,
                 'items_id'     => $item_1->getID(),
+                'plugs_id'     => $plug_1->getID(),
             ]
         );
         $av_item_2 = $this->createItem(
             \Item_Plug::class,
             [
-                'name'         => 'vm item 2',
                 'itemtype'     => $item_2::class,
                 'items_id'     => $item_2->getID(),
+                'plugs_id'     => $plug_2->getID(),
             ]
         );
 
@@ -185,14 +197,16 @@ class HasPlugCapacity extends DbTestCase
     public function provideIsUsed(): iterable
     {
         yield [
-            'target_classname' => \Item_Plug::class,
+            'target_classname' => \Plug::class,
+            'relation_classname' => \Item_Plug::class,
         ];
     }
 
     public function provideGetCapacityUsageDescription(): iterable
     {
         yield [
-            'target_classname' => \Item_Plug::class,
+            'target_classname' => \Plug::class,
+            'relation_classname' => \Item_Plug::class,
             'expected' => '%d plugs attached to %d assets'
         ];
     }
