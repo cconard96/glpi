@@ -7989,7 +7989,7 @@ HTML;
 
         $default_values["start"]       = 0;
         $default_values["order"]       = "ASC";
-        $default_values["sort"]        = 1;
+        $default_values["sort"]        = 0;
         $default_values["is_deleted"]  = 0;
         $default_values["as_map"]      = 0;
         $default_values["browse"]      = 0;
