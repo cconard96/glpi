@@ -445,8 +445,12 @@ class Search
     {
 
         $data = self::prepareDatasForSearch($itemtype, $params, $forcedisplay);
-        self::constructSQL($data);
-        self::constructData($data);
+        $execute_search = $data['display_type'] !== self::HTML_OUTPUT || ($params['execute_search'] ?? true);
+
+        if ($execute_search) {
+            self::constructSQL($data);
+            self::constructData($data);
+        }
 
         return $data;
     }
