@@ -36,7 +36,7 @@
 /// Rule class for Rights management
 class RuleMailCollector extends Rule
 {
-   // From Rule
+    // From Rule
     public static $rightname = 'rule_mailcollector';
     public $orderby   = "name";
     public $can_sort  = true;
@@ -47,7 +47,7 @@ class RuleMailCollector extends Rule
      **/
     public function maxActionsCount()
     {
-        return 1;
+        return 2;
     }
 
 
@@ -115,7 +115,7 @@ class RuleMailCollector extends Rule
         $criterias['auto-submitted']['table']           = '';
         $criterias['auto-submitted']['type']            = 'text';
 
-       /// Renater spam matching : X-UCE-Status = Yes
+        /// Renater spam matching : X-UCE-Status = Yes
         $criterias['x-uce-status']['name']              = __('X-UCE-Status email header');
         $criterias['x-uce-status']['table']             = '';
         $criterias['x-uce-status']['type']              = 'text';
@@ -214,6 +214,10 @@ class RuleMailCollector extends Rule
         $actions['_refuse_email_with_response']['type']  = 'yesonly';
         $actions['_refuse_email_with_response']['table'] = '';
 
+        $actions['externalid']['name']             = __('External ID');
+        $actions['externalid']['type']             = 'text';
+        $actions['externalid']['force_actions']    = ['regex_result'];
+
         return $actions;
     }
 
@@ -227,23 +231,23 @@ class RuleMailCollector extends Rule
                     case "assign":
                         switch ($action->fields["field"]) {
                             default:
-                                 $output[$action->fields["field"]] = $action->fields["value"];
+                                $output[$action->fields["field"]] = $action->fields["value"];
                                 break;
 
                             case "_affect_entity_by_user_entity":
-                              //3 cases :
-                              //1 - rule contains a criteria like : Profil is XXXX
-                              //    -> in this case, profiles_id is stored in
-                              //       $this->criterias_results['PROFILES'] (one value possible)
-                              //2-   rule contains criteria "User has only one profile"
-                              //    -> in this case, profiles_id is stored in
-                              //       $this->criterias_results['PROFILES'] (one value possible) (same as 1)
-                              //3   -> rule contains only one profile
+                                //3 cases :
+                                //1 - rule contains a criteria like : Profil is XXXX
+                                //    -> in this case, profiles_id is stored in
+                                //       $this->criterias_results['PROFILES'] (one value possible)
+                                //2-   rule contains criteria "User has only one profile"
+                                //    -> in this case, profiles_id is stored in
+                                //       $this->criterias_results['PROFILES'] (one value possible) (same as 1)
+                                //3   -> rule contains only one profile
                                 $profile = 0;
 
-                              //Case 2:
+                                //Case 2:
                                 if (isset($this->criterias_results['ONE_PROFILE'])) {
-                                     $profile = $this->criterias_results['ONE_PROFILE'];
+                                    $profile = $this->criterias_results['ONE_PROFILE'];
                                 } else if (isset($this->criterias_results['UNIQUE_PROFILE'])) {
                                     //Case 3
                                     $profile = $this->criterias_results['UNIQUE_PROFILE'];
@@ -256,44 +260,44 @@ class RuleMailCollector extends Rule
                                     $entities = [];
                                     if (isset($params['_users_id_requester'])) { // Not set when testing
                                         $entities
-                                        = Profile_User::getEntitiesForProfileByUser(
+                                            = Profile_User::getEntitiesForProfileByUser(
                                             $params['_users_id_requester'],
                                             $profile
                                         );
                                     }
 
-                                   //Case 2 : check if there's only one profile for this user
+                                    //Case 2 : check if there's only one profile for this user
                                     if (
                                         (isset($this->criterias_results['ONE_PROFILE'])
-                                        && (count($entities) == 1))
+                                            && (count($entities) == 1))
                                         || !isset($this->criterias_results['ONE_PROFILE'])
                                     ) {
                                         if (count($entities) == 1) {
                                             //User has right on only one entity
-                                              $output['entities_id'] = array_pop($entities);
+                                            $output['entities_id'] = array_pop($entities);
                                         } else if (isset($this->criterias_results['UNIQUE_PROFILE'])) {
-                                              $output['entities_id'] = array_pop($entities);
+                                            $output['entities_id'] = array_pop($entities);
                                         } else {
-                                           //Rights on more than one entity : get the user's prefered entity
+                                            //Rights on more than one entity : get the user's prefered entity
                                             if (isset($params['_users_id_requester'])) { // Not set when testing
                                                 $user = new User();
                                                 $user->getFromDB($params['_users_id_requester']);
 
                                                 $tmpid = $user->getField('entities_id');
 
-                                               // Retrieve all the entities (pref could be set on a child)
+                                                // Retrieve all the entities (pref could be set on a child)
                                                 $entities
-                                                = Profile_User::getEntitiesForProfileByUser(
+                                                    = Profile_User::getEntitiesForProfileByUser(
                                                     $params['_users_id_requester'],
                                                     $profile,
                                                     true
                                                 );
 
-                                             // If an entity is defined in user's preferences,
-                                             // and this entity allowed for this profile, use this one
-                                             // else do not set the rule as matched
+                                                // If an entity is defined in user's preferences,
+                                                // and this entity allowed for this profile, use this one
+                                                // else do not set the rule as matched
                                                 if (in_array($tmpid, $entities)) {
-                                                          $output['entities_id'] = $user->fields['entities_id'];
+                                                    $output['entities_id'] = $user->fields['entities_id'];
                                                 }
                                             }
                                         }
@@ -304,32 +308,36 @@ class RuleMailCollector extends Rule
 
                     case "regex_result":
                         foreach ($this->regex_results as $regex_result) {
-                             $entity_found = -1;
-                             $res          = RuleAction::getRegexResultById(
-                                 $action->fields["value"],
-                                 $regex_result
-                             );
+                            $entity_found = -1;
+                            $res          = RuleAction::getRegexResultById(
+                                $action->fields["value"],
+                                $regex_result
+                            );
                             if ($res != null) {
-                                switch ($action->fields["field"]) {
-                                    case "_affect_entity_by_domain":
-                                        $entity_found = Entity::getEntityIDByDomain(addslashes($res));
-                                        break;
+                                if ($action->fields["field"] == 'externalid') {
+                                    $output[$action->fields["field"]] = $res;
+                                } else {
+                                    switch ($action->fields["field"]) {
+                                        case "_affect_entity_by_domain":
+                                            $entity_found = Entity::getEntityIDByDomain(addslashes($res));
+                                            break;
 
-                                    case "_affect_entity_by_tag":
-                                          $entity_found = Entity::getEntityIDByTag(addslashes($res));
-                                        break;
-                                }
+                                        case "_affect_entity_by_tag":
+                                            $entity_found = Entity::getEntityIDByTag(addslashes($res));
+                                            break;
+                                    }
 
-                                //If an entity was found
-                                if ($entity_found > -1) {
-                                    $output['entities_id'] = $entity_found;
-                                    break;
+                                    //If an entity was found
+                                    if ($entity_found > -1) {
+                                        $output['entities_id'] = $entity_found;
+                                        break;
+                                    }
                                 }
                             }
                         }
                         break;
                     default:
-                    //Allow plugins actions
+                        //Allow plugins actions
                         $executeaction = clone $this;
                         $output = $executeaction->executePluginsActions($action, $output, $params, $input);
                         break;
