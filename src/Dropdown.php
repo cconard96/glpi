@@ -1269,7 +1269,8 @@ JAVASCRIPT;
                 ],
                 __('Others') => [
                     'USBVendor' => null,
-                    'PCIVendor' => null
+                    'PCIVendor' => null,
+                    WebhookCategory::class => null,
                 ]
 
             ]; //end $opt

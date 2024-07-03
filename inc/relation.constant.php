@@ -1616,6 +1616,10 @@ $RELATION = [
     'glpi_webhooks' => [
         '_glpi_queuedwebhooks' => 'webhooks_id',
     ],
+    'glpi_webhookcategories' => [
+        'glpi_webhookcategories'    => 'webhookcategories_id',
+        'glpi_webhooks'             => 'webhookcategories_id',
+    ],
 ];
 
 $define_mapping_entry = static function (string $source_table, string $target_table_key) use (&$RELATION) {
