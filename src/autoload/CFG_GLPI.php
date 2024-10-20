@@ -498,7 +498,6 @@ $CFG_GLPI['javascript'] = [
             'fullcalendar',
             'planning',
             'masonry',
-            'tinymce',
             'dashboard',
         ]
     ],
