@@ -884,10 +884,11 @@ export class GlpiFormEditorController
         copy.find("textarea").each(function() {
             // Get editor config for this field
             let id = $(this).attr("id");
+            const target_textarea = target.find(`#${id}`);
 
             // JS object are passed by reference, we need to clone the config
             // to avoid breaking previous instances
-            const config = _.cloneDeep(window.tinymce_editor_configs[id]);
+            const config = _.cloneDeep(target_textarea.data('tinymce_config'));
 
             // Rename id to ensure it is unique
             const uid = getUUID();
@@ -899,10 +900,6 @@ export class GlpiFormEditorController
             // its final DOM destination
             config.selector = `#${id}`;
             tiny_mce_to_init.push(config);
-
-            // Store config with udpated ID in case we need to re render
-            // this question
-            window.tinymce_editor_configs[id] = config;
         });
 
         // Look for select2 to init
@@ -987,7 +984,11 @@ export class GlpiFormEditorController
         }
 
         // Init the editors
-        tiny_mce_to_init.forEach((config) => tinyMCE.init(config));
+        tiny_mce_to_init.forEach((config) => {
+            $(`#${config.field_id}`).data('tinymce_config', config);
+            tinyMCE.init(config);
+        });
+
 
         // Init the select2
         select2_to_init.forEach((config) => {

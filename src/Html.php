@@ -3511,7 +3511,8 @@ JS;
         string $placeholder = '',
         bool $toolbar = true,
         bool $statusbar = true,
-        string $content_style = ''
+        string $content_style = '',
+        bool $single_line = false
     ) {
         /**
          * @var array $CFG_GLPI
@@ -3591,12 +3592,13 @@ JS;
                 'show_toolbar' => $toolbar,
                 'show_statusbar' => $statusbar,
                 'content_style' => $content_style,
+                'single_line' => $single_line,
             ]
         ];
         // language=Twig
         $js = TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
             <script type="module">
-                import('{{ path("js/modules/TinyMCEEditor.js") }}').then((m) => {
+                import('{{ path("js/modules/Form/TinyMCEEditor.js") }}').then((m) => {
                     new m.default('{{ element_id }}', {{ config|json_encode|raw }});
                 });
             </script>

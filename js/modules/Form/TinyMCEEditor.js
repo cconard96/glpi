@@ -33,10 +33,9 @@
 
 /* global strip_tags, onTinyMCEChange, submitparentForm */
 
-import '../../public/lib/tinymce.js';
-import '../fileupload.js';
-import '../RichText/UserMention.js';
-import '../RichText/ContentTemplatesParameters.js';
+import '../../../public/lib/tinymce.js';
+import '../../fileupload.js';
+import '../../RichText/ContentTemplatesParameters.js';
 
 export default class TinyMCEEditor {
 
@@ -56,6 +55,7 @@ export default class TinyMCEEditor {
         show_toolbar = true,
         show_statusbar = true,
         content_style = '',
+        single_line = false,
     } = {}) {
         element_id = $.escapeSelector(element_id);
         const richtext_layout = CFG_GLPI['richtext_layout'] || 'inline';
@@ -171,6 +171,15 @@ export default class TinyMCEEditor {
                     });
                 }
 
+                if (single_line) {
+                    // Block creating newlines in single line mode
+                    editor.on('keydown', (e) => {
+                        if (e.keyCode === 13) { // Enter
+                            e.preventDefault();
+                        }
+                    });
+                }
+
                 // Propagate click event to allow other components to
                 // listen to it
                 editor.on('click', (e) => {
@@ -209,6 +218,7 @@ export default class TinyMCEEditor {
             }
         }, language !== 'en_GB' ? {'language': language, 'language_url': lang_url} : {});
 
+        $(`#${element_id}`).data('tinymce_config', config);
         if (init) {
             tinyMCE.init(config);
         }
