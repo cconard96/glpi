@@ -55,6 +55,7 @@ return static function (ContainerConfigurator $container): void {
     ;
 
     $services->load('Glpi\Config\\', $projectDir . '/src/Glpi/Config');
+    $services->load('Glpi\Component\\', $projectDir . '/src/Glpi/Component');
     $services->load('Glpi\Controller\\', $projectDir . '/src/Glpi/Controller');
     $services->load('Glpi\Http\\', $projectDir . '/src/Glpi/Http');
     $services->load('Glpi\DependencyInjection\\', $projectDir . '/src/Glpi/DependencyInjection');

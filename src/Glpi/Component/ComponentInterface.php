@@ -1,5 +1,4 @@
 <?php
-
 /**
  * ---------------------------------------------------------------------
  *
@@ -8,7 +7,6 @@
  * http://glpi-project.org
  *
  * @copyright 2015-2024 Teclib' and contributors.
- * @copyright 2003-2014 by the INDEPNET Development Team.
  * @licence   https://www.gnu.org/licenses/gpl-3.0.html
  *
  * ---------------------------------------------------------------------
@@ -33,19 +31,13 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Glpi\Debug;
+namespace Glpi\Component;
 
-use Glpi\Application\View\TemplateRenderer;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-final class Toolbar
+
+
+interface ComponentInterface
 {
-    public function show()
-    {
-        $info = Profile::getCurrent()->getDebugInfo();
 
-        // Needed widgets: summary (exec time, memory, etc), SQL, super-globals
-        TemplateRenderer::getInstance()->display('components/debug/debug_toolbar.html.twig', [
-            'debug_info' => $info,
-        ]);
-    }
 }

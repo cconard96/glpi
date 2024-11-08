@@ -32,19 +32,17 @@
  * ---------------------------------------------------------------------
  */
 
-namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+namespace Glpi\Component;
 
-return static function (ContainerConfigurator $container): void {
-    if ($container->env() !== 'development') {
-        // Don't use the web profiler elsewhere than dev.
-        return;
+use Attribute;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+
+#[Attribute(Attribute::TARGET_CLASS)]
+class Component
+{
+    public function __construct(
+        /** @var string $component_name The registered name of the Vue component */
+        public string $component_name,
+    ) {
     }
-
-    //TODO uncomment. THIS IS SO SLOOOOOOOOOOOOOOOOOOWWWWWWWWWWWWWWWWWWWWW
-//    $container->extension('web_profiler', [
-//        'toolbar' => true,
-//    ]);
-//    $container->extension('framework', [
-//        'profiler' => ['only_exceptions' => false],
-//    ]);
-};
+}

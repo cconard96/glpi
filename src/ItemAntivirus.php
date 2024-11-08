@@ -254,7 +254,8 @@ class ItemAntivirus extends CommonDBChild
     public function showForm($ID, array $options = [])
     {
         /** @var CommonDBTM $itemtype */
-        $itemtype = $this->fields['itemtype'];
+        $itemtype = $this->fields['itemtype'] ?? $options['parent']::class;
+        $items_id = $this->fields['items_id'] ?? $options['parent']->getID();
 
         if (!Session::haveRight($itemtype::$rightname, READ)) {
             return false;
@@ -265,8 +266,10 @@ class ItemAntivirus extends CommonDBChild
             $this->check($ID, READ);
             $asset->getFromDB($this->fields['items_id']);
         } else {
+            $options[static::$itemtype] = $itemtype;
+            $options[static::$items_id] = $items_id;
             $this->check(-1, CREATE, $options);
-            $asset->getFromDB($options['items_id']);
+            $asset->getFromDB($items_id);
         }
 
         $options['canedit'] = Session::haveRight($itemtype::$rightname, UPDATE);
@@ -330,6 +333,7 @@ class ItemAntivirus extends CommonDBChild
             $manufacturer = new Manufacturer();
             $manufacturer->getFromDB($data['manufacturers_id']);
             $entries[] = [
+                'id'            => $antivirus->getID(),
                 'name'          => $antivirus->getLink(),
                 'is_dynamic'    => Dropdown::getYesNo($data['is_active']),
                 'manufacturers_id' => $manufacturer->getLink(),
@@ -364,6 +368,51 @@ class ItemAntivirus extends CommonDBChild
             'total_number' => count($entries),
             'filtered_number' => count($entries),
         ]);
+
+
+        $twig_params = [
+            'can_create' => ($canedit && !(!empty($withtemplate) && ($withtemplate == 2))),
+            'itemtype' => $itemtype,
+            'id' => $ID,
+            'datatable_params' => [
+                'id' => 'datatable_antivirus',
+                'is_tab' => true,
+                'nopager' => true,
+                'nofilter' => true,
+                'nosort' => true,
+                'columns' => [
+                    'name' => __('Name'),
+                    'is_dynamic' => __('Automatic inventory'),
+                    'manufacturers_id' => Manufacturer::getTypeName(1),
+                    'antivirus_version' => __('Antivirus version'),
+                    'signature_version' => __('Signature database version'),
+                    'is_active' => __('Active'),
+                    'is_uptodate' => __('Up to date'),
+                    'date_expiration' => __('Expiration date'),
+                ],
+                'formatters' => [
+                    'name' => 'raw_html',
+                    'manufacturers_id' => 'raw_html',
+                    'date_expiration' => 'date',
+                ],
+                'entries' => $entries,
+                'total_count' => count($entries),
+                'filtered_number' => count($entries),
+            ]
+        ];
+
+        // language=Twig
+        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
+            <div {{ mount_vue_component('Form/SubitemForm', {
+                can_create: can_create,
+                btn_create_label: __('Add an antivirus'),
+                type: 'ItemAntivirus',
+                parent_type: itemtype,
+                parent_id: id,
+                datatable_id: datatable_params.id,
+            }) }}></div>
+            <div {{ mount_vue_component('DataTable', datatable_params) }}></div>
+TWIG, $twig_params);
     }
 
     public function prepareInputForAdd($input)

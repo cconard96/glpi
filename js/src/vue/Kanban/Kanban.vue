@@ -5,7 +5,7 @@
 
     import { Rights } from "./Rights.js";
     import Column from "./Column.vue";
-    import {computed, nextTick, onMounted, ref, watch} from "vue";
+    import {computed, nextTick, onMounted, ref, watch, inject} from "vue";
     import SearchInput from "../../../modules/SearchTokenizer/SearchInput.js";
     import {TeamBadgeProvider} from "./TeamBadgeProvider.js";
 
@@ -57,6 +57,16 @@
             default: true
         },
     });
+
+    const component = inject('component');
+    component.autoBind = {
+        global: {
+            global: {
+                itemtype: props.item.value.itemtype,
+                items_id: props.item.value.items_id
+            }
+        }
+    }
 
     const emit = defineEmits([
         'kanban:pre_init', 'kanban:post_init', 'kanban:refresh_sortables', 'kanban:card_move', 'kanban:card_delete',
@@ -788,14 +798,9 @@
                 });
                 modal.modal('hide');
             });
-        $.ajax({
-            method: 'GET',
-            url: CFG_GLPI.root_doc + '/ajax/kanban.php',
-            data: {
-                itemtype: card_itemtype,
-                items_id: card_items_id,
-                action: 'load_teammember_form'
-            }
+        component.getLoadTeammemberForm({
+            itemtype: card_itemtype,
+            items_id: card_items_id
         }).done((result) => {
             const teammember_types_dropdown = $(`#kanban-teammember-item-dropdown-${card_itemtype}`).html();
             const content = `
@@ -859,17 +864,10 @@
     }
 
     async function addTeamMember(itemtype, items_id, member_type, members_id, role) {
-        return $.ajax({
-            method: 'POST',
-            url: CFG_GLPI.root_doc + '/ajax/kanban.php',
-            data: {
-                action: "add_teammember",
-                itemtype: itemtype,
-                items_id: items_id,
-                itemtype_teammember: member_type,
-                items_id_teammember: members_id,
-                role: role
-            }
+        return component.addTeammember({
+            itemtype_teammember: member_type,
+            items_id_teammember: members_id,
+            role: role
         }).then(() => {
             refresh(false).then(() => {
                 delayRefresh(props.bg_refresh_interval * 60 * 1000);
@@ -1064,17 +1062,12 @@
     }, {deep: true});
 
     async function removeTeamMember(itemtype, items_id, member_type, members_id, role) {
-        return $.ajax({
-            method: 'POST',
-            url: CFG_GLPI.root_doc + '/ajax/kanban.php',
-            data: {
-                action: "delete_teammember",
-                itemtype: itemtype,
-                items_id: items_id,
-                itemtype_teammember: member_type,
-                items_id_teammember: members_id,
-                role: role
-            }
+        return component.post('delete_teammember', {
+            itemtype: itemtype,
+            items_id: items_id,
+            itemtype_teammember: member_type,
+            items_id_teammember: members_id,
+            role: role
         }).then(() => {
             refresh(false).then(() => {
                 delayRefresh(props.bg_refresh_interval * 60 * 1000);

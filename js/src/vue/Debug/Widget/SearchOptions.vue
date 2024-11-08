@@ -1,6 +1,7 @@
 <script setup>
-    import {computed, onMounted, ref, watch} from "vue";
+    import {computed, onMounted, ref, watch, inject} from "vue";
 
+    const component = inject('component');
     const rand = Math.floor(Math.random() * 1000000000);
 
     const all_itemtypes = ref([]);
@@ -63,24 +64,13 @@
         if (current_itemtype.value === null || current_itemtype.value === '') {
             return;
         }
-        $.ajax({
-            url: CFG_GLPI.root_doc + '/ajax/debug.php',
-            data: {
-                action: 'get_search_options',
-                itemtype: current_itemtype.value
-            },
-        }).then((data) => {
+        component.getSearchOptions({itemtype: current_itemtype.value}).then((data) => {
             search_options.value = data;
         });
     }
 
     onMounted(() => {
-        $.ajax({
-            url: CFG_GLPI.root_doc + '/ajax/debug.php',
-            data: {
-                action: 'get_itemtypes'
-            },
-        }).then((data) => {
+        component.getItemtypes().then((data) => {
             all_itemtypes.value = data;
         });
         updateSearchOptions();

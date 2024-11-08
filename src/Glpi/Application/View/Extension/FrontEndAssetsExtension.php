@@ -69,6 +69,7 @@ class FrontEndAssetsExtension extends AbstractExtension
             new TwigFunction('js_path', [$this, 'jsPath']),
             new TwigFunction('custom_css', [$this, 'customCss'], ['is_safe' => ['html']]),
             new TwigFunction('locales_js', [$this, 'localesJs'], ['is_safe' => ['html']]),
+            new TwigFunction('mount_vue_component', $this->mountVueComponent(...), ['is_safe' => ['html']]),
         ];
     }
 
@@ -246,5 +247,13 @@ JAVASCRIPT;
         }
 
         return Html::scriptBlock($script);
+    }
+
+    public function mountVueComponent(string $componentName, array $props = [], string $global_component_pattern = '^$'): string
+    {
+        $componentName = htmlspecialchars($componentName);
+        $props = htmlspecialchars(json_encode($props, JSON_THROW_ON_ERROR));
+        $global_component_pattern = htmlspecialchars($global_component_pattern);
+        return "data-vue-component='{$componentName}' data-vue-props='{$props}' data-vue-global-component-pattern='{$global_component_pattern}'";
     }
 }

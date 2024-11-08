@@ -1,18 +1,14 @@
 <script setup>
-    import {onMounted, ref} from "vue";
+    import {onMounted, ref, inject} from "vue";
 
+    const component = inject('component');
     const emit = defineEmits(['refreshButton']);
 
     const themes = ref([]);
     const rand = Math.floor(Math.random() * 1000000000);
 
     onMounted(() => {
-        $.ajax({
-            url: CFG_GLPI['root_doc'] + '/ajax/debug.php',
-            data: {
-                action: 'get_themes'
-            }
-        }).then((data) => {
+        component.getThemes().then((data) => {
             themes.value = data;
         });
     });

@@ -23,7 +23,8 @@
      * @extends Widget
      * @property {boolean} main_widget=false
      */
-    import {computed, ref, watch} from "vue";
+    import {computed, ref, watch, inject} from "vue";
+    import WidgetButton from "./WidgetButton.vue";
 
     const props = defineProps({
         initial_request: {
@@ -31,6 +32,7 @@
             default: null,
         },
     });
+    const component = inject('component');
 
     const active_widget = ref(null);
     const active_widget_component = computed(() => {
@@ -64,7 +66,7 @@
             title: 'Server performance',
             icon: 'ti ti-clock-play',
             main_widget: true, // This widget shows directly in the toolbar
-            component_registered_name: 'widget-server-performance',
+            component_registered_name: 'debug-widget-server-performance',
             refreshButton: (button) => {
                 const server_perf = props.initial_request.server_performance;
                 const memory_usage = +(server_perf.memory_usage / 1024 / 1024).toFixed(2);
@@ -77,7 +79,7 @@
             title: 'SQL Requests',
             icon: 'ti ti-database',
             main_widget: true, // This widget shows directly in the toolbar
-            component_registered_name: 'widget-sqlrequests',
+            component_registered_name: 'debug-widget-sqlrequests',
             refreshButton: (button) => {
                 const sql_data = getCombinedSQLData();
                 const database_button_label = `${sql_data.total_requests} <span class="text-muted"> requests </span>`;
@@ -89,7 +91,7 @@
             title: 'HTTP Requests',
             icon: 'ti ti-refresh',
             main_widget: true, // This widget shows directly in the toolbar
-            component_registered_name: 'widget-httprequests',
+            component_registered_name: 'debug-widget-httprequests',
             refreshButton: (button) => {
                 button.find('.debug-text').html(`${ajax_requests.value.length + 1} <span class="text-muted"> requests </span>`);
             }
@@ -99,7 +101,7 @@
             title: 'Client performance',
             icon: 'ti ti-brand-javascript',
             main_widget: true, // This widget shows directly in the toolbar
-            component_registered_name: 'widget-client-performance',
+            component_registered_name: 'debug-widget-client-performance',
             refreshButton: (button) => {
                 if (button.find('.debug-text').text().trim() === '') {
                     setTimeout(() => {
@@ -115,7 +117,7 @@
             title: 'Search Options',
             icon: 'ti ti-list-search',
             main_widget: true, // This widget shows directly in the toolbar
-            component_registered_name: 'widget-search-options',
+            component_registered_name: 'debug-widget-search-options',
             refreshButton: (button) => {}
         },
         {
@@ -123,7 +125,7 @@
             title: 'Palette Switcher',
             icon: 'ti ti-palette',
             main_widget: true, // This widget shows directly in the toolbar
-            component_registered_name: 'widget-theme-switcher',
+            component_registered_name: 'debug-widget-theme-switcher',
             refreshButton: (button) => {
                 button.find('.debug-text').html(`<span class="text-muted">Theme: </span> ${document.documentElement.attributes['data-glpi-theme'].value}`);
             }
@@ -131,17 +133,17 @@
         {
             id: 'globals',
             main_widget: false,
-            component_registered_name: 'widget-globals',
+            component_registered_name: 'debug-widget-globals',
         },
         {
             id: 'profiler',
             main_widget: false,
-            component_registered_name: 'widget-profiler',
+            component_registered_name: 'debug-widget-profiler',
         },
         {
             id: 'request_summary',
             main_widget: false,
-            component_registered_name: 'widget-request-summary',
+            component_registered_name: 'debug-widget-request-summary',
         }
     ];
 
@@ -153,7 +155,7 @@
     });
     $(document).ajaxSend((event, xhr, settings) => {
         // If the request is going to the debug AJAX endpoint, don't do anything
-        if (settings.url.indexOf('ajax/debug.php') !== -1) {
+        if (settings.url.indexOf(component._getComponentUrl()) !== -1) {
             return;
         }
         const ajax_id = Math.random().toString(16).slice(2);
@@ -208,7 +210,7 @@
 
     $(document).ajaxComplete((event, xhr, settings) => {
         // If the request is going to the debug AJAX endpoint, don't do anything
-        if (settings.url.indexOf('ajax/debug.php') !== -1) {
+        if (settings.url.indexOf(component._getComponentUrl()) !== -1) {
             return;
         }
         if (xhr.headers === undefined) {
@@ -323,12 +325,7 @@
 
     function requestAjaxDebugData(ajax_id, reload_widget = false) {
         const ajax_request = ajax_requests.value.find((request) => request.id === ajax_id);
-        $.ajax({
-            url: CFG_GLPI.root_doc + '/ajax/debug.php',
-            data: {
-                'ajax_id': ajax_id,
-            }
-        }).done((data) => {
+        component.getAjaxRequestData({ajax_id: ajax_id}).done((data) => {
             if (!data) {
                 return;
             }

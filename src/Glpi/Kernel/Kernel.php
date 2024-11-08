@@ -36,6 +36,7 @@ namespace Glpi\Kernel;
 
 use GLPI;
 use Glpi\Application\ConfigurationConstants;
+use Glpi\Component\Component;
 use Glpi\Config\ConfigProviderConsoleExclusiveInterface;
 use Glpi\Config\ConfigProviderWithRequestInterface;
 use Glpi\Config\LegacyConfigProviders;
@@ -44,6 +45,8 @@ use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
+use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -95,6 +98,14 @@ final class Kernel extends BaseKernel
     public function getLogDir(): string
     {
         return GLPI_LOG_DIR;
+    }
+
+    protected function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+        $container->registerAttributeForAutoconfiguration(Component::class, static function (ChildDefinition $definition, Component $attribute, \ReflectionClass $reflector) {
+            $definition->addTag('glpi.component', ['component_name' => $attribute->component_name]);
+        });
     }
 
     public function registerBundles(): iterable

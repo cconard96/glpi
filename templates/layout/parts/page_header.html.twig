@@ -76,7 +76,8 @@
             {% if not anonymous %}
                <div class="collapse navbar-collapse" id="navbar-menu">
                    <span class="d-inline-block d-lg-none ms-2">
-                       {{ include('layout/parts/goto_button.html.twig') }}
+                       {# no_mount used here to prevent the fuzzy modal component from being added multiple times. It is already added in a previous call. #}
+                       {{ include('layout/parts/goto_button.html.twig', { no_mount: true }) }}
                    </span>
                    {{ include('layout/parts/menu.html.twig') }}
 

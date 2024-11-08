@@ -1791,7 +1791,7 @@ HTML;
 
         if ($_SESSION['glpi_use_mode'] === Session::DEBUG_MODE && !str_starts_with($_SERVER['PHP_SELF'], $CFG_GLPI['root_doc'] . '/install/')) {
             \Glpi\Debug\Profiler::getInstance()->stopAll();
-            (new Glpi\Debug\Toolbar())->show();
+            (new \Glpi\Component\Debug\Toolbar())->show();
         }
     }
 
