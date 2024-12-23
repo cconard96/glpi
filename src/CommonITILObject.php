@@ -906,12 +906,13 @@ abstract class CommonITILObject extends CommonDBTM
      */
     public function canAssign()
     {
-        if (
-            isset($this->fields['is_deleted']) && ($this->fields['is_deleted'] == 1)
-            || isset($this->fields['status']) && in_array($this->fields['status'], $this->getClosedStatusArray())
-        ) {
+        $is_closed = isset($this->fields['status']) && in_array($this->fields['status'], static::getClosedStatusArray());
+        $is_deleted = isset($this->fields['is_deleted']) && (int) $this->fields['is_deleted'] === 1;
+
+        if ($is_deleted || (!$this->isNewItem() && $is_closed)) {
             return false;
         }
+
         return Session::haveRight(static::$rightname, UPDATE);
     }
 
