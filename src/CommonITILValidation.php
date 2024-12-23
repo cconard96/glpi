@@ -726,7 +726,7 @@ abstract class CommonITILValidation extends CommonDBChild
                     ])
                 ],
                 'NOT' => [
-                    'status' => static::$itemtype::getClosedStatusArray(),
+                    'status' => [static::$itemtype::getSolvedStatusArray() + static::$itemtype::getClosedStatusArray()],
                 ],
             ]
         ])->current();
