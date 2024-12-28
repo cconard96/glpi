@@ -39,14 +39,15 @@ describe('Entities selector', () => {
         ['Asset', '/front/dashboard_assets.php'],
         ['Assistance', '/front/dashboard_helpdesk.php'],
         ['Central', '/front/central.php'],
+        ['Tickets Mini', '/front/ticket.php'],
     ]);
 
     dashboards.forEach((value, key) => {
         it(`${key} Dashboard Loads`, () => {
             cy.visit(value);
-            cy.get('.grid-stack-item .g-chart').should('be.visible');
+            cy.get('.grid-stack-item .g-chart, .grid-stack-item .big-number').should('be.visible');
             // grid-stack-items should have reasonable height
-            cy.get('.grid-stack-item').each(($el) => {
+            cy.get('.grid-stack-item:not(.lock-bottom)').each(($el) => {
                 cy.get($el).invoke('height').should('be.gt', 30);
             });
         });
