@@ -108,9 +108,9 @@
     </style>
     <script type="module">
         function showLoading() {
-            const loading_overlay = $('#{{ container_id}}').find('div.spinner-overlay');
+            const loading_overlay = $('#{{ container_id }}').find('div.spinner-overlay');
             if (loading_overlay.length === 0) {
-                $('#{{ container_id}}').append(`
+                $('#{{ container_id }}').append(`
                     <div class="spinner-overlay text-center">
                         <div class="spinner-border" role="status">
                             <span class="sr-only">{{ __('Loading...') }}</span>
@@ -122,7 +122,7 @@
         }
 
         function hideLoading() {
-            $('#{{ container_id}}').find('div.spinner-overlay').css('visibility', 'hidden');
+            $('#{{ container_id }}').find('div.spinner-overlay').css('visibility', 'hidden');
         }
 
         function refreshResults() {
@@ -131,12 +131,12 @@
                 url: '{{ path('/Knowbase/KnowbaseItem/SearchSolution/') ~ (itemtype ~ '/' ~ items_id)|e('js') }}',
                 method: 'GET',
                 data: {
-                    contains: $('#{{ container_id}} #search_solution_form input[name="contains"]').val(),
+                    contains: $('#{{ container_id }} #search_solution_form input[name="contains"]').val(),
                     ajax_reload: 1,
-                    start: $('#{{ container_id}} #search_solution_form input[name="start"]').val(),
+                    start: $('#{{ container_id }} #search_solution_form input[name="start"]').val(),
                 }
             }).then((html) => {
-                $('#{{ container_id}}').html(html);
+                $('#{{ container_id }}').html(html);
                 hideLoading();
             }, () => {
                 window.glpi_toast_error('{{ __('An error occurred while searching for solutions') }}');
@@ -145,17 +145,17 @@
         }
 
         // Use Solution button handled by whatever loads this template (form_solution.html.twig for example)
-        $('#{{ container_id}}').on('click', 'button.view-solution', (e) => {
+        $('#{{ container_id }}').on('click', 'button.view-solution', (e) => {
             const kbi_id = $(e.target).closest('.list-group-item').attr('data-solution-id');
             showLoading();
             $.ajax({
                 method: 'GET',
                 url: '{{ path('/Knowbase/KnowbaseItem/') }}' + kbi_id + '/Full',
             }).then((html) => {
-                $('#{{ container_id}} .kbi-form-container').html(html);
+                $('#{{ container_id }} .kbi-form-container').html(html);
                 hideLoading();
-                $('#{{ container_id}} .search-card').hide();
-                $('#{{ container_id}} .preview-card').show();
+                $('#{{ container_id }} .search-card').hide();
+                $('#{{ container_id }} .preview-card').show();
             }, () => {
                 window.glpi_toast_error('{{ __('An error occurred while loading the solution') }}');
                 hideLoading();
@@ -163,8 +163,8 @@
         }).on('click', 'button[name="search"]', () => {
             refreshResults();
         }).on('click', 'button.back-to-results', () => {
-            $('#{{ container_id}} .preview-card').hide();
-            $('#{{ container_id}} .search-card').show();
+            $('#{{ container_id }} .preview-card').hide();
+            $('#{{ container_id }} .search-card').show();
         }).on('keyup', 'input[name="contains"]', (e) => {
             if (e.key === 'Enter') {
                 refreshResults();
@@ -173,7 +173,7 @@
             e.preventDefault();
             const clicked_link = $(e.target).closest('.page-link');
             const new_start = clicked_link.attr('data-start');
-            $('#{{ container_id}} input[name="start"]').val(new_start);
+            $('#{{ container_id }} input[name="start"]').val(new_start);
             refreshResults();
         });
     </script>
