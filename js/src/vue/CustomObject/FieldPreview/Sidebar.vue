@@ -1,10 +1,11 @@
 <script setup>
     import Field from "./Field.vue";
-    import {computed, ref, watch, nextTick} from "vue";
+    import {computed, ref, onMounted} from "vue";
 
     const props = defineProps({
         all_fields: Object,
         sortable_fields: Map,
+        add_edit_fn: String,
     });
 
     const search = ref('');
@@ -32,6 +33,13 @@
         }
         return results;
     }
+
+    onMounted(() => {
+        $('.fields-sidebar .new-custom-field').on('click', () => {
+            window[props.add_edit_fn](-1);
+        });
+    });
+
 </script>
 
 <template>
@@ -46,6 +54,14 @@
         <Field v-for="[field_key, unused_field] of getMatched(unused_custom_fields)" :key="field_key" :is_active="false">
             <template v-slot:field_label>{{ unused_field.text }}</template>
         </Field>
+        <div class="align-items-center col-12">
+            <div class="form-field row flex-grow-1 m-1 new-custom-field cursor-pointer opacity-75" role="button">
+                <div class="col py-2 text-center">
+                    <i class="ti ti-plus"></i>
+                    {{ __('New field') }}
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -55,6 +71,10 @@
         width: 300px;
         .sortable-field.col-sm-6 {
             width: 100%;
+        }
+        .form-field.new-custom-field {
+            border: var(--tblr-border-width) dashed var(--tblr-border-color);
+            border-radius: var(--tblr-border-radius);
         }
     }
 </style>

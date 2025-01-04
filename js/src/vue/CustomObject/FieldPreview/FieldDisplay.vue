@@ -1,5 +1,5 @@
 <script setup>
-    import {onMounted, computed, reactive, watch, useTemplateRef, nextTick} from 'vue';
+    import {onMounted, computed, ref, reactive, watch, useTemplateRef, nextTick} from 'vue';
     import Field from "./Field.vue";
     import Sidebar from "./Sidebar.vue";
 
@@ -12,6 +12,7 @@
         can_create_fields: Boolean,
     });
 
+    const all_fields = ref(props.all_fields);
     const fields_display = props.fields_display;
     const component_root = useTemplateRef('component_root');
     const sortable_fields_container = computed(() => {
@@ -53,7 +54,7 @@
             if (selected_fields_data !== undefined && selected_fields_data[key] !== undefined) {
                 selected_field = selected_fields_data[key];
             } else {
-                selected_field = props.all_fields[key];
+                selected_field = all_fields.value[key];
             }
             if (selected_field === undefined) {
                 return;
@@ -83,9 +84,14 @@
      * Refresh the data in the all_fields object
      */
     function refreshAllFields() {
-        const url = `ajax/asset/assetdefinition.php?action=get_all_fields&assetdefinitions_id=${props.items_id}`;
+        const url = `${CFG_GLPI.root_doc}/ajax/asset/assetdefinition.php?action=get_all_fields&assetdefinitions_id=${props.items_id}`;
         $.get(url, (data) => {
-            console.log(data);
+            const new_fields = {};
+            $.each(data['results'], (key, field) => {
+                new_fields[field.id] = field;
+            });
+            all_fields.value = new_fields;
+            refreshSortables();
         });
     }
 
@@ -214,7 +220,7 @@
                         </Field>
                     </div>
                 </div>
-                <Sidebar :all_fields="all_fields" :sortable_fields="sortable_fields"></Sidebar>
+                <Sidebar :all_fields="all_fields" :sortable_fields="sortable_fields" :add_edit_fn="add_edit_fn"></Sidebar>
             </div>
         </div>
     </div>

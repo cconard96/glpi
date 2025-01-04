@@ -1,6 +1,4 @@
 <script setup>
-    import {computed} from 'vue';
-
     const props = defineProps({
         field_key: String,
         customfields_id: {
@@ -23,7 +21,7 @@
          :data-key="field_key" :data-customfield-id="customfields_id">
         <input type="hidden" name="fields_display[]" :value="field_key" />
         <slot name="field_options"></slot>
-        <div :class="`form-field row flex-grow-1 m-2`">
+        <div :class="`form-field row flex-grow-1 m-1`">
             <div class="col-auto align-content-center">
                 <i class="ti ti-grip-vertical sort-handle"></i>
             </div>
