@@ -3,22 +3,17 @@
     import {computed, ref, onMounted} from "vue";
 
     const props = defineProps({
-        all_fields: Object,
-        sortable_fields: Map,
+        inactive_fields: Map,
         add_edit_fn: String,
     });
 
     const search = ref('');
 
     const unused_native_fields = computed(() => {
-        return new Map(Object.entries(props.all_fields).filter(([key, field]) => {
-            return !props.sortable_fields.has(key) && (field.customfields_id ?? -1) < 0;
-        }));
+        return new Map([...props.inactive_fields].filter(([key, field]) => (field.customfields_id ?? -1) < 0));
     });
     const unused_custom_fields = computed(() => {
-        return new Map(Object.entries(props.all_fields).filter(([key, field]) => {
-            return !props.sortable_fields.has(key) && (field.customfields_id ?? -1) > 0;
-        }));
+        return new Map([...props.inactive_fields].filter(([key, field]) => (field.customfields_id ?? -1) >= 0));
     });
 
     function getMatched(fields) {
@@ -47,12 +42,14 @@
         <span class="fs-2">{{ __('Add more fields') }}</span>
         <input type="text" class="form-control mb-3" name="search" :placeholder="__('Search')" v-model="search" />
         <span class="fs-3">{{ __('Native fields') }}</span>
-        <Field v-for="[field_key, unused_field] of getMatched(unused_native_fields)" :key="field_key" :is_active="false">
-            <template v-slot:field_label>{{ unused_field.text }}</template>
+        <Field v-for="[field_key, unused_field] of getMatched(unused_native_fields)" :key="field_key" :field_key="field_key"
+               :is_active="false">
+            <template v-slot:field_label>{{ unused_field.label }}</template>
         </Field>
         <span class="fs-3 mt-3">{{ __('Custom fields') }}</span>
-        <Field v-for="[field_key, unused_field] of getMatched(unused_custom_fields)" :key="field_key" :is_active="false">
-            <template v-slot:field_label>{{ unused_field.text }}</template>
+        <Field v-for="[field_key, unused_field] of getMatched(unused_custom_fields)" :key="field_key" :field_key="field_key"
+               :is_active="false">
+            <template v-slot:field_label>{{ unused_field.label }}</template>
         </Field>
         <div class="align-items-center col-12">
             <div class="form-field row flex-grow-1 m-1 new-custom-field cursor-pointer opacity-75" role="button">

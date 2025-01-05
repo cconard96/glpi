@@ -19,7 +19,7 @@
 <template>
     <div :class="`sortable-field align-items-center ${field_options.full_width ? 'col-12' : 'col-12 col-sm-6'}`"
          :data-key="field_key" :data-customfield-id="customfields_id">
-        <input type="hidden" name="fields_display[]" :value="field_key" />
+        <input type="hidden" name="fields_display[]" :value="field_key" :disabled="!is_active" />
         <slot name="field_options"></slot>
         <div :class="`form-field row flex-grow-1 m-1`">
             <div class="col-auto align-content-center">

@@ -12,7 +12,7 @@
         can_create_fields: Boolean,
     });
 
-    const all_fields = ref(props.all_fields);
+    const initial_fields = ref(props.all_fields);
     const fields_display = props.fields_display;
     const component_root = useTemplateRef('component_root');
     const sortable_fields_container = computed(() => {
@@ -37,8 +37,8 @@
             window.sortable('.fields-sidebar', {
                 items: '.sortable-field',
                 forcePlaceholderSize: false,
-                acceptFrom: '#sortable-fields',
-            })
+                acceptFrom: false,
+            });
         });
     }
 
@@ -54,7 +54,7 @@
             if (selected_fields_data !== undefined && selected_fields_data[key] !== undefined) {
                 selected_field = selected_fields_data[key];
             } else {
-                selected_field = all_fields.value[key];
+                selected_field = initial_fields.value[key];
             }
             if (selected_field === undefined) {
                 return;
@@ -68,7 +68,10 @@
                     label: selected_field.text ?? selected_field,
                     field_options: fields_display.find((field) => field.key === key)?.field_options ?? {},
                     customfields_id: selected_field.customfields_id ?? -1,
+                    is_active: selected_field.is_active ?? true,
                 });
+            } else {
+                sortable_fields.get(key).is_active = true;
             }
         });
         refreshSortables();
@@ -76,7 +79,7 @@
 
     function removeField(key) {
         // remove the field from sortable list
-        sortable_fields.delete(key);
+        sortable_fields.get(key).is_active = false;
         refreshSortables();
     }
 
@@ -90,14 +93,17 @@
             $.each(data['results'], (key, field) => {
                 new_fields[field.id] = field;
             });
-            all_fields.value = new_fields;
+            appendField(Object.keys(new_fields), new_fields)
             refreshSortables();
         });
     }
 
     onMounted(() => {
-        //for each field in fields_display, add it to the list using the template and slot
-        appendField(fields_display.map((field) => field.key));
+        $.each(initial_fields.value, (key, field) => {
+            const field_data = field;
+            field_data.is_active = fields_display.find((field) => field.key === key) !== undefined;
+            appendField([key], {[key]: field_data});
+        });
 
         const sortable_container = $('#sortable-fields');
 
@@ -107,6 +113,24 @@
                 .filter((cls) => !['sortable-dragging'].includes(cls))
                 .join(' ');
             sortable_container.find('.sortable-placeholder').attr('class', `sortable-placeholder ${classes_to_copy}`);
+        });
+
+        // Change is_active property of the field when done dragging
+        sortable_container.on('sortupdate', (e) => {
+            const origin_container = e.originalEvent.detail.origin.container;
+            const destination_container = e.originalEvent.detail.destination.container;
+            // Do nothing here if the origin and destination are the same
+            if (origin_container === destination_container) {
+                return;
+            }
+            const moved_field = $(e.originalEvent.detail.item);
+            const moved_to_displayed = $(destination_container).attr('id') === 'sortable-fields';
+
+            if (moved_to_displayed) {
+                appendField([moved_field.attr('data-key')]);
+            } else {
+                removeField(moved_field.attr('data-key'));
+            }
         });
 
         $(component_root.value).on('click', '.edit-field', (e) => {
@@ -187,7 +211,15 @@
         });
     });
 
-    watch(sortable_fields, () => {
+    const active_fields = computed(() => {
+        return new Map([...sortable_fields].filter(([key, field]) => field.is_active));
+    });
+
+    const inactive_fields = computed(() => {
+        return new Map([...sortable_fields].filter(([key, field]) => !field.is_active));
+    });
+
+    watch(active_fields, () => {
         // If only one field remains, disable the remove button
         $(component_root.value).find('.hide-field')
             .prop('disabled', sortable_fields.size === 1)
@@ -204,9 +236,10 @@
         <div class="d-flex flex-row flex-wrap flex-xl-nowrap">
             <div class="row flex-row align-items-start flex-grow-1 d-flex">
                 <div class="col">
-                    <div class="user-select-none row flex-row" id="sortable-fields">
-                        <Field v-for="[field_key, sortable_field] of sortable_fields" :key="field_key"
-                               :field_key="field_key" :customfields_id="sortable_field.customfields_id" :field_options="sortable_field.field_options">
+                    <div class="user-select-none row flex-row" id="sortable-fields" style="min-height: 50px">
+                        <Field v-for="[field_key, sortable_field] of active_fields" :key="field_key"
+                               :field_key="field_key" :customfields_id="sortable_field.customfields_id" :field_options="sortable_field.field_options"
+                               :is_active="sortable_field.is_active">
                             <template v-slot:field_label>{{ sortable_field.label }}</template>
                             <template v-slot:field_markers>
                                 <span v-if="(sortable_field.field_options.required ?? '0').toString() === '1'" class="required">*</span>
@@ -220,7 +253,7 @@
                         </Field>
                     </div>
                 </div>
-                <Sidebar :all_fields="all_fields" :sortable_fields="sortable_fields" :add_edit_fn="add_edit_fn"></Sidebar>
+                <Sidebar :inactive_fields="inactive_fields" :add_edit_fn="add_edit_fn"></Sidebar>
             </div>
         </div>
     </div>
