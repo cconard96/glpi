@@ -23,8 +23,8 @@
         <slot name="field_options"></slot>
         <div :class="`form-field row flex-grow-1 m-1`">
             <div class="col py-2">
-                <slot name="field_markers"></slot>
                 <slot name="field_label"></slot>
+                <slot name="field_markers"></slot>
             </div>
             <div v-if="is_active" class="col-auto btn-group shadow-none field-actions">
                 <button type="button" class="btn btn-ghost-secondary btn-sm edit-field" :title="__('Edit')">
