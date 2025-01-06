@@ -47,11 +47,14 @@
             border-left: 1px solid var(--tblr-border-color);
         }
 
-        & > .field-actions {
-            visibility: hidden;
-        }
-        &:hover > .field-actions {
-            visibility: visible;
+        @media (pointer: fine) {
+            & > .field-actions {
+                visibility: hidden;
+            }
+
+            &:hover > .field-actions {
+                visibility: visible;
+            }
         }
     }
 </style>
