@@ -70,8 +70,6 @@
                     customfields_id: selected_field.customfields_id ?? -1,
                     is_active: selected_field.is_active ?? true,
                 });
-            } else {
-                sortable_fields.get(key).is_active = true;
             }
         });
         refreshSortables();
@@ -127,7 +125,7 @@
             const moved_to_displayed = $(destination_container).attr('id') === 'sortable-fields';
 
             if (moved_to_displayed) {
-                appendField([moved_field.attr('data-key')]);
+                sortable_fields.get(moved_field.attr('data-key')).is_active = true;
             } else {
                 removeField(moved_field.attr('data-key'));
             }
