@@ -39,9 +39,13 @@
 </template>
 
 <style scoped>
-    .form-field {
+    [data-glpi-theme-dark="1"] .form-field {
         border: var(--tblr-border-width) solid var(--tblr-border-color);
+    }
+    .form-field {
         border-radius: var(--tblr-border-radius);
+        border: var(--tblr-border-width) solid transparent;
+        background-color: var(--tblr-gray-200);
 
         & > .col {
             border-left: 1px solid var(--tblr-border-color);
