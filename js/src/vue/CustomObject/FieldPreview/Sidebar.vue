@@ -22,7 +22,7 @@
         }
         const results = new Map();
         for (const [key, field] of fields) {
-            if (field.text.toLowerCase().includes(search.value.toLowerCase())) {
+            if (field.label.toLowerCase().includes(search.value.toLowerCase())) {
                 results.set(key, field);
             }
         }
