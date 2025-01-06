@@ -72,6 +72,9 @@
         .form-field.new-custom-field {
             border: var(--tblr-border-width) dashed var(--tblr-border-color);
             border-radius: var(--tblr-border-radius);
+            &:hover {
+                opacity: 1 !important;
+            }
         }
     }
 </style>
