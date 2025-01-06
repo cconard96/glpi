@@ -52,7 +52,7 @@
             <template v-slot:field_label>{{ unused_field.label }}</template>
         </Field>
         <div class="align-items-center col-12">
-            <div class="form-field row flex-grow-1 m-1 new-custom-field cursor-pointer opacity-75" role="button">
+            <div class="form-field row flex-grow-1 m-1 new-custom-field cursor-pointer btn btn-sm btn-ghost-secondary w-100" role="button">
                 <div class="col py-2 text-center">
                     <i class="ti ti-plus"></i>
                     {{ __('New field') }}
@@ -72,9 +72,6 @@
         .form-field.new-custom-field {
             border: var(--tblr-border-width) dashed var(--tblr-border-color);
             border-radius: var(--tblr-border-radius);
-            &:hover {
-                opacity: 1 !important;
-            }
         }
     }
 </style>
