@@ -240,8 +240,8 @@
                                :is_active="sortable_field.is_active">
                             <template v-slot:field_label>{{ sortable_field.label }}</template>
                             <template v-slot:field_markers>
-                                <span v-if="(sortable_field.field_options.required ?? '0').toString() === '1'" class="required">*</span>
-                                <i v-if="(sortable_field.field_options.readonly ?? '0').toString() === '1'" class="ti ti-pencil-off ms-2" :title="__('Readonly')"></i>
+                                <span v-if="parseInt(sortable_field.field_options.required ?? 0) === 1" class="required">*</span>
+                                <i v-if="parseInt(sortable_field.field_options.readonly ?? 0) === 1" class="ti ti-pencil-off ms-2" :title="__('Readonly')"></i>
                             </template>
                             <template v-slot:field_options>
                                 <template v-for="(field_option_value, field_option_name) in sortable_field.field_options" :key="field_option_name">

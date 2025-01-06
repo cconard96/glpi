@@ -17,7 +17,7 @@
 </script>
 
 <template>
-    <div :class="`sortable-field align-items-center ${field_options.full_width ? 'col-12' : 'col-12 col-sm-6'} cursor-grab`"
+    <div :class="`sortable-field align-items-center ${parseInt(field_options.full_width ?? 0) === 1 ? 'col-12' : 'col-12 col-sm-6'} cursor-grab`"
          :data-key="field_key" :data-customfield-id="customfields_id">
         <input type="hidden" name="fields_display[]" :value="field_key" :disabled="!is_active" />
         <slot name="field_options"></slot>
