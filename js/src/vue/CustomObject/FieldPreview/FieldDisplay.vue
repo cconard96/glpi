@@ -201,8 +201,16 @@
 
             refreshAllFields();
             if (btn_submit.attr('name') === 'add' || btn_submit.attr('name') === 'update') {
-                // Reload preview
                 appendField([field_key], {[field_key]: sortable_fields.get(field_key)});
+                const sortable_field = sortable_fields.get(field_key);
+
+                sortable_field.field_options = {};
+                form_data.entries().forEach(([name, value]) => {
+                    if (name.startsWith('field_options[')) {
+                        const option_name = name.replace('field_options[', '').slice(0, -1);
+                        sortable_field.field_options[option_name] = value;
+                    }
+                });
             } else if (btn_submit.attr('name') === 'purge') {
                 removeField(field_key);
             }
