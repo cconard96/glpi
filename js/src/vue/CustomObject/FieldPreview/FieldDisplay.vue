@@ -268,7 +268,7 @@
                             </template>
                             <template v-slot:field_options>
                                 <template v-for="(field_option_value, field_option_name) in sortable_field.field_options" :key="field_option_name">
-                                    <input type="hidden" :name="`field_options[${field_key}][${field_option_name}]`" :value="field_option_value" />
+                                    <input type="hidden" :name="`field_options[${sortable_field.key}][${field_option_name}]`" :value="field_option_value" />
                                 </template>
                             </template>
                         </Field>
