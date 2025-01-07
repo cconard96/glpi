@@ -41,12 +41,12 @@
     <div class="h-100 d-flex col-auto flex-column p-0 ps-2 fields-sidebar">
         <span class="fs-2">{{ __('Add more fields') }}</span>
         <input type="text" class="form-control mb-3" name="search" :placeholder="__('Search')" v-model="search" />
-        <span class="fs-3">{{ __('Native fields') }}</span>
+        <span v-if="unused_native_fields.size > 0" class="fs-3">{{ __('Native fields') }}</span>
         <Field v-for="[field_key, unused_field] of getMatched(unused_native_fields)" :key="field_key" :field_key="field_key"
                :is_active="false">
             <template v-slot:field_label>{{ unused_field.label }}</template>
         </Field>
-        <span class="fs-3 mt-3">{{ __('Custom fields') }}</span>
+        <span v-if="unused_custom_fields.size > 0" class="fs-3 mt-3">{{ __('Custom fields') }}</span>
         <Field v-for="[field_key, unused_field] of getMatched(unused_custom_fields)" :key="field_key" :field_key="field_key"
                :is_active="false">
             <template v-slot:field_label>{{ unused_field.label }}</template>
