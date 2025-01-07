@@ -63,12 +63,14 @@
         });
         preview_data.forEach(({key, selected_field}) => {
             if (!sortable_fields.has(key)) {
+                const next_order_position = sortable_fields.size;
                 sortable_fields.set(key, {
                     key: key,
                     label: selected_field.text ?? selected_field,
                     field_options: fields_display.find((field) => field.key === key)?.field_options ?? {},
                     customfields_id: selected_field.customfields_id ?? -1,
                     is_active: selected_field.is_active ?? true,
+                    order: fields_display.find((field) => field.key === key)?.order ?? next_order_position,
                 });
             }
         });
@@ -125,7 +127,12 @@
             const moved_to_displayed = $(destination_container).attr('id') === 'sortable-fields';
 
             if (moved_to_displayed) {
-                sortable_fields.get(moved_field.attr('data-key')).is_active = true;
+                const sortable_field = sortable_fields.get(moved_field.attr('data-key'));
+                sortable_field.is_active = true;
+                // Recalculate the order of the fields to match the index in the displayed list
+                sortable_fields.forEach((field) => {
+                    field.order = $(component_root.value).find('.sortable-field').index($(`.sortable-field[data-key="${field.key}"]`));
+                });
             } else {
                 removeField(moved_field.attr('data-key'));
             }
@@ -201,7 +208,9 @@
 
             refreshAllFields();
             if (btn_submit.attr('name') === 'add' || btn_submit.attr('name') === 'update') {
-                appendField([field_key], {[field_key]: sortable_fields.get(field_key)});
+                appendField([field_key], {[field_key]: {
+                    text: form_data.get('label'),
+                }});
                 const sortable_field = sortable_fields.get(field_key);
 
                 sortable_field.field_options = {};
@@ -218,7 +227,13 @@
     });
 
     const active_fields = computed(() => {
-        return new Map([...sortable_fields].filter(([key, field]) => field.is_active));
+        const ordered_active_fields = [];
+        [...sortable_fields].filter(([key, field]) => field.is_active)
+            .sort((a, b) => a[1].order - b[1].order)
+            .forEach(([key, field]) => {
+                ordered_active_fields.push({...field, key: key});
+            });
+        return ordered_active_fields;
     });
 
     const inactive_fields = computed(() => {
@@ -243,8 +258,8 @@
             <div class="row flex-row align-items-start flex-grow-1 d-flex">
                 <div class="col">
                     <div class="user-select-none row flex-row" id="sortable-fields" style="min-height: 50px">
-                        <Field v-for="[field_key, sortable_field] of active_fields" :key="field_key"
-                               :field_key="field_key" :customfields_id="sortable_field.customfields_id" :field_options="sortable_field.field_options"
+                        <Field v-for="sortable_field of active_fields" :key="sortable_field.key"
+                               :field_key="sortable_field.key" :customfields_id="sortable_field.customfields_id" :field_options="sortable_field.field_options"
                                :is_active="sortable_field.is_active">
                             <template v-slot:field_label>{{ sortable_field.label }}</template>
                             <template v-slot:field_markers>
