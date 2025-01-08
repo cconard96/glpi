@@ -553,7 +553,7 @@
                           {% endif %}
                       {% endfor %}
 
-                     {% if item_type in config("asset_types") %}
+                     {% if not item.isNewItem() and item_type in config("asset_types") %}
                         {% set barcode %}
                            {{ call('BarcodeManager::renderQRCode', [
                               item
