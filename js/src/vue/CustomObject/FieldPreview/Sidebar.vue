@@ -46,7 +46,7 @@
                :is_active="false">
             <template v-slot:field_label>{{ unused_field.label }}</template>
         </Field>
-        <span v-if="unused_custom_fields.size > 0" class="fs-3 mt-3">{{ __('Custom fields') }}</span>
+        <span class="fs-3 mt-3">{{ __('Custom fields') }}</span>
         <Field v-for="[field_key, unused_field] of getMatched(unused_custom_fields)" :key="field_key" :field_key="field_key"
                :is_active="false">
             <template v-slot:field_label>{{ unused_field.label }}</template>
