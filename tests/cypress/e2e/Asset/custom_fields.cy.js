@@ -121,8 +121,9 @@ describe("Custom Assets - Custom Fields", () => {
         cy.findByLabelText('Status').closest('.form-field').should('be.visible').invoke('index').should('eq', 0);
     });
 
-    it('Create custom fields', () => {
-        function createField(label, type, options = new Map()) {
+    // eslint-disable-next-line cypress/no-async-tests
+    it('Create custom fields', async () => {
+        async function createField(label, type, options = new Map()) {
             cy.findByRole('button', {name: 'New field'}).click();
             cy.findByRole('dialog').should('be.visible').within(() => {
                 cy.findByLabelText('Label').type(label);
@@ -154,7 +155,6 @@ describe("Custom Assets - Custom Fields", () => {
                 cy.waitForNetworkIdle('/front/asset/customfielddefinition.form.php', 100);
             });
             cy.findByRole('dialog').should('not.exist');
-            cy.waitForNetworkIdle('/ajax/asset/assetdefinition.php', 100);
             cy.get(`.sortable-field[data-key="custom_${label.toLowerCase().replace(' ', '_')}"]`).should('be.visible');
         }
 
@@ -168,16 +168,16 @@ describe("Custom Assets - Custom Fields", () => {
 
         cy.findByRole('tab', {name:  /^Fields/}).click();
 
-        cy.findByRole('button', {name: 'New field'}).parents('.tab-pane').should('have.class', 'active').first().within(() => {
-            createField('Test String', 'String');
-            createField('Test Text', 'Text');
-            createField('Test Number', 'Number', new Map([['min', '10'], ['max', '20'], ['step', '2']]));
-            createField('Test Date', 'Date');
-            createField('Test Datetime', 'Date and time');
-            createField('Test Dropdown', 'Dropdown', new Map([['item_type', 'Monitor']]));
-            createField('Test MultiDropdown', 'Dropdown', new Map([['item_type', 'Monitor'], ['multiple_values', true]]));
-            createField('Test URL', 'URL');
-            createField('Test YesNo', 'Yes/No');
+        cy.findByRole('button', {name: 'New field'}).parents('.tab-pane').should('have.class', 'active').first().within(async () => {
+            await createField('Test String', 'String');
+            await createField('Test Text', 'Text');
+            await createField('Test Number', 'Number', new Map([['min', '10'], ['max', '20'], ['step', '2']]));
+            await createField('Test Date', 'Date');
+            await createField('Test Datetime', 'Date and time');
+            await createField('Test Dropdown', 'Dropdown', new Map([['item_type', 'Monitor']]));
+            await createField('Test MultiDropdown', 'Dropdown', new Map([['item_type', 'Monitor'], ['multiple_values', true]]));
+            await createField('Test URL', 'URL');
+            await createField('Test YesNo', 'Yes/No');
 
             // Intercept form submission to check the form display values sent
             cy.intercept('POST', '/front/asset/assetdefinition.form.php').as('saveFieldsDisplay');
