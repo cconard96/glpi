@@ -154,6 +154,7 @@ describe("Custom Assets - Custom Fields", () => {
                 cy.waitForNetworkIdle('/front/asset/customfielddefinition.form.php', 100);
             });
             cy.findByRole('dialog').should('not.exist');
+            cy.waitForNetworkIdle('/ajax/asset/assetdefinition.php', 100);
             cy.get(`.sortable-field[data-key="custom_${label.toLowerCase().replace(' ', '_')}"]`).should('be.visible');
         }
 
