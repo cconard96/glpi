@@ -86,7 +86,7 @@ class ProfileRestrictOption extends AbstractOption
 
         // Handle special 'All' value
         if (in_array(-1, $value, true)) {
-            return true;
+            return !$inverted;
         }
 
         $active_profile = $_SESSION['glpiactiveprofile']['id'] ?? null;
