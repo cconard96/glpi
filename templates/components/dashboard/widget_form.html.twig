@@ -53,7 +53,9 @@
       'color',
       color,
       __('Background color'),
-      field_options
+      field_options + {
+           enable_alpha: true
+       }
    ) }}
 
    {{ fields.dropdownArrayField(

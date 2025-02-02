@@ -55,3 +55,6 @@ $fontDir: "@fontsource/inter/files";
 $ti-font-path: "@tabler/icons-webfont/dist/fonts";
 
 @import "@tabler/icons-webfont/dist/tabler-icons";
+
+@import "@melloware/coloris/dist/coloris.css";
+@import '@tabler/core/src/scss/vendor/coloris';
