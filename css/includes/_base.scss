@@ -35,6 +35,7 @@
     --tblr-primary-rgb: 254, 201, 92;
     --tblr-primary: rgb(var(--tblr-primary-rgb));
     --tblr-primary-fg: #1e293b;
+    --tblr-primary-darken: color-mix(in srgb, var(--tblr-primary), black 10%);
     --tblr-secondary: #606f91;
     --tblr-secondary-fg: var(--tblr-body-bg);
     --tblr-info: #80abe4;
