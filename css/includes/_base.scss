@@ -262,6 +262,15 @@ body.in_modal {
             }
         }
     }
+
+    &.btn-link {
+        color: var(--tblr-link-color);
+    }
+}
+
+.status {
+    --tblr-status-color: var(--tblr-secondary);
+    background-color: color-mix(in srgb, var(--tblr-status-color), transparent 90%);
 }
 
 .toast-container {
