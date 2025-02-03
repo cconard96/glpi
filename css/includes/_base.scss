@@ -32,12 +32,16 @@
  */
 
 :root {
+    --tblr-light: #f6f8fb;
+    --tblr-dark: #101923;
     --tblr-primary-rgb: 254, 201, 92;
     --tblr-primary: rgb(var(--tblr-primary-rgb));
     --tblr-primary-fg: #1e293b;
     --tblr-primary-darken: color-mix(in srgb, var(--tblr-primary), black 10%);
     --tblr-secondary: #606f91;
     --tblr-secondary-fg: var(--tblr-body-bg);
+    --tblr-muted: var(--tblr-secondary);
+    --tblr-muted-darken: color-mix(in srgb, var(--tblr-muted), black 10%);
     --tblr-info: #80abe4;
     --tblr-link-color-rgb: 58, 86, 147;
     --tblr-link-color: rgb(var(--tblr-link-color-rgb));
@@ -488,4 +492,12 @@ body pre {
 // The definition from tabler doesn't seem to take into account our primary color. Bug?
 .border-primary {
     border-color: var(--tblr-primary) !important;
+}
+
+.nav {
+    --tblr-nav-link-color: color-mix(in srgb, var(--tblr-light), var(--tblr-dark) 70%);
+}
+
+.text-muted {
+    color: var(--tblr-muted) !important;
 }
