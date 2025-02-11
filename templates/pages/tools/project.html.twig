@@ -5,7 +5,7 @@
  #
  # http://glpi-project.org
  #
- # @copyright 2015-2024 Teclib' and contributors.
+ # @copyright 2015-2025 Teclib' and contributors.
  # @licence   https://www.gnu.org/licenses/gpl-3.0.html
  #
  # ---------------------------------------------------------------------
@@ -32,7 +32,6 @@
 
 {% extends "generic_show_form.html.twig" %}
 {% import 'components/form/fields_macros.html.twig' as fields %}
-{% import 'components/form/basic_inputs_macros.html.twig' as inputs %}
 
 {% set no_header = no_header|default(not item.isNewItem() and not _get._in_modal|default(false)) %}
 {% set withtemplate = params['withtemplate'] ?? '' %}
@@ -46,7 +45,7 @@
 {% block form_fields %}
     {% if not item.isNewItem() and not is_template %}
         {{ fields.datetimeField('date', item.fields['date'], __('Creation date'), field_options) }}
-        {{ fields.htmlField('date_mod', item.fields['date_mod']|formatted_datetime, __('Last update') ) }}
+        {{ fields.htmlField('date_mod', item.fields['date_mod']|formatted_datetime, __('Last update')) }}
     {% elseif is_template and not item.isNewItem() and no_header %}
         {{ fields.autoNameField('template_name', item, __('Template name'), 0, field_options) }}
         {{ fields.nullField() }}
