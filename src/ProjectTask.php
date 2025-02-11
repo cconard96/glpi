@@ -2082,6 +2082,7 @@ TWIG, $twig_params);
                 ),
                 $name
             ),
+            default => ''
         };
 
         $parent = getItemForItemtype($val['itemtype']);
