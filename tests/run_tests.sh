@@ -54,6 +54,7 @@ TESTS_SUITES=(
   "web"
   "javascript"
   "e2e"
+  "playwright"
 )
 
 # Extract named options
@@ -159,6 +160,7 @@ Available tests suites:
  - web
  - javascript
  - e2e
+ - playwright
 EOF
 
   exit 0
@@ -310,6 +312,11 @@ run_single_test () {
       ;;
     "e2e")
          docker compose exec -T app .github/actions/test_tests-e2e.sh \
+      || LAST_EXIT_CODE=$?
+      ;;
+    "playwright")
+         (docker compose exec -T --user=root app sudo -E .github/actions/install_playwright-browsers.sh && \
+         docker compose exec -T app .github/actions/test_tests-playwright.sh) \
       || LAST_EXIT_CODE=$?
       ;;
   esac
