@@ -59,7 +59,7 @@ export class HomePage extends GlpiPage
     }
 
     public async goto() {
-        await this.page.goto('/Helpdesk');
+        await this.page.goto('/Helpdesk', {waitUntil: 'domcontentloaded'});
     }
 
     public async search(query: string) {

@@ -74,7 +74,7 @@ export class HomeConfigPage extends GlpiPage
     }
 
     public async goto(profile_id: number) {
-        await this.page.goto(`/front/profile.form.php?id=${profile_id}&forcetab=Profile$4`);
+        await this.page.goto(`/front/profile.form.php?id=${profile_id}&forcetab=Profile$4`, {waitUntil: 'commit'});
     }
 
     public getTile(name: string): Locator {

@@ -5,4 +5,4 @@ set -e -u -x -o pipefail
 npx tsc -p tsconfig.json --noEmit
 
 # Playwright
-npx playwright test
+npx playwright test --trace on --workers=1

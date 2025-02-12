@@ -60,7 +60,7 @@ test_unauthenticated.describe('tests without sessions', () => {
 
     test_unauthenticated('redirect to a requested page after login', async ({ page }) => {
         // Should have a link to be redirected to the login page
-        await page.goto('/front/preference.php');
+        await page.goto('/front/preference.php', {waitUntil: 'commit'});
         await page.getByRole('link', {'name': "Log in again"}).click();
         await expect(page).toHaveTitle('Authentication - GLPI');
 
@@ -80,7 +80,7 @@ test_authenticated('can change profile', async ({ page, request }) => {
 
     // Go to any page and validate we are super admin
     const glpi_page = new GlpiPage(page);
-    await page.goto('/front/preference.php');
+    await page.goto('/front/preference.php', {waitUntil: 'commit'});
     await expect(glpi_page.getMenuEntry('Administration')).toBeVisible();
 
     // Change profile

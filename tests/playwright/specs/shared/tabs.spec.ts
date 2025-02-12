@@ -41,7 +41,7 @@ test('can use the "forcetab" URL parameter', async ({ page, request }) => {
 
     // Load the glpi's user details and force the "Change" tab
     const user_page = new CommonDBTMPage(page);
-    page.goto("/front/user.form.php?id=2&forcetab=Change_Item$1");
+    await page.goto("/front/user.form.php?id=2&forcetab=Change_Item$1", {waitUntil: 'commit'});
     await expect.soft(user_page.getTab('Changes')).toHaveAttribute(
         'aria-selected', 'true'
     );
@@ -50,7 +50,7 @@ test('can use the "forcetab" URL parameter', async ({ page, request }) => {
     );
 
     // Force the "Problem" tab
-    page.goto("/front/user.form.php?id=2&forcetab=Item_Problem$1");
+    await page.goto("/front/user.form.php?id=2&forcetab=Item_Problem$1", {waitUntil: 'commit'});
     await expect(user_page.getTab('Changes')).toHaveAttribute(
         'aria-selected', 'false'
     );

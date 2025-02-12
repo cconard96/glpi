@@ -62,7 +62,7 @@ export class LoginPage extends GlpiPage
     }
 
     public async goto() {
-        await this.page.goto(this.base_url);
+        await this.page.goto(this.base_url, {waitUntil: 'commit'});
     }
 
     public async login(login: string, password: string) {

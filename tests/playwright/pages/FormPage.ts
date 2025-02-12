@@ -53,7 +53,7 @@ export class FormPage extends CommonDBTMPage
     }
 
     public async goto(id: number, tab: string = FormPage.MAIN_TAB) {
-        await this.page.goto(`/front/form/form.form.php?id=${id}&forcetab=${tab}`);
+        await this.page.goto(`/front/form/form.form.php?id=${id}&forcetab=${tab}`, {waitUntil: 'commit'});
     }
 
     public async setActive() {
