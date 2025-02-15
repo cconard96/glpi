@@ -300,7 +300,7 @@
              <div id="notes" class="accordion-collapse collapse {{ notes_show ? "show" : "" }}" aria-labelledby="notes-heading">
                 <div class="accordion-body row m-0 mt-n2">
                   {% for note in notes %}
-                     <div class="alert alert-info entitynote rich_text_container" role="alert">{{ note['content']|safe_html }}</div>
+                     <div class="alert alert-info entitynote rich_text_container">{{ note['content']|safe_html }}</div>
                   {% endfor %}
                 </div>
              </div>

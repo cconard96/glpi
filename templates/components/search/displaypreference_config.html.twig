@@ -32,14 +32,13 @@
  #}
 
 {% import 'components/form/fields_macros.html.twig' as fields %}
+{% import 'components/alerts_macros.html.twig' as alerts %}
 
 <div id="tabsbody" class="m-n2 display_preference_config">
     <input type="hidden" name="itemtype" value="{{ itemtype }}">
     <input type="hidden" name="users_id" value="{{ users_id }}">
     {% if not available_itemtype %}
-        <div class="alert alert-danger">
-            {{ __('These preferences cannot be edited at this time. The item type no longer exists or is provided by a plugin that is not enabled.') }}
-        </div>
+        {{ alerts.alert_danger(__('These preferences cannot be edited at this time. The item type no longer exists or is provided by a plugin that is not enabled.')) }}
     {% else %}
         {% if is_global %}
             <div class="my-1 me-1">
