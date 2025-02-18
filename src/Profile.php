@@ -737,22 +737,31 @@ class Profile extends CommonDBTM
 
     public function showLegend()
     {
-        echo "<div class='spaced'>";
-        echo "<table class='tab_cadre_fixe'>";
-        echo "<tr class='tab_bg_2'><td width='70' style='text-decoration:underline' class='b'>";
-        echo __s('Caption') . "</td>";
-        echo "<td class='tab_bg_4' width='15' style='border:1px solid black'></td>";
-        echo "<td class='b'>" . __s('Global right') . "</td></tr>";
-        echo "<tr class='tab_bg_2'><td></td>";
-        echo "<td class='tab_bg_2' width='15' style='border:1px solid black'></td>";
-        echo "<td class='b'>" . __s('Entity right') . "</td></tr>";
-        echo "</table></div>";
+        $twig_params = [
+            'caption_msg' => __('Caption'),
+            'global_msg' => __('Global right'),
+            'entity_msg' => __('Entity right'),
+        ];
+        // language=Twig
+        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
+            <table class="table table-borderless table-sm w-auto">
+                <tr>
+                    <td class="text-decoration-underline fw-bold px-2">{{ caption_msg }}</td>
+                    <td class="table-secondary border-1" style="width: 15px"></td>
+                    <td class="fw-bold px-2">{{ global_msg }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="border-1" style="width:15px;"></td>
+                    <td class="fw-bold px-2">{{ entity_msg }}</td>
+                </tr>
+            </table>
+TWIG, $twig_params);
     }
 
     public function post_getEmpty()
     {
         $this->fields["interface"] = "helpdesk";
-        $this->fields["name"]      = __('Without name');
         ProfileRight::cleanAllPossibleRights();
         $this->fields = array_merge($this->fields, ProfileRight::getAllPossibleRights());
     }
@@ -769,61 +778,13 @@ class Profile extends CommonDBTM
      **/
     public function showForm($ID, array $options = [])
     {
-        $onfocus = "";
-        $new     = false;
-        $rowspan = 4;
-        if ($ID > 0) {
-            $rowspan++;
-            $this->check($ID, READ);
-        } else {
-           // Create item
-            $this->check(-1, CREATE);
-            $onfocus = "onfocus=\"if (this.value==" . htmlescape(json_encode($this->fields["name"])) . ") this.value='';\"";
-            $new     = true;
-        }
+        $this->initForm($ID, $options);
 
-        $rand = mt_rand();
-
-        $this->showFormHeader($options);
-
-        echo "<tr class='tab_bg_1'><td>" . __s('Name') . "</td>";
-        echo "<td><input type='text' name='name' class='form-control' value=\"" . htmlescape($this->fields["name"]) . "\" $onfocus></td>";
-        echo "<td rowspan='$rowspan' class='middle right'>" . __s('Comments') . "</td>";
-        echo "<td class='center middle' rowspan='$rowspan'>";
-        echo "<textarea class='form-control' rows='4' name='comment' class='form-control'>" . htmlescape($this->fields["comment"]) . "</textarea>";
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s('Default profile') . "</td><td>";
-        Html::showCheckbox(['name'    => 'is_default',
-            'checked' => $this->fields['is_default']
+        TemplateRenderer::getInstance()->display('pages/admin/profile/form.html.twig', [
+            'item' => $this,
+            'interfaces' => self::getInterfaces(),
+            'last_super_admin_profile' => $this->isLastSuperAdminProfile(),
         ]);
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s("Profile's interface") . "</td>";
-        echo "<td>";
-        Dropdown::showFromArray(
-            'interface',
-            self::getInterfaces(),
-            [
-                'value' => $this->fields["interface"],
-                'readonly' => $this->isLastSuperAdminProfile() && $this->fields['interface'] == 'central'
-            ]
-        );
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s('Update own password') . "</td><td>";
-        Html::showCheckbox(['name'    => '_password_update',
-            'checked' => $this->fields['password_update']
-        ]);
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s('Ticket creation form on login') . "</td><td>";
-        Html::showCheckbox(['name'    => 'create_ticket_on_login',
-            'checked' => $this->fields['create_ticket_on_login']
-        ]);
-        echo "</td></tr>";
-
-        $this->showFormButtons($options);
 
         return true;
     }
@@ -1201,125 +1162,11 @@ class Profile extends CommonDBTM
             return false;
         }
 
-        echo "<div class='spaced'>";
-        if ($canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE])) {
-            echo "<form method='post' action='" . $this->getFormURL() . "' data-track-changes='true'>";
-        }
-
-        $matrix_options = ['canedit'       => $canedit,
-            'default_class' => 'tab_bg_2'
-        ];
-
-        $matrix_options['title'] = __('Assistance');
-        $this->displayRightsChoiceMatrix(self::getRightsForForm('helpdesk', 'tracking', 'general'), $matrix_options);
-
-        echo "<div class='mt-4 mx-n2'>";
-        echo "<table class='table table-hover card-table'>";
-        echo "<thead>";
-        echo "<tr class='border-top'><th colspan='2'><h4>" . __s('Association') . "</h4></th></tr>";
-        echo "</thead>";
-
-        echo "<tr'>";
-        echo "<td>" . __s('See hardware of my groups') . "</td>";
-        echo "<td>";
-        Html::showCheckbox([
-            'name'    => '_show_group_hardware',
-            'checked' => $this->fields['show_group_hardware']
+        TemplateRenderer::getInstance()->display('pages/admin/profile/assistance_simple.html.twig', [
+            'item' => $this,
+            'canedit' => Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]),
+            'rights' => self::getRightsForForm('helpdesk', 'tracking', 'general'),
         ]);
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr>";
-        echo "<td>" . __s('Link with items for the creation of tickets') . "</td>";
-        echo "<td>";
-        self::getLinearRightChoice(
-            self::getHelpdeskHardwareTypes(true),
-            ['field' => 'helpdesk_hardware',
-                'value' => $this->fields['helpdesk_hardware']
-            ]
-        );
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr>";
-        echo "<td>" . __s('Associable items to tickets, changes and problems') . "</td>";
-        echo "<td>";
-        self::dropdownHelpdeskItemtypes(['values' => $this->fields["helpdesk_item_type"]]);
-
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr>";
-        echo "<td>" . __s('Default ticket template') . "</td>";
-        echo "<td>";
-       // Only root entity ones and recursive
-        $options = ['value'     => $this->fields["tickettemplates_id"],
-            'entity'    => 0
-        ];
-        if (Session::isMultiEntitiesMode()) {
-            $options['condition'] = ['is_recursive' => 1];
-        }
-       // Only add profile if on root entity
-        if (!isset($_SESSION['glpiactiveentities'][0])) {
-            $options['addicon'] = false;
-        }
-        TicketTemplate::dropdown($options);
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr>";
-        echo "<td>" . __s('Default change template') . "</td>";
-        echo "<td>";
-       // Only root entity ones and recursive
-        $options = ['value'     => $this->fields["changetemplates_id"],
-            'entity'    => 0
-        ];
-        if (Session::isMultiEntitiesMode()) {
-            $options['condition'] = ['is_recursive' => 1];
-        }
-       // Only add profile if on root entity
-        if (!isset($_SESSION['glpiactiveentities'][0])) {
-            $options['addicon'] = false;
-        }
-        ChangeTemplate::dropdown($options);
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr>";
-        echo "<td>" . __s('Default problem template') . "</td>";
-        echo "<td>";
-       // Only root entity ones and recursive
-        $options = ['value'     => $this->fields["problemtemplates_id"],
-            'entity'    => 0
-        ];
-        if (Session::isMultiEntitiesMode()) {
-            $options['condition'] = ['is_recursive' => 1];
-        }
-       // Only add profile if on root entity
-        if (!isset($_SESSION['glpiactiveentities'][0])) {
-            $options['addicon'] = false;
-        }
-        ProblemTemplate::dropdown($options);
-        echo "</td>";
-        echo "</tr>";
-
-        if ($canedit) {
-            echo "<tr'>";
-            echo "<td colspan='4' class='center'>";
-            echo "<input type='hidden' name='id' value='" . $this->getID() . "'>";
-            echo Html::submit(_x('button', 'Save'), [
-                'class' => 'btn btn-primary mt-2',
-                'icon'  => 'ti ti-device-floppy',
-                'name'  => 'update'
-            ]);
-            echo "</td></tr>";
-            echo "</table>";
-            Html::closeForm();
-        } else {
-            echo "</table>";
-        }
-        echo "</div>";
-        echo "</div>";
     }
 
     /**
@@ -4146,8 +3993,8 @@ class Profile extends CommonDBTM
                 if (!empty($info['row_class'])) {
                     $row['class'] = $info['row_class'];
                 } else if (isset($info['scope'])) {
-                    $default_scope_class = !empty($param['default_class']) ? $param['default_class'] : 'tab_bg_2';
-                    $row['class'] = $info['scope'] === 'global' ? 'tab_bg_4' : $default_scope_class;
+                    $default_scope_class = !empty($param['default_class']) ? $param['default_class'] : '';
+                    $row['class'] = $info['scope'] === 'global' ? 'table-secondary' : $default_scope_class;
                 } else {
                     $row['class'] = $param['default_class'];
                 }
