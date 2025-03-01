@@ -54,6 +54,9 @@ class CentralController extends AbstractController
     {
         if ($request->query->has('embed') && $request->query->has('dashboard')) {
             // embed (anonymous) dashboard
+            if ($request->query->has('palette')) {
+                $_SESSION['glpipalette'] = $request->query->get('palette');
+            }
             return $this->render('central/embed_dashboard.html.twig', [
                 'grid'   => new Grid($request->query->get('dashboard')),
                 'params' => $request->query->all(),

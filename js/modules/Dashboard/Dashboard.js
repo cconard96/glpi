@@ -260,12 +260,6 @@ class GLPIDashboard {
             }
         });
 
-        // night mode toggle
-        $(`${this.elem_id} .toolbar .night-mode`).click((e) => {
-            $(e.currentTarget).toggleClass('active');
-            this.element.toggleClass('theme-dark');
-        });
-
         // refresh mode toggle
         $(`${this.elem_id} .toolbar .auto-refresh`).click((e) => {
             const target = $(e.currentTarget);

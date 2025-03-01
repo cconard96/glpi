@@ -112,7 +112,6 @@ $break_tablet: 1400px;
 
     &.fullscreen,
     &.embed {
-        background: white;
         padding: 100px;
 
         .glpi_logo {
@@ -1309,29 +1308,19 @@ $break_tablet: 1400px;
     }
 }
 
-.dashboard.theme-dark,
-.theme-dark .dashboard {
-    &.fullscreen,
-    &.embed {
-        .glpi_logo {
-            background: url("../pics/logos/logo-GLPI-100-white.png") no-repeat;
+:root[data-glpi-theme-dark="1"] {
+    .widgettype_field input[type="radio"].widget-select {
+        & + label {
+            img {
+                filter: invert(1);
+            }
         }
     }
-
-    background: var(--tblr-dark);
-    color: var(--tblr-light);
-
-    .grid-guide {
-        border: 1px solid var(--glpi-dashboard-soft-border);
-        background-image:
-            linear-gradient(to right, var(--glpi-dashboard-soft-border) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--glpi-dashboard-soft-border) 1px, transparent 1px);
-    }
-
-    .filters_toolbar {
-        .filters {
-            fieldset.filter:not(.filled) {
-                border: 2px solid var(--glpi-dashboard-soft-border);
+    .dashboard {
+        &.fullscreen,
+        &.embed {
+            .glpi_logo {
+                background: url("../pics/logos/logo-GLPI-100-white.png") no-repeat;
             }
         }
     }

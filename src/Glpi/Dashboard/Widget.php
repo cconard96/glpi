@@ -346,17 +346,6 @@ class Widget
             background-color: {$fg_hover_color};
             border: 1px solid {$fg_hover_border};
          }
-
-         .theme-dark #{$p['id']} {
-            background-color: {$fg_color};
-            color: {$p['color']};
-         }
-
-         .theme-dark #{$p['id']}:hover {
-            background-color: {$fg_hover_color};
-            color: {$fg_color};
-            border: 1px solid {$fg_hover_border};
-         }
       </style>
       <a {$href}
          id="{$p['id']}"
@@ -501,11 +490,6 @@ HTML;
             background-color: {$p['color']};
             color: {$fg_color};
          }
-
-         .theme-dark #chart-{$p['rand']} {
-            background-color: {$fg_color};
-            color: {$p['color']};
-         }
       </style>
 
       <div class="card $class"
@@ -603,11 +587,6 @@ HTML;
             #{$chart_id} {
                 background-color: {$p['color']};
                 color: {$fg_color}
-            }
-
-            .theme-dark #{$chart_id} {
-                background-color: {$dark_bg_color};
-                color: {$dark_fg_color};
             }
         </style>
         <div class="card g-chart {$class}" id="{$chart_id}">
@@ -1094,11 +1073,6 @@ TWIG, $twig_params);
                 background-color: {$p['color']};
                 color: {$fg_color}
             }
-
-            .theme-dark #{$chart_id} {
-                background-color: {$dark_bg_color};
-                color: {$dark_fg_color};
-            }
             </style>
 
             <div class="card g-chart $class" id="{$chart_id}">
@@ -1458,11 +1432,6 @@ TWIG, $twig_params);
             #{$chart_id} {
                 background-color: {$p['color']};
                 color: {$fg_color}
-            }
-
-            .theme-dark #{$chart_id} {
-                background-color: {$dark_bg_color};
-                color: {$dark_fg_color};
             }
             </style>
 

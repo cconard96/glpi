@@ -285,7 +285,6 @@ HTML;
         $embed_label      = __("Share or embed this dashboard");
         $delete_label     = __("Delete this dashboard");
         $history_label    = __("Toggle auto-refresh");
-        $night_label      = __("Toggle night mode");
         $fs_label         = __("Toggle fullscreen");
         $clone_label      = __("Clone this dashboard");
         $edit_label       = __("Toggle edit mode");
@@ -366,7 +365,6 @@ HTML;
          $left_toolbar
          <span class="toolbar">
             <i class="btn btn-sm btn-icon btn-ghost-secondary ti ti-refresh auto-refresh" title="$history_label"></i>
-            <i class="btn btn-sm btn-icon btn-ghost-secondary ti ti-moon night-mode" title="$night_label"></i>
             $r_tb_icons
          </span>
 HTML;
