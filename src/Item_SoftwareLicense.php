@@ -33,6 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
+use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryUnion;
 
@@ -445,11 +446,16 @@ class Item_SoftwareLicense extends CommonDBRelation
             return false;
         }
 
-        echo "<div class='center'>";
-        echo "<table class='tab_cadre'><tr>";
-        echo "<th>" . Entity::getTypeName(1) . "</th>";
-        echo "<th>" . __('Number of affected items') . "</th>";
-        echo "</tr>\n";
+        $twig_params = [
+            'class'       => 'table table-borderless table-striped table-hover card-table w-auto',
+            'header_rows' => [
+                [
+                    ['content' => Entity::getTypeName(1)],
+                    ['content' => __('Number of affected items')]
+                ]
+            ],
+            'rows' => []
+        ];
 
         $tot = 0;
 
@@ -485,35 +491,44 @@ class Item_SoftwareLicense extends CommonDBRelation
             }
 
             if (count($target_types)) {
-                echo "<tr class='tab_bg_2'><td colspan='2'>{$data["completename"]}</td></tr>";
+                $twig_params['rows'][] = [
+                    'values' => [
+                        ['content' => $data['completename'], 'class' => 'tab_bg_2'],
+                        ['content' => '', 'class' => 'tab_bg_2']
+                    ]
+                ];
                 foreach ($target_types as $itemtype) {
                     $nb = self::countForLicense($softwarelicense_id, $data['id'], $itemtype);
                     $typename = htmlescape($itemtype::getTypeName());
-                    echo "<tr class='tab_bg_2'><td>$tab$tab$typename</td>";
-                    echo "<td class='numeric'>{$nb}</td></tr>\n";
+                    $twig_params['rows'][] = [
+                        'values' => [
+                            ['content' => $tab . $tab . $typename],
+                            ['content' => $nb]
+                        ]
+                    ];
                     $tot += $nb;
                 }
             }
         }
 
         if ($tot > 0) {
-            echo "<tr class='tab_bg_1'><td class='center b'>" . __s('Total') . "</td>";
-            echo "<td class='numeric b '>" . $tot . "</td></tr>\n";
+            $twig_params['rows'][] = [
+                'class' => 'fw-bold',
+                'values' => [
+                    ['content' => __s('Total')],
+                    ['content' => $tot]
+                ]
+            ];
         } else {
-            echo "<tr class='tab_bg_1'><td colspan='2 b'>" . __s('No results found') . "</td></tr>\n";
+            echo '<div class="alert alert-info">' . __s('No results found') . '</div>';
         }
-        echo "</table></div>";
+
+        echo '<div class="d-flex justify-content-center">';
+        TemplateRenderer::getInstance()->display('components/table.html.twig', $twig_params);
+        echo '</div>';
     }
 
-
-    /**
-     * Show items linked to a License
-     *
-     * @param SoftwareLicense $license SoftwareLicense instance
-     *
-     * @return void
-     **/
-    public static function showForLicense(SoftwareLicense $license)
+    private static function getDataForLicense(int $softwarelicenses_id, int $start, string $sort, string $order): DBmysqlIterator
     {
         /**
          * @var array $CFG_GLPI
@@ -521,127 +536,10 @@ class Item_SoftwareLicense extends CommonDBRelation
          */
         global $CFG_GLPI, $DB;
 
-        $searchID = $license->getID();
-
-        if (!Software::canView() || !$searchID) {
-            return false;
-        }
-
-        $canedit         = Session::haveRightsOr("software", [CREATE, UPDATE, DELETE, PURGE]);
-        $canshowitems  = [];
-        $item_license_table = self::getTable(__CLASS__);
-
-        $start = (int) ($_GET["start"] ?? 0);
-        $order = ($_GET['order'] ?? 'ASC') === 'DESC' ? 'DESC' : 'ASC';
-
-        if (!empty($_GET["sort"])) {
-           // manage several param like location,compname : order first
-            $tmp  = explode(",", $_GET["sort"]);
-            $sort = "`" . implode("` $order,`", $tmp) . "`";
-        } else {
-            $sort = "`entity` $order, `itemname`";
-        }
-
-       //SoftwareLicense ID
-        $number = self::countForLicense($searchID);
-        $number += SoftwareLicense_User::countForLicense($searchID);
-
-        echo "<div class='center'>";
-
-       //If the number of linked assets have reached the number defined in the license,
-       //and over-quota is not allowed, do not allow to add more assets
-        if (
-            $canedit
-            && ($license->getField('number') == -1 || $number < $license->getField('number')
-            || $license->getField('allow_overquota'))
-        ) {
-            echo "<form method='post' action='" . Item_SoftwareLicense::getFormURL() . "'>";
-            echo "<input type='hidden' name='softwarelicenses_id' value='$searchID'>";
-
-            echo "<table class='tab_cadre_fixe'>";
-            echo "<tr class='tab_bg_2 center'>";
-            echo "<td>";
-
-            $rand = mt_rand();
-
-            $entity_restrict = $license->fields['is_recursive']
-                    ? getSonsOf('glpi_entities', $license->fields['entities_id'])
-                    : $license->fields['entities_id'];
-
-            Dropdown::showItemTypes(
-                'itemtype',
-                array_merge($CFG_GLPI['software_types'], [User::class]),
-                [
-                    'value'                 => 'Computer',
-                    'rand'                  => $rand,
-                    'width'                 => 'unset',
-                    'display_emptychoice'   => false,
-                ]
-            );
-
-            $p = ['idtable'            => '__VALUE__',
-                'rand'                  => $rand,
-                'name'                  => "items_id",
-                'width'                 => 'unset',
-                'entity_restrict'    => $entity_restrict
-            ];
-
-            Ajax::updateItemOnSelectEvent(
-                "dropdown_itemtype$rand",
-                "results_itemtype$rand",
-                $CFG_GLPI["root_doc"] . "/ajax/dropdownAllItems.php",
-                $p
-            );
-
-           // We have a preselected value, so we want to trigger the item list to show immediately
-            $js = <<<JAVASCRIPT
-$(document).ready(function() {
-   $("#dropdown_itemtype$rand").trigger({
-      type: 'change'
-   });
-});
-JAVASCRIPT;
-            echo Html::scriptBlock($js);
-
-            echo "<span id='results_itemtype$rand'>\n";
-            echo "</td>";
-            echo "<td><input type='submit' name='add' value=\"" . _sx('button', 'Add') . "\" class='btn btn-primary'>";
-            echo "</td></tr>";
-
-            echo "</table>";
-            Html::closeForm();
-            $ajax_url = $CFG_GLPI['root_doc'] . '/ajax/dropdownAllItems.php';
-            $js = <<<JAVASCRIPT
-function updateItemDropdown(itemtype_el) {
-   $.ajax({
-      method: "POST",
-      url: "$ajax_url",
-      data: {
-         name: 'items_id',
-         idtable: itemtype_el.value
-      },
-      success: function(data) {
-         $("[name='items_id']").select2('destroy').empty().replaceWith(data);
-      }
-   });
-}
-JAVASCRIPT;
-            echo Html::scriptBlock($js);
-        }
-
-        if ($number < 1) {
-            echo "<table class='tab_cadre_fixe'>";
-            echo "<tr><th>" . __s('No results found') . "</th></tr>";
-            echo "</table></div>\n";
-            return;
-        }
-
-       // Display the pager
-        Html::printAjaxPager(__('Affected items'), $start, $number);
+        $item_license_table = self::getTable();
 
         $queries = [];
         foreach ($CFG_GLPI['software_types'] as $itemtype) {
-            $canshowitems[$itemtype] = $itemtype::canView();
             $itemtable = $itemtype::getTable();
             $query = [
                 'SELECT' => [
@@ -674,7 +572,7 @@ JAVASCRIPT;
                     ]
                 ],
                 'WHERE'     => [
-                    'glpi_softwarelicenses.id'                   => $searchID,
+                    'glpi_softwarelicenses.id'                   => $softwarelicenses_id,
                     'glpi_items_softwarelicenses.is_deleted'     => 0
                 ]
             ];
@@ -821,7 +719,7 @@ JAVASCRIPT;
                 ]
             ],
             'WHERE' => [
-                'glpi_softwarelicenses.id' => $searchID,
+                'glpi_softwarelicenses.id' => $softwarelicenses_id,
                 'glpi_users.is_deleted'    => 0
             ],
             'ORDER' => "$entity_table.completename, $users_table.name"
@@ -837,150 +735,185 @@ JAVASCRIPT;
             'LIMIT'  => $_SESSION['glpilist_limit'],
             'START'  => $start
         ];
-        $iterator = $DB->request($criteria);
+
+        return $DB->request($criteria);
+    }
+
+    /**
+     * Show items linked to a License
+     *
+     * @param SoftwareLicense $license SoftwareLicense instance
+     *
+     * @return void
+     **/
+    public static function showForLicense(SoftwareLicense $license)
+    {
+        $searchID = $license->getID();
+
+        if (!Software::canView() || !$searchID) {
+            return false;
+        }
+
+        $canedit         = Session::haveRightsOr("software", [CREATE, UPDATE, DELETE, PURGE]);
+        $canshowitems  = [];
+
+        $start = (int) ($_GET["start"] ?? 0);
+        $order = ($_GET['order'] ?? 'ASC') === 'DESC' ? 'DESC' : 'ASC';
+        $itemname_sort_columns = ['location', 'state', 'group', 'username'];
+
+        if (!empty($_GET["sort"])) {
+            $tmp  = [$_GET["sort"]];
+            if (in_array($tmp, $itemname_sort_columns)) {
+                $tmp[] = 'itemname';
+            }
+            $sort = "`" . implode("` $order,`", $tmp) . "`";
+        } else {
+            $sort = "`entity` $order, `itemname`";
+        }
+
+       //SoftwareLicense ID
+        $number = self::countForLicense($searchID);
+        $number += SoftwareLicense_User::countForLicense($searchID);
+
+       //If the number of linked assets have reached the number defined in the license,
+       //and over-quota is not allowed, do not allow to add more assets
+        if (
+            $canedit
+            && ($license->getField('number') == -1 || $number < $license->getField('number')
+            || $license->getField('allow_overquota'))
+        ) {
+            $entity_restrict = $license->fields['is_recursive']
+                    ? getSonsOf('glpi_entities', $license->fields['entities_id'])
+                    : $license->fields['entities_id'];
+
+            $twig_params = [
+                'searchID' => $searchID,
+                'btn_label' => _x('button', 'Add'),
+                'entity_restrict' => $entity_restrict,
+            ];
+            // language=Twig
+            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
+                {% import 'components/form/fields_macros.html.twig' as fields %}
+                <form method="post" action="{{ 'Item_SoftwareLicense'|itemtype_form_path }}">
+                    <input type="hidden" name="softwarelicenses_id" value="{{ searchID }}">
+                    <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+                    <div class="d-flex">
+                        {{ fields.dropdownItemsFromItemtypes('items_id', '', {
+                            itemtypes: config('software_types'),
+                            no_label: true,
+                            entity_restrict: entity_restrict
+                        }) }}
+                        <div>
+                            <button type="submit" name="add" class="btn btn-primary ms-3 mb-3">{{ btn_label }}</button>
+                        </div>
+                    </div>
+                </form>
+TWIG, $twig_params);
+        }
+
+        $results = [];
+        if ($number > 0) {
+            $results = self::getDataForLicense($license->getID(), $start, $sort, $order);
+        }
 
         $canshowitems[User::class] = User::canView();
 
-        $rand = mt_rand();
+        $showEntity = ($license->isRecursive());
 
-        if ($data = $iterator->current()) {
-            if ($canedit) {
-                Html::openMassiveActionsForm('mass' . __CLASS__ . $rand);
-                $massiveactionparams = ['num_displayed'    => min($_SESSION['glpilist_limit'], count($iterator)),
-                    'container'        => 'mass' . __CLASS__ . $rand,
-                    'specific_actions' => ['purge' => _x('button', 'Delete permanently')]
-                ];
-
-               // show transfer only if multi licenses for this software
-                if (self::countLicenses($data['softid']) > 1) {
-                    $massiveactionparams['specific_actions'][__CLASS__ . MassiveAction::CLASS_ACTION_SEPARATOR . 'move_license'] = _x('button', 'Move');
-                }
-
-               // Options to update license
-                $massiveactionparams['extraparams']['options']['move']['used'] = [$searchID];
-                $massiveactionparams['extraparams']['options']['move']['softwares_id']
-                                                                  = $license->fields['softwares_id'];
-
-                Html::showMassiveActions($massiveactionparams);
-            }
-
-            $soft = new Software();
-            if (!empty($license->fields['softwares_id'])) {
-                $soft->getFromDB($license->fields['softwares_id']);
-                $softwareName = $soft->fields["name"];
-            } else {
-                $softwareName = __('No software linked');
-            }
-            $showEntity = ($license->isRecursive());
-
-            $text = sprintf(__('%1$s = %2$s'), Software::getTypeName(1), $softwareName);
-            $text = sprintf(__('%1$s - %2$s'), $text, $data["license"]);
-
-            Session::initNavigateListItems($data['item_type'], $text);
-
-            echo "<table class='tab_cadre_fixehov'>";
-
-            $columns = ['item_type' => __('Item type'),
-                'itemname'          => __('Name'),
-                'entity'            => Entity::getTypeName(1),
-                'serial'            => __('Serial number'),
-                'otherserial'       => __('Inventory number'),
-                'location,itemname' => Location::getTypeName(1),
-                'state,itemname'    => __('Status'),
-                'groupe,itemname'   => Group::getTypeName(1),
-                'username,itemname' => User::getTypeName(1)
-            ];
-            if (!$showEntity) {
-                unset($columns['entity']);
-            }
-
-            $header_begin  = "<tr>";
-            $header_top    = '';
-            $header_bottom = '';
-            $header_end    = '';
-            if ($canedit) {
-                $header_begin  .= "<th width='10'>";
-                $header_top    .= Html::getCheckAllAsCheckbox('mass' . __CLASS__ . $rand);
-                $header_bottom .= Html::getCheckAllAsCheckbox('mass' . __CLASS__ . $rand);
-                $header_end    .= "</th>";
-            }
-
-            foreach ($columns as $key => $val) {
-                $val = htmlescape($val);
-               // Non order column
-                if ($key[0] == '_') {
-                    $header_end .= "<th>$val</th>";
-                } else {
-                    $header_end .= "<th" . ($sort == "`$key`" ? " class='order_$order'" : '') . ">" .
-                              "<a href='javascript:reloadTab(\"sort=$key&amp;order=" .
-                              (($order == "ASC") ? "DESC" : "ASC") . "&amp;start=0\");'>$val</a></th>";
-                }
-            }
-
-            $header_end .= "</tr>\n";
-            echo $header_begin . $header_top . $header_end;
-
-            do {
-                Session::addToNavigateListItems($data['item_type'], $data["iID"]);
-
-                echo "<tr class='tab_bg_2'>";
-                if ($canedit) {
-                    if ($data['itemtype'] == 'User') {
-                        $class = SoftwareLicense_User::class;
-                    } else {
-                        $class = __CLASS__;
-                    }
-                    echo "<td>" . Html::getMassiveActionCheckBox($class, $data["id"]) . "</td>";
-                }
-
-                echo "<td>" . htmlescape($data['item_type']) . "</td>";
-                $itemname = $data['itemname'];
-                if (empty($itemname) || $_SESSION['glpiis_ids_visible']) {
-                    $itemname = sprintf(__('%1$s (%2$s)'), $itemname, $data['iID']);
-                }
-
-                $itemname = htmlescape($itemname);
-                if ($canshowitems[$data['item_type']]) {
-                    echo "<td><a href='" . $data['item_type']::getFormURLWithID($data['iID']) . "'>$itemname</a></td>";
-                } else {
-                    echo "<td>" . $itemname . "</td>";
-                }
-
-                if ($showEntity) {
-                    echo "<td>" . htmlescape($data['entity']) . "</td>";
-                }
-                echo "<td>" . htmlescape($data['serial']) . "</td>";
-                echo "<td>" . htmlescape($data['otherserial']) . "</td>";
-                echo "<td>" . htmlescape($data['location']) . "</td>";
-                echo "<td>" . htmlescape($data['state']) . "</td>";
-                echo "<td>" . htmlescape($data['groupe']) . "</td>";
-                if ($data['userid'] !== null) {
-                    echo "<td>" . formatUserLink(
-                        $data['userid'],
-                        $data['username'],
-                        $data['userrealname'],
-                        $data['userfirstname'],
-                    ) . "</td>";
-                } else {
-                    echo "<td></td>";
-                }
-                echo "</tr>\n";
-
-                $iterator->next();
-            } while ($data = $iterator->current());
-            echo $header_begin . $header_bottom . $header_end;
-            echo "</table>\n";
-            if ($canedit) {
-                $massiveactionparams['ontop'] = false;
-                Html::showMassiveActions($massiveactionparams);
-                Html::closeForm();
-            }
-        } else { // Not found
-            echo __s('No results found');
+        $columns = [
+            'item_type' => __('Item type'),
+            'itemname'  => __('Name'),
+            'entity'    => Entity::getTypeName(1),
+            'serial'    => __('Serial number'),
+            'otherserial'   => __('Inventory number'),
+            'location'  => Location::getTypeName(1),
+            'state'     => __('Status'),
+            'group'     => Group::getTypeName(1),
+            'username'  => User::getTypeName(1)
+        ];
+        if (!$showEntity) {
+            unset($columns['entity']);
         }
-        Html::printAjaxPager(__s('Affected items'), $start, $number);
 
-        echo "</div>\n";
+        $entries = [];
+        $itemtype_names = [];
+
+        foreach ($results as $data) {
+            if (!array_key_exists($data['item_type'], $itemtype_names) && class_exists($data['item_type'])) {
+                $itemtype_names[$data['item_type']] = $data['item_type']::getTypeName(1);
+            } else if (!class_exists($data['item_type'])) {
+                continue;
+            }
+            if (!array_key_exists($data['item_type'], $canshowitems)) {
+                $canshowitems[$data['item_type']] = $data['item_type']::canView();
+            }
+            $itemname = $data['itemname'];
+            if (empty($itemname) || $_SESSION['glpiis_ids_visible']) {
+                $itemname = sprintf(__('%1$s (%2$s)'), $itemname, $data['iID']);
+            }
+            $itemname = htmlescape($itemname);
+            if ($canshowitems[$data['item_type']]) {
+                $itemname = "<a href='" . $data['item_type']::getFormURLWithID($data['iID']) . "'>$itemname</a>";
+            }
+
+            $entry = [
+                'itemtype' => $data['itemtype'] === User::class ? SoftwareLicense_User::class : self::class,
+                'id' => $data['id'],
+                'item_type' => $itemtype_names[$data['item_type']],
+                'itemname' => $itemname,
+                'serial' => $data['serial'],
+                'otherserial' => $data['otherserial'],
+                'location' => $data['location'],
+                'state' => $data['state'],
+                'group' => $data['groupe'],
+            ];
+            if ($showEntity) {
+                $entry['entity'] = $data['entity'];
+            }
+            if ($data['userid'] !== null) {
+                $entry['username'] = formatUserLink(
+                    $data['userid'],
+                    $data['username'],
+                    $data['userrealname'],
+                    $data['userfirstname'],
+                );
+            }
+            $entries[] = $entry;
+        }
+
+        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
+            'is_tab' => true,
+            'start' => $start,
+            'limit' => $_SESSION['glpilist_limit'],
+            'nofilter' => true,
+            'sort' => $_GET["sort"],
+            'order' => $order,
+            'columns' => $columns,
+            'formatters' => [
+                'itemname' => 'raw_html',
+
+            ],
+            'entries' => $entries,
+            'total_number' => $number,
+            'filtered_number' => count($entries),
+            'showmassiveactions' => $canedit,
+            'massiveactionparams' => [
+                'num_displayed' => count($entries),
+                'container'     => 'mass' . Item_SoftwareLicense::class . mt_rand(),
+                'specific_actions' => [
+                    'purge' => _x('button', 'Delete permanently'),
+                    __CLASS__ . MassiveAction::CLASS_ACTION_SEPARATOR . 'move_license' => _x('button', 'Move')
+                ],
+                'extraparams' => [
+                    'options' => [
+                        'move' => [
+                            'used' => [$searchID],
+                            'softwares_id' => $license->fields['softwares_id']
+                        ]
+                    ]
+                ]
+            ]
+        ]);
     }
 
     /**

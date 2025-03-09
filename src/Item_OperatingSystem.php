@@ -147,41 +147,8 @@ class Item_OperatingSystem extends CommonDBRelation
      **/
     public static function showForItem(CommonDBTM $item, $withtemplate = 0)
     {
-        /** @var \DBmysql $DB */
-        global $DB;
-
-       //default options
-        $params = ['rand' => mt_rand()];
-
-        $columns = [
-            __('Name'),
-            _n('Version', 'Versions', 1),
-            _n('Architecture', 'Architectures', 1),
-            OperatingSystemServicePack::getTypeName(1)
-        ];
-
-        if (isset($_GET["order"]) && ($_GET["order"] == "ASC")) {
-            $order = "ASC";
-        } else {
-            $order = "DESC";
-        }
-
-        if (
-            (isset($_GET["sort"]) && !empty($_GET["sort"]))
-            && isset($columns[$_GET["sort"]])
-        ) {
-            $sort = $_GET["sort"];
-        } else {
-            $sort = "glpi_items_operatingsystems.id";
-        }
-
-        if (empty($withtemplate)) {
-            $withtemplate = 0;
-        }
-
-        $iterator = self::getFromItem($item, $sort, $order);
+        $iterator = self::getFromItem($item, 'glpi_items_operatingsystems.id', 'DESC');
         $number = count($iterator);
-        $i      = 0;
 
         $os = [];
         foreach ($iterator as $data) {
@@ -190,23 +157,13 @@ class Item_OperatingSystem extends CommonDBRelation
 
         $canedit = $item->canEdit($item->getID());
 
-       //multi OS for an item is not an existing feature right now.
-       /*if ($canedit && $number >= 1
-          && !(!empty($withtemplate) && ($withtemplate == 2))) {
-         echo "<div class='center firstbloc'>".
-            "<a class='btn btn-primary' href='" . Toolbox::getItemTypeFormURL(self::getType()) . "?items_id=" . $item->getID() .
-            "&amp;itemtype=" . $item->getType() . "&amp;withtemplate=" . $withtemplate."'>";
-         echo __('Add an operating system');
-         echo "</a></div>\n";
-       }*/
-
         if ($number <= 1) {
             $id = -1;
             $instance = new self();
             if ($number > 0) {
                 $id = array_keys($os)[0];
             } else {
-               //set itemtype and items_id
+                // set itemtype and items_id
                 $instance->fields['itemtype']       = $item->getType();
                 $instance->fields['items_id']       = $item->getID();
                 $instance->fields['install_date']   = $item->fields['install_date'] ?? '';
@@ -216,88 +173,7 @@ class Item_OperatingSystem extends CommonDBRelation
                 'canedit' => $canedit,
                 'candel'  => $canedit
             ]);
-            return;
         }
-
-        echo "<div class='spaced'>";
-        if (
-            $canedit
-            && $number
-            && ($withtemplate < 2)
-        ) {
-            Html::openMassiveActionsForm('mass' . __CLASS__ . $params['rand']);
-            $massiveactionparams = ['num_displayed'  => min($_SESSION['glpilist_limit'], $number),
-                'container'      => 'mass' . __CLASS__ . $params['rand']
-            ];
-            Html::showMassiveActions($massiveactionparams);
-        }
-
-        echo "<table class='tab_cadre_fixehov'>";
-
-        $header_begin  = "<tr>";
-        $header_top    = '';
-        $header_bottom = '';
-        $header_end    = '';
-        if (
-            $canedit
-            && $number
-            && ($withtemplate < 2)
-        ) {
-            $header_top    .= "<th width='11'>" . Html::getCheckAllAsCheckbox('mass' . __CLASS__ . $params['rand']);
-            $header_top    .= "</th>";
-            $header_bottom .= "<th width='11'>" . Html::getCheckAllAsCheckbox('mass' . __CLASS__ . $params['rand']);
-            $header_bottom .= "</th>";
-        }
-
-        foreach ($columns as $key => $val) {
-            $val = htmlescape($val);
-            $header_end .= "<th" . ($sort == $key ? " class='order_$order'" : '') . ">" .
-                        "<a href='javascript:reloadTab(\"sort=$key&amp;order=" .
-                          (($order == "ASC") ? "DESC" : "ASC") . "&amp;start=0\");'>$val</a></th>";
-        }
-
-        $header_end .= "</tr>";
-        echo $header_begin . $header_top . $header_end;
-
-        if ($number) {
-            foreach ($os as $data) {
-                $linkname = $data['name'];
-                if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
-                    $linkname = sprintf(__('%1$s (%2$s)'), $linkname, $data["assocID"]);
-                }
-                $link = Toolbox::getItemTypeFormURL(self::getType());
-                $name = "<a href=\"" . htmlescape($link) . "?id=" . (int)$data["assocID"] . "\">" . htmlescape($linkname) . "</a>";
-
-                echo "<tr class='tab_bg_1'>";
-                if (
-                    $canedit
-                    && ($withtemplate < 2)
-                ) {
-                    echo "<td width='10'>";
-                    Html::showMassiveActionCheckBox(__CLASS__, $data["assocID"]);
-                    echo "</td>";
-                }
-                $version = htmlescape($data['version']);
-                $architecture = htmlescape($data['architecture']);
-                $servicepack = htmlescape($data['servicepack']);
-                echo "<td class='center'>{$name}</td>";
-                echo "<td class='center'>{$version}</td>";
-                echo "<td class='center'>{$architecture}</td>";
-                echo "<td class='center'>{$servicepack}</td>";
-
-                echo "</tr>";
-                $i++;
-            }
-            echo $header_begin . $header_bottom . $header_end;
-        }
-
-        echo "</table>";
-        if ($canedit && $number && ($withtemplate < 2)) {
-            $massiveactionparams['ontop'] = false;
-            Html::showMassiveActions($massiveactionparams);
-            Html::closeForm();
-        }
-        echo "</div>";
     }
 
     public function getConnexityItem(
@@ -564,6 +440,7 @@ class Item_OperatingSystem extends CommonDBRelation
         $specificities['itemtypes'] = $CFG_GLPI['operatingsystem_types'];
         return $specificities;
     }
+
     public static function showMassiveActionsSubForm(MassiveAction $ma)
     {
 
