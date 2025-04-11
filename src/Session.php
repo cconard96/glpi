@@ -502,36 +502,7 @@ class Session
            // Active entity loading
             $_SESSION["glpiactive_entity"]           = $active;
             $_SESSION["glpiactive_entity_recursive"] = $is_recursive;
-            $_SESSION["glpiactive_entity_name"]      = Dropdown::getDropdownName(
-                "glpi_entities",
-                $active
-            );
-            $_SESSION["glpiactive_entity_shortname"] = getTreeLeafValueName("glpi_entities", $active);
-            if ($ID == "all") {
-                //TRANS: %s is the entity name
-                $_SESSION["glpiactive_entity_name"]      = sprintf(
-                    __('%1$s (%2$s)'),
-                    $_SESSION["glpiactive_entity_name"],
-                    __('full structure')
-                );
-                $_SESSION["glpiactive_entity_shortname"] = sprintf(
-                    __('%1$s (%2$s)'),
-                    $_SESSION["glpiactive_entity_shortname"],
-                    __('full structure')
-                );
-            } elseif ($is_recursive) {
-                //TRANS: %s is the entity name
-                $_SESSION["glpiactive_entity_name"]      = sprintf(
-                    __('%1$s (%2$s)'),
-                    $_SESSION["glpiactive_entity_name"],
-                    __('tree structure')
-                );
-                 $_SESSION["glpiactive_entity_shortname"] = sprintf(
-                     __('%1$s (%2$s)'),
-                     $_SESSION["glpiactive_entity_shortname"],
-                     __('tree structure')
-                 );
-            }
+            self::reloadEntityNamesInSession();
 
             if (countElementsInTable('glpi_entities') <= count($_SESSION['glpiactiveentities'])) {
                 $_SESSION['glpishowallentities'] = 1;
@@ -607,6 +578,39 @@ class Session
         }
     }
 
+    private static function reloadEntityNamesInSession()
+    {
+        $_SESSION["glpiactive_entity_name"]      = Dropdown::getDropdownName(
+            "glpi_entities",
+            $_SESSION["glpiactive_entity"]
+        );
+        $_SESSION["glpiactive_entity_shortname"] = getTreeLeafValueName("glpi_entities", $_SESSION["glpiactive_entity"]);
+        if ($_SESSION["glpientity_fullstructure"]) {
+            //TRANS: %s is the entity name
+            $_SESSION["glpiactive_entity_name"]      = sprintf(
+                __('%1$s (%2$s)'),
+                $_SESSION["glpiactive_entity_name"],
+                __('full structure')
+            );
+            $_SESSION["glpiactive_entity_shortname"] = sprintf(
+                __('%1$s (%2$s)'),
+                $_SESSION["glpiactive_entity_shortname"],
+                __('full structure')
+            );
+        } elseif ($_SESSION["glpiactive_entity_recursive"]) {
+            //TRANS: %s is the entity name
+            $_SESSION["glpiactive_entity_name"]      = sprintf(
+                __('%1$s (%2$s)'),
+                $_SESSION["glpiactive_entity_name"],
+                __('tree structure')
+            );
+            $_SESSION["glpiactive_entity_shortname"] = sprintf(
+                __('%1$s (%2$s)'),
+                $_SESSION["glpiactive_entity_shortname"],
+                __('tree structure')
+            );
+        }
+    }
 
     /**
      * Set the entities session variable. Load all entities from DB
@@ -880,6 +884,8 @@ class Session
                 Plugin::loadLang($plug, $forcelang, $trytoload);
             }
         }
+
+        self::reloadEntityNamesInSession();
 
         return $trytoload;
     }

@@ -41,7 +41,7 @@ global $CFG_GLPI;
 
 if (isset($_POST['language']) && !Session::getLoginUserID()) {
     // Offline lang change, keep it before session validity check
-    $_SESSION["glpilanguage"] = $_POST['language'];
+    Session::loadLanguage($_POST['language']);
     Session::addMessageAfterRedirect(__s('Lang has been changed!'));
     Html::back();
 }
@@ -161,6 +161,7 @@ if (isset($_GET['getvcard'])) {
             'language'  => $_POST['language']
         ]
     );
+    Session::loadLanguage($_POST['language']);
     Session::addMessageAfterRedirect(__s('Lang has been changed!'));
     Html::back();
 } else if (isset($_POST['impersonate']) && $_POST['impersonate']) {
