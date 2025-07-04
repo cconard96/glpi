@@ -1226,6 +1226,18 @@ TWIG,
                 'type' => 'font/woff2',
             ]
         ];
+        foreach ($_SESSION['glpi_js_toload'] ?? [] as $late_js) {
+            if (!is_array($late_js)) {
+                $late_js = [$late_js];
+            }
+            foreach ($late_js as $script) {
+                $tpl_vars['preload_hints'][] = [
+                    'path' => $script,
+                    'as'   => 'script',
+                    'type' => 'text/javascript',
+                ];
+            }
+        }
 
 
         $tpl_vars['js_files'][] = ['path' => 'lib/base.js'];
