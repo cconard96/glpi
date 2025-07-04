@@ -1199,6 +1199,33 @@ TWIG,
             $theme_path .= "&lastupdate=" . filemtime($info->getPath(false));
             $tpl_vars['css_files'][] = ['path' => $theme_path];
         }
+        $tpl_vars['preload_hints'] = [
+            [
+                'path' => '/lib/fontsource/inter/files/inter-latin-400-normal.woff2',
+                'as' => 'font',
+                'type' => 'font/woff2',
+            ],
+            [
+                'path' => '/lib/fontsource/inter/files/inter-latin-500-normal.woff2',
+                'as' => 'font',
+                'type' => 'font/woff2',
+            ],
+            [
+                'path' => '/lib/fontsource/inter/files/inter-latin-700-normal.woff2',
+                'as' => 'font',
+                'type' => 'font/woff2',
+            ],
+            [
+                'path' => '/lib/fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2',
+                'as' => 'font',
+                'type' => 'font/woff2',
+            ],
+            [
+                'path' => '/lib/fontsource/inter/files/inter-latin-600-normal.woff2',
+                'as' => 'font',
+                'type' => 'font/woff2',
+            ]
+        ];
 
 
         $tpl_vars['js_files'][] = ['path' => 'lib/base.js'];
