@@ -77,10 +77,10 @@ final class GraphQL
                         $completed_schema = self::expandSchemaFromRequestedFields($schema, $field_selection, null, $api_version);
 
                         if (isset($args['id'])) {
-                            $result = json_decode(Search::getOneBySchema($completed_schema, ['id' => $args['id']], [])->getBody(), true);
+                            $result = json_decode(ResourceAccessor::getOneBySchema($completed_schema, ['id' => $args['id']], [])->getBody(), true);
                             return [$result];
                         }
-                        return json_decode(Search::searchBySchema($completed_schema, $args)->getBody(), true);
+                        return json_decode(ResourceAccessor::searchBySchema($completed_schema, $args)->getBody(), true);
                     }
 
                     return $source[$info->fieldName] ?? null;
