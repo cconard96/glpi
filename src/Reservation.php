@@ -446,6 +446,10 @@ class Reservation extends CommonDBChild
         return (Session::haveRight(self::$rightname, ReservationItem::RESERVEANITEM));
     }
 
+    public static function canView()
+    {
+        return (Session::haveRight(self::$rightname, ReservationItem::RESERVEANITEM));
+    }
 
     /**
      * Overload canChildItem to make specific checks
