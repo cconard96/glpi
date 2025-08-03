@@ -290,6 +290,7 @@ class Update
             $progress_indicator?->advance();
         }
 
+        Session::loadAllCoreLocales();
         // Create default forms
         $progress_indicator?->setProgressBarMessage(__('Creating default forms…'));
         $helpdesk_data_manager = new DefaultDataManager();

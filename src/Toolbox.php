@@ -2210,6 +2210,7 @@ class Toolbox
         }
         $progress_indicator?->addMessage(MessageType::Success, __('Default data imported.'));
 
+        Session::loadAllCoreLocales();
         $progress_indicator?->setProgressBarMessage(__('Creating default forms…'));
         $default_forms_manager = new DefaultDataManager();
         $default_forms_manager->initializeData();
