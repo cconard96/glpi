@@ -205,6 +205,11 @@ abstract class CommonDBChild extends CommonDBConnexity
         return $this->canChildItem('canUpdateItem', 'canUpdate');
     }
 
+    public function canPurgeItem(): bool
+    {
+        return $this->canChildItem('canUpdateItem', 'canUpdate');
+    }
+
 
     /**
      * @since 0.84
