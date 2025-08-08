@@ -564,8 +564,9 @@ class Link extends CommonDBTM
             'show_add' => ManualLink::canCreate() && ($restrict_type === null || $restrict_type === ManualLink::class),
             'show_configure' => self::canUpdate() && ($restrict_type === null || $restrict_type === self::class),
         ];
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
+        if ($item->can($item->getID(), UPDATE)) {
+            // language=Twig
+            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
                 <div class="text-center my-3">
                     {% if show_add %}
                         <a class="btn btn-primary" href="{{ 'ManualLink'|itemtype_form_path ~ '?itemtype=' ~ item.getType() ~ '&items_id=' ~ item.fields[item.getIndexName()] }}">
@@ -581,6 +582,7 @@ class Link extends CommonDBTM
                     {% endif %}
                 </div>
 TWIG, $buttons_params);
+        }
 
         $entries = [];
 
