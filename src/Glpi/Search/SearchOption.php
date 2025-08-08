@@ -707,7 +707,7 @@ final class SearchOption implements ArrayAccess
      * @param array $params
      * @return array
      */
-    public static function getDefaultToView(string $itemtype, array $params): array
+    public static function getDefaultToView(string $itemtype, array $params = []): array
     {
         /** @var array $CFG_GLPI */
         global $CFG_GLPI;
