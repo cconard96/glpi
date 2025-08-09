@@ -142,7 +142,7 @@ class Item_DevicesTest extends DbTestCase
      */
     public function testDeviceSearchHasItemlinkByDefault()
     {
-        foreach (\Item_Devices::getDeviceTypes() as $device_type) {
+        foreach (Item_Devices::getDeviceTypes() as $device_type) {
             $search_options = SearchOption::getOptionsForItemtype($device_type);
             $default_columns = SearchOption::getDefaultToView($device_type);
             $has_itemlink = false;
