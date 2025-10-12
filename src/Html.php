@@ -3403,41 +3403,18 @@ JS;
             );
         }
 
+        $element_id = $param['applyto'];
+        $content_id = $param['contentid'];
+        $params_json = json_encode([
+            'url' => $param['url'],
+            'autoclose' => $param['autoclose'],
+            'onclick' => $param['onclick'],
+        ]);
 
-        $js = "$(function(){";
-        $js .= "$('#" . jsescape($param['applyto']) . "').qtip({
-         position: { viewport: $(window) },
-         content: {";
-        if (!is_null($param['url'])) {
-            $js .= "
-                ajax: {
-                    url: '" . jsescape($CFG_GLPI['root_doc'] . $param['url']) . "',
-                    type: 'GET',
-                    data: {},
-                },
-            ";
-        }
+        $out .= <<<HTML
+            <script defer>window.showQTipTooltip("$element_id", "$content_id", $params_json)</script>
+HTML;
 
-        $js .= "text: $('#" . jsescape($param['contentid']) . "')";
-        if (!$param['autoclose']) {
-            $js .= ", title: {text: ' ',button: true}";
-        }
-        $js .= "}, style: { classes: 'qtip-shadow qtip-bootstrap'}, hide: {
-                  fixed: true,
-                  delay: 200,
-                  leave: false,
-                  when: { event: 'unfocus' }
-                }";
-        if ($param['onclick']) {
-            $js .= ",show: 'click', hide: false,";
-        } elseif (!$param['autoclose']) {
-            $js .= ",show: {
-                        solo: true, // ...and hide all other tooltips...
-                },";
-        }
-        $js .= "});";
-        $js .= "});";
-        $out .= Html::scriptBlock($js);
 
         if ($param['display']) {
             echo $out;

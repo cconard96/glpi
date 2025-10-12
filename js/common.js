@@ -1945,6 +1945,46 @@ window.displaySessionMessages = () => {
     });
 };
 
+/**
+ *
+ * @param {string} element_id ID of the element to attach the tooltip to
+ * @param {string|null} content_id ID of the element containing the content to display in the tooltip or null if the content is provided directly in params.content
+ * @param {{[url]: string, [autoclose]: boolean, [onclick]: boolean, [content]: string}} params
+ */
+window.showQTipTooltip = (element_id, content_id, params) => {
+    const config = {
+        position: { viewport: $(window) },
+        content: {
+            text: params.content || $(`#${CSS.escape(content_id)}`).html()
+        },
+        style: { classes: 'qtip-shadow qtip-bootstrap' },
+        hide: {
+            fixed: true,
+            delay: 200,
+            leave: false,
+            when: { event: 'unfocus' }
+        }
+    };
+    if (params.url !== undefined) {
+        config.content.ajax = {
+            url: params.url,
+            type: 'GET',
+            data: {}
+        };
+    }
+    if (!params.autoclose) {
+        config.content.title = ' ';
+        config.content.button = true;
+    }
+    if (params.onclick) {
+        config.show = 'click';
+        config.hide = false;
+    } else if (!params.autoclose) {
+        config.show = { solo: true }; // ...and hide all other tooltips...
+    }
+    $(`#${CSS.escape(element_id)}`).qtip(config);
+};
+
 // Add/remove a special data attribute to bootstrap's modals when they are
 // displayed/hidden.
 // This is needed for e2e testing as bootstrap have some compatibility issues
