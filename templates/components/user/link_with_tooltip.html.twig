@@ -46,21 +46,18 @@
         {% if has_profile_right('user', constant('READ')) %}
             {% set user_fields = user_fields|merge({login: user.fields['name']}) %}
         {% endif %}
-        {% do call(
-            'Html::showToolTip',
-            [
-                include(
-                    'components/user/info_card.html.twig',
-                    {
-                        'user': user_fields,
-                        'user_object': user,
-                    },
-                    with_context = false
-                ),
+        <div id="content-user_{{ rand }}" class="tooltip-invisible">
+            {{ include(
+                'components/user/info_card.html.twig',
                 {
-                    'applyto': "user_" ~ rand
-                }
-            ]
-        ) %}
+                    'user': user_fields,
+                    'user_object': user,
+                },
+                with_context = false
+            ) }}
+        </div>
+        <script defer>
+            window.showQTipTooltip('user_{{ rand }}', 'content-user_{{ rand }}');
+        </script>
     {% endif %}
 {% endif %}

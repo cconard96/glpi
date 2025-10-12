@@ -1949,9 +1949,9 @@ window.displaySessionMessages = () => {
  *
  * @param {string} element_id ID of the element to attach the tooltip to
  * @param {string|null} content_id ID of the element containing the content to display in the tooltip or null if the content is provided directly in params.content
- * @param {{[url]: string, [autoclose]: boolean, [onclick]: boolean, [content]: string}} params
+ * @param {{[url]: string|null, [autoclose]: boolean, [onclick]: boolean, [content]: string}} params
  */
-window.showQTipTooltip = (element_id, content_id, params) => {
+window.showQTipTooltip = (element_id, content_id, params = {}) => {
     const config = {
         position: { viewport: $(window) },
         content: {
@@ -1965,21 +1965,21 @@ window.showQTipTooltip = (element_id, content_id, params) => {
             when: { event: 'unfocus' }
         }
     };
-    if (params.url !== undefined) {
+    if (params.url) {
         config.content.ajax = {
             url: params.url,
             type: 'GET',
             data: {}
         };
     }
-    if (!params.autoclose) {
+    if (params.autoclose === false) {
         config.content.title = ' ';
         config.content.button = true;
     }
     if (params.onclick) {
         config.show = 'click';
         config.hide = false;
-    } else if (!params.autoclose) {
+    } else if (params.autoclose === false) {
         config.show = { solo: true }; // ...and hide all other tooltips...
     }
     $(`#${CSS.escape(element_id)}`).qtip(config);

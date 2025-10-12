@@ -45,6 +45,7 @@
 
    {# Keep track of loaded user to avoid reloading them from database if they appear multiple time in a ticket #}
    {% set user_cache = {} %}
+    {% set avatar_tooltips = {} %}
 
    {% for entry in timeline %}
       {% set entry_i = entry['item'] %}
@@ -149,14 +150,19 @@
                      }, with_context = false) }}
                   </span>
                   {% if not anonym_user and entry_user.canView() %}
-                     {% do call('Html::showToolTip', [
-                        include('components/user/info_card.html.twig', {
-                           'user': user_fields,
-                           'user_object': entry_user,
-                           'enable_anonymization': false,
-                        }, with_context = false), {
-                           'applyto': 'timeline-avatar' ~ avatar_rand
-                        }]) %}
+                      {% if avatar_tooltips[users_id] is not defined %}
+                          <div id="content-timeline-avatar{{ avatar_rand }}" class="tooltip-invisible">
+                              {{ include('components/user/info_card.html.twig', {
+                                  'user': user_fields,
+                                  'user_object': entry_user,
+                                  'enable_anonymization': false,
+                              }, with_context = false) }}
+                          </div>
+                          {% set avatar_tooltips = avatar_tooltips|merge({(users_id): true}) %}
+                      {% endif %}
+                      <script defer>
+                          window.showQTipTooltip('timeline-avatar{{ avatar_rand }}', 'content-timeline-avatar{{ avatar_rand }}');
+                      </script>
                   {% endif %}
                {% else %}
                   <span id="timeline-avatar{{ avatar_rand }}"><span class="avatar avatar-md rounded"></span></span>
