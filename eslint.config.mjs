@@ -91,7 +91,7 @@ export default [
     },
     {
         // Modules
-        files: ["js/modules/**", "eslint.config.mjs"],
+        files: ["js/modules/**", "eslint.config.mjs", "vite.config.js"],
         languageOptions: {
             sourceType: "module"
         }

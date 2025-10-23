@@ -62,25 +62,27 @@ window.Vue = {
     },
 };
 // Require all Vue SFCs in js/src directory
-const component_context = import.meta.webpackContext('.', {
-    regExp: /\.vue$/i,
-    recursive: true,
-    mode: 'lazy',
-    chunkName: '/vue-sfc/[request]'
-});
+const component_context = import.meta.glob('./**/*.vue');
 
 /* global __webpack_public_path__ */
 // eslint-disable-next-line no-global-assign
-__webpack_public_path__ = `${CFG_GLPI.root_doc + __webpack_public_path__}/`;
+//__webpack_public_path__ = `${CFG_GLPI.root_doc + __webpack_public_path__}/`;
 
 const components = {};
-component_context.keys().forEach((f) => {
+for (const path in component_context) {
     // Ex: ./Debug/Toolbar.vue => DebugToolbar
-    const component_name = f.replace(/^\.\/(.+)\.vue$/, '$1');
+    const component_name = path.replace(/^\.\/(.+)\.vue$/, '$1');
     components[component_name] = {
-        component: vue.defineAsyncComponent(() => component_context(f)),
+        component: vue.defineAsyncComponent(component_context[path]),
     };
-});
+}
+// component_context.keys().forEach((f) => {
+//     // Ex: ./Debug/Toolbar.vue => DebugToolbar
+//     const component_name = f.replace(/^\.\/(.+)\.vue$/, '$1');
+//     components[component_name] = {
+//         component: vue.defineAsyncComponent(() => component_context(f)),
+//     };
+// });
 // Save components in global scope
 window.Vue.components = Object.assign(window.Vue.components, components);
 
