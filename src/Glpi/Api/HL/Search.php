@@ -715,6 +715,51 @@ final class Search
         return [$join_prop_path ?? $join_name, $id];
     }
 
+    private static function mapAndCastProperties(array &$results, self $search, array $schema): void
+    {
+        Profiler::getInstance()->start('Map and cast properties', Profiler::CATEGORY_HLAPI);
+        $mapped_props = array_filter($search->context->getFlattenedProperties(), static fn($prop) => isset($prop['x-mapper']));
+        $mapped_obj_props = array_filter($search->context->getFlattenedProperties(), static fn($prop) => isset($prop['x-mapped-property']));
+
+        foreach ($results as &$result) {
+            // Handle mapped fields
+            foreach ($mapped_props as $mapped_prop_name => $mapped_prop) {
+                ArrayPathAccessor::setElementByArrayPath(
+                    array: $result,
+                    path: $mapped_prop_name,
+                    value: $mapped_prop['x-mapper'](ArrayPathAccessor::getElementByArrayPath($result, $mapped_prop['x-mapped-from']))
+                );
+            }
+            // Handle mapped objects
+            $mapped_objs = [];
+            foreach ($mapped_obj_props as $prop_name => $prop) {
+                $parent_obj_path = substr($prop_name, 0, strrpos($prop_name, '.'));
+                if (isset($mapped_objs[$parent_obj_path])) {
+                    // Parent object already mapped
+                    continue;
+                }
+                $parent_obj = ArrayPathAccessor::getElementByArrayPath($schema['properties'], $parent_obj_path);
+                if ($parent_obj === null) {
+                    continue;
+                }
+                $mapper = $parent_obj['items']['x-mapper'] ?? $parent_obj['x-mapper'];
+                $mapped_from = $parent_obj['items']['x-mapped-from'] ?? $parent_obj['x-mapped-from'];
+                $mapped_objs[$parent_obj_path] = $mapper(ArrayPathAccessor::getElementByArrayPath($result, $mapped_from));
+            }
+            foreach ($mapped_objs as $path => $data) {
+                $existing_data = ArrayPathAccessor::getElementByArrayPath($result, $path) ?? [];
+                /** @noinspection SlowArrayOperationsInLoopInspection */
+                $data = array_merge($existing_data, $data);
+                ArrayPathAccessor::setElementByArrayPath($result, $path, $data);
+            }
+            // Cast properties
+            $result = Doc\Schema::castProperties($result, $search->context->getFlattenedProperties());
+        }
+
+        unset($result);
+        Profiler::getInstance()->stop('Map and cast properties');
+    }
+
     /**
      * Fetch results for the given schema and request parameters.
      * Use {@link ResourceAccessor::getOneBySchema()} or {@link ResourceAccessor::searchBySchema()} instead of suing this directly.
@@ -740,48 +785,7 @@ final class Search
         $results = $record_set->hydrate();
         Profiler::getInstance()->stop('Hydrate matching records');
 
-        $mapped_props = array_filter($search->context->getFlattenedProperties(), static fn($prop) => isset($prop['x-mapper']));
-
-        Profiler::getInstance()->start('Map and cast properties', Profiler::CATEGORY_HLAPI);
-        foreach ($results as &$result) {
-            // Handle mapped fields
-            foreach ($mapped_props as $mapped_prop_name => $mapped_prop) {
-                if (ArrayPathAccessor::hasElementByArrayPath($result, $mapped_prop['x-mapped-from'])) {
-                    ArrayPathAccessor::setElementByArrayPath(
-                        array: $result,
-                        path: $mapped_prop_name,
-                        value: $mapped_prop['x-mapper'](ArrayPathAccessor::getElementByArrayPath($result, $mapped_prop['x-mapped-from']))
-                    );
-                }
-            }
-            // Handle mapped objects
-            $mapped_objs = [];
-            foreach ($search->context->getFlattenedProperties() as $prop_name => $prop) {
-                if (isset($prop['x-mapped-property'])) {
-                    $parent_obj_path = substr($prop_name, 0, strrpos($prop_name, '.'));
-                    if (isset($mapped_objs[$parent_obj_path])) {
-                        // Parent object already mapped
-                        continue;
-                    }
-                    $parent_obj = ArrayPathAccessor::getElementByArrayPath($schema['properties'], $parent_obj_path);
-                    if ($parent_obj === null) {
-                        continue;
-                    }
-                    $mapper = $parent_obj['items']['x-mapper'] ?? $parent_obj['x-mapper'];
-                    $mapped_from = $parent_obj['items']['x-mapped-from'] ?? $parent_obj['x-mapped-from'];
-                    $mapped_objs[$parent_obj_path] = $mapper(ArrayPathAccessor::getElementByArrayPath($result, $mapped_from));
-                }
-            }
-            foreach ($mapped_objs as $path => $data) {
-                $existing_data = ArrayPathAccessor::getElementByArrayPath($result, $path) ?? [];
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $data = array_merge($existing_data, $data);
-                ArrayPathAccessor::setElementByArrayPath($result, $path, $data);
-            }
-            $result = Doc\Schema::fromArray($schema)->castProperties($result);
-        }
-        Profiler::getInstance()->stop('Map and cast properties');
-        unset($result);
+        self::mapAndCastProperties($results, $search, $schema);
 
         Profiler::getInstance()->start('Query for the total count', Profiler::CATEGORY_HLAPI);
         // Count the total number of results with the same criteria, but without the offset and limit
