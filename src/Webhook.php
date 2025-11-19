@@ -404,7 +404,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
                     ],
                 ],
                 AdministrationController::class => [
-                    'main' => [Event::class]
+                    'main' => [Event::class],
                 ],
             ];
 
@@ -815,7 +815,7 @@ class Webhook extends CommonDBTM implements FilterableInterface
             4 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), $queries_count, $item::getType(), 'ti ti-mail-forward'),
         ];
         if ($has_preview) {
-            $tabs[5] =self::createTabEntry(__('Preview'), 0, $item::getType(), 'ti ti-eye-exclamation');
+            $tabs[5] = self::createTabEntry(__('Preview'), 0, $item::getType(), 'ti ti-eye-exclamation');
         }
         return $tabs;
     }
