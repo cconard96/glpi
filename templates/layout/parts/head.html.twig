@@ -62,7 +62,7 @@
 
     {# Custom header tags #}
     {% for header_tag in custom_header_tags|merge(get_plugins_header_tags(is_anonymous_page|default(false))) %}
-        <{{ header_tag.tag }} {% for key, value in header_tag.properties %}{{ key }}="{{ value }}" {% endfor %}/>
+        <{{ header_tag.tag }} {% for key, value in header_tag.properties %}{{ key }}="{{ value }}" {% endfor %}></{{ header_tag.tag }}>
     {% endfor %}
 
    <meta property="glpi:csrf_token" content="{{ csrf_token(true) }}" />
