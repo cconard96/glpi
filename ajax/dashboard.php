@@ -269,4 +269,20 @@ switch ($_REQUEST['action']) {
 
         echo $grid->getGridItemsHtml(true, $_REQUEST['embed'] ?? false);
         break;
+
+    case 'list_dashboards':
+        header("Content-Type: application/json; charset=UTF-8");
+        if (!Session::haveRight('dashboard', READ)) {
+            throw new AccessDeniedHttpException();
+        }
+
+        $to_show = Dashboard::getAll(context: $_REQUEST['context'] ?? 'core');
+        $options_dashboards = [];
+        foreach ($to_show as $key => $dashboard) {
+            if (Grid::canViewSpecificicDashboard($key)) {
+                $options_dashboards[$key] = $dashboard['name'] ?? $key;
+            }
+        }
+        echo json_encode($options_dashboards);
+        break;
 }

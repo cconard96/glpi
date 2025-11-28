@@ -130,6 +130,14 @@ class Central extends CommonGLPI
         $default   = Grid::getDefaultDashboardForMenu('central');
         $dashboard = new Grid($default);
         $dashboard->show();
+
+        //language=Twig
+        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
+            <div id="dashboard-vue-container"></div>
+            <script type="module">
+                window.Vue.createApp(window.Vue.components['Dashboard/DashboardGrid'].component, {}).mount('#dashboard-vue-container');
+            </script>
+TWIG);
     }
 
 
