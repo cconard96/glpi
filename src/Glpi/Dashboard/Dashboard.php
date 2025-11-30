@@ -105,6 +105,12 @@ class Dashboard extends CommonDBTM
         return $this->fields['id'] ?? false;
     }
 
+    public function getItems(): array
+    {
+        $this->load();
+        return $this->items ?? [];
+    }
+
 
     public function getID()
     {

@@ -314,7 +314,7 @@ class Widget
      *
      * @return string html of the widget
      */
-    public static function bigNumber(array $params = []): string
+    public static function bigNumber(array $params = [])
     {
         $default = [
             'number'  => 0,
@@ -330,6 +330,7 @@ class Widget
 
 
         $formatted_number = Toolbox::shortenNumber($p['number']);
+        $p['formatted_number'] = $formatted_number;
 
         $bg_color         = $p['color'];
         if (
@@ -361,6 +362,11 @@ class Widget
         $alt = \htmlescape($p['alt']);
 
         $id = Toolbox::slugify($p['id']);
+
+        return [
+            'widget' => 'bigNumber',
+            'data' => $p
+        ];
 
         $html = <<<HTML
             <style>

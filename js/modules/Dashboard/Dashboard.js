@@ -836,6 +836,7 @@ class GLPIDashboard {
     }
 
     fitNumbers(parent_item) {
+        return;
         parent_item = parent_item || $('body');
 
         let text_offset = 1.16;

@@ -269,6 +269,21 @@ HTML;
         $can_purge     = Session::haveRight('dashboard', PURGE) && $nb_dashboards;
         $can_clone     = $can_create && $nb_dashboards;
 
+        //language=Twig
+        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
+            <div id="dashboard-vue-container"></div>
+            <script type="module">
+                window.Vue.createApp(window.Vue.components['Dashboard/Dashboard'].component, {
+                    'current': "{{ dashboard.dashboard.fields['key'] }}",
+                    'embed': false,
+                    'context': "core",
+                    'items': {{ dashboard.dashboard.getItems()|json_encode|raw }},
+                    'cache_key': "{{ cache_key }}",
+                }).mount('#dashboard-vue-container');
+            </script>
+TWIG, ['dashboard' => $this, 'cache_key' => sha1($_SESSION['glpiactiveentities_string'] ?? "")]);
+        //return;
+
         // prepare html for add controls
         $add_controls = "";
         for ($y = 0; $y < $this->grid_rows; $y++) {
@@ -943,6 +958,10 @@ HTML;
         Html::closeForm(true);
     }
 
+//    public function getCardData(string $card_id, array $card_options = []): array
+//    {
+//
+//    }
 
     /**
      * Return the html for the given card_id
@@ -956,7 +975,7 @@ HTML;
      *
      * @return string html of the card
      */
-    public function getCardHtml(string $card_id = "", array $card_options = []): string
+    public function getCardHtml(string $card_id = "", array $card_options = [])
     {
         global $GLPI_CACHE;
 
@@ -1067,11 +1086,11 @@ HTML;
         }
         Profiler::getInstance()->stop(__METHOD__ . ' get card data');
 
-        if ($_SESSION['glpi_use_mode'] === Session::DEBUG_MODE) {
-            // Use the current PHP request duration as the execution time for a more accurate card loading time
-            $execution_time = Profiler::getInstance()->getCurrentDuration('php_request');
-            $html .= '<span class="debug-card">' . \htmlescape($execution_time) . 'ms</span>';
-        }
+//        if ($_SESSION['glpi_use_mode'] === Session::DEBUG_MODE) {
+//            // Use the current PHP request duration as the execution time for a more accurate card loading time
+//            $execution_time = Profiler::getInstance()->getCurrentDuration('php_request');
+//            $html .= '<span class="debug-card">' . \htmlescape($execution_time) . 'ms</span>';
+//        }
 
         return $html;
     }

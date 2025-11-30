@@ -558,6 +558,7 @@ class Update
     public static function isUpdateMandatory(): bool
     {
         global $CFG_GLPI;
+        return false;
 
         if (GLPI_SKIP_UPDATES) {
             // If `GLPI_SKIP_UPDATES` is set to `true`, bugfixes update are not mandatory.

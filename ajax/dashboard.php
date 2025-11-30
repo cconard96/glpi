@@ -209,10 +209,11 @@ switch ($_REQUEST['action']) {
         if (!$dashboard->canViewCurrent() && !$embed) {
             throw new AccessDeniedHttpException();
         }
+        header("Content-Type: application/json; charset=UTF-8");
 
         Session::writeClose();
         Profiler::getInstance()->start('Get card HTML');
-        echo $grid->getCardHtml($_REQUEST['card_id'], $_REQUEST);
+        echo json_encode($grid->getCardHtml($_REQUEST['card_id'], $_REQUEST));
         Profiler::getInstance()->stop('Get card HTML');
         break;
 
@@ -284,5 +285,16 @@ switch ($_REQUEST['action']) {
             }
         }
         echo json_encode($options_dashboards);
+        break;
+
+    case 'get_card_data':
+        if (!$dashboard->canViewCurrent() && !$embed) {
+            throw new AccessDeniedHttpException();
+        }
+
+        Session::writeClose();
+        Profiler::getInstance()->start('Get card data');
+        echo $grid->getCardData($_REQUEST['card_id'], $_REQUEST);
+        Profiler::getInstance()->stop('Get card data');
         break;
 }

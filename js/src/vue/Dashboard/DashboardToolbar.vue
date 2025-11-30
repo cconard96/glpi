@@ -54,5 +54,89 @@
 </template>
 
 <style scoped>
+    .toolbar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 10;
 
+        &.left-toolbar {
+            top: 0;
+            right: initial;
+            left: 5px;
+
+            i.fas,
+            i.fa-solid,
+            i.far,
+            i.fa-regular,
+            i.ti {
+                margin-left: 0;
+                font-size: 1em;
+            }
+        }
+
+        select.dashboard_select {
+            padding: 5px;
+            border: 2px solid var(--tblr-border-color);
+            border-radius: 3px;
+            min-width: 140px;
+            cursor: pointer;
+
+            option {
+                border-color: var(--tblr-border-color) !important;
+            }
+        }
+
+        i.fas,
+        i.fa-solid,
+        i.far,
+        i.fa-regular,
+        i.ti {
+            padding: 5px 8px;
+            border: 2px solid transparent;
+            margin-left: 3px;
+
+            @media screen and (max-width: 700px) {
+                display: none;
+            }
+
+            &.active:not(:hover) {
+                border: 2px inset var(--tblr-border-color);
+                color: var(--tblr-secondary);
+                background-color: rgb(var(--tblr-secondary-rgb), 0.1);
+            }
+
+            &.fa-moon {
+                display: none;
+            }
+        }
+
+        .edit-dashboard-properties {
+            display: none;
+
+            input.dashboard-name:not(.submit, [type="submit"], [type="reset"], [type="checkbox"], [type="radio"], .select2-search__field) {
+                min-width: 200px;
+                resize: horizontal;
+            }
+
+            i.save-dashboard-name {
+                font-size: 1.5em;
+                padding: 1px;
+                vertical-align: middle;
+            }
+
+            .display-message {
+                display: none;
+                font-weight: bold;
+
+                &.success {
+                    color: rgb(82, 145, 82);
+                }
+
+                &.fail {
+                    color: rgb(145, 82, 82);
+                }
+            }
+        }
+    }
 </style>

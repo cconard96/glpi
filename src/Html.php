@@ -1132,9 +1132,9 @@ TWIG,
                 Html::requireJs('rateit');
             }
 
-            if (in_array('dashboard', $jslibs)) {
-                $tpl_vars['css_files'][] = ['path' => 'css/standalone/dashboard.scss'];
-            }
+//            if (in_array('dashboard', $jslibs)) {
+//                $tpl_vars['css_files'][] = ['path' => 'css/standalone/dashboard.scss'];
+//            }
 
             if (in_array('marketplace', $jslibs)) {
                 $tpl_vars['css_files'][] = ['path' => 'css/standalone/marketplace.scss'];
