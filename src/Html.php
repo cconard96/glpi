@@ -1216,7 +1216,7 @@ TWIG,
         }
 
 
-        $tpl_vars['js_files'][] = ['path' => 'lib/base.js'];
+        $tpl_vars['js_files'][] = ['path' => 'lib/base.js', 'type' => 'module'];
         $tpl_vars['js_files'][] = ['path' => 'js/webkit_fix.js'];
         $tpl_vars['js_modules'][] = ['path' => 'build/vue/app.js'];
         $tpl_vars['js_files'][] = ['path' => 'js/common_ajax_controller.js'];
