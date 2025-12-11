@@ -5,7 +5,7 @@
     "description": "GLPI dependencies",
     "license": "GPL-3.0-or-later",
     "engines": {
-        "node": ">= 20.9"
+        "node": ">= 22"
     },
     "dependencies": {
         "@fontsource/inter": "^4.5.15",
@@ -92,6 +92,7 @@
         "@eslint/js": "^9.31.0",
         "@testing-library/cypress": "^10.0.3",
         "@testing-library/jest-dom": "^6.6.4",
+        "@vitejs/plugin-vue": "^6.0.2",
         "@vue/test-utils": "^2.4.6",
         "@vue/vue3-jest": "^29.2.6",
         "axe-core": "^4.10.3",
@@ -126,6 +127,7 @@
         "stylelint": "^16.22.0",
         "stylelint-config-standard-scss": "^15.0.1",
         "terser": "^5.43.1",
+        "vite": "^8.0.0-beta.1",
         "vue-eslint-parser": "^10.2.0",
         "vue-loader": "^17.4.2",
         "webpack": "^5.100.2",
