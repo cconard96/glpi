@@ -48,6 +48,7 @@ phpstan.neon
 .env
 /resources/.illustrations_translations.php
 /.dump/
+/tests/js/coverage/
 
 # Playwright
 /tests/e2e/results/
