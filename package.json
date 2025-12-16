@@ -83,7 +83,7 @@
         "watch:vue": "vite build --mode development --watch",
         "watch": "npm run watch:vue",
         "test:e2e": "cypress open --project tests",
-        "serve:vue": "webpack serve --config .vue.webpack.config.js"
+        "serve:vue": "vite serve --mode development"
     },
     "devDependencies": {
         "@babel/plugin-transform-modules-commonjs": "^7.27.1",

@@ -2,9 +2,15 @@ import {defineConfig} from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { dynamicBase } from 'vite-plugin-dynamic-base';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
+    const plugins = [vue()];
+    if (command !== 'serve') {
+        plugins.push(dynamicBase({
+            publicPath: '"./" + CFG_GLPI.root_doc + "/build/vue/"',
+        }));
+    }
     return {
-        base: '/__dynamic_base__/',
+        base: command === 'serve' ? '/' : '/__dynamic_base__/',
         build: {
             manifest: true,
             sourcemap: mode !== 'production',
@@ -25,11 +31,6 @@ export default defineConfig(({ mode }) => {
             '__VUE_OPTIONS_API__': true,
         },
         publicDir: false,
-        plugins: [
-            vue(),
-            dynamicBase({
-                publicPath: '"./" + CFG_GLPI.root_doc + "/build/vue/"',
-            }),
-        ],
+        plugins: plugins,
     };
 });
