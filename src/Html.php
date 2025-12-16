@@ -812,7 +812,7 @@ TWIG,
         $tpl_vars['js_files'][] = ['path' => 'js/webkit_fix.js'];
         // Vue entrypoint needs no version param because the chunks already have the hash in the name
         // The entrypoint itself should rarely change but devs could also always use HMR
-        $tpl_vars['js_modules'][] = ['path' => 'build/vue/app.js', 'options' => ['no_version' => true]];
+        $tpl_vars['js_modules'][] = ['path' => FrontEnd::getVueEntrypoint(), 'options' => ['no_version' => true]];
         $tpl_vars['js_files'][] = ['path' => 'js/common_ajax_controller.js'];
         $tpl_vars['js_files'][] = ['path' => 'js/common.js'];
 

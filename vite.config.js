@@ -6,13 +6,15 @@ export default defineConfig(({ mode }) => {
     return {
         base: '/__dynamic_base__/',
         build: {
+            manifest: true,
+            sourcemap: mode !== 'production',
             rolldownOptions: {
                 input: 'js/src/vue/app.js',
                 platform: 'browser',
                 output: {
                     format: 'esm',
                     dir: 'public/build/vue',
-                    entryFileNames: '[name].js',
+                    entryFileNames: '[name]-[hash].js',
                     chunkFileNames: 'vue-sfc/[name]-[hash].js',
                     assetFileNames: 'vue-sfc/[name]-[hash][extname]',
                 }

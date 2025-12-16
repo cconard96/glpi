@@ -35,7 +35,9 @@
 
 namespace Glpi\Toolbox;
 
+use function Safe\file_get_contents;
 use function Safe\gethostname;
+use function Safe\json_decode;
 
 class FrontEnd
 {
@@ -51,5 +53,15 @@ class FrontEnd
     {
         // using both gethostname() and GLPI_ROOT will provide a hardly predictable but stable token
         return sha1($version . gethostname() . GLPI_ROOT);
+    }
+
+    public static function getVueEntrypoint(): string
+    {
+        $manifest = json_decode(
+            file_get_contents(GLPI_ROOT . '/public/build/vue/.vite/manifest.json'),
+            true
+        );
+
+        return 'build/vue/' . $manifest['js/src/vue/app.js']['file'];
     }
 }
