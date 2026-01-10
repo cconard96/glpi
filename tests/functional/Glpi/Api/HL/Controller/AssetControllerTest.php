@@ -41,6 +41,7 @@ use Glpi\Features\AssignableItemInterface;
 use Glpi\Http\Request;
 use Glpi\Tests\HLAPITestCase;
 use Group_Item;
+use HLAPICallAsserter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Unmanaged;
 
@@ -637,6 +638,84 @@ class AssetControllerTest extends HLAPITestCase
                     $this->assertEquals('_test_group_1', $content['group'][0]['name']);
                     $this->assertEquals('_test_group_2', $content['group'][1]['name']);
                 });
+        });
+    }
+
+    public function testCRUDSoftwareInstallation()
+    {
+        $this->login();
+
+        $computer_id = getItemByTypeName('Computer', '_test_pc01', true);
+        $other_computer_id = getItemByTypeName('Computer', '_test_pc02', true);
+        $softwareversion_id = getItemByTypeName('SoftwareVersion', '_test_softver_1', true);
+        $request = new Request('POST', "/Assets/Computer/{$computer_id}/SoftwareInstallation");
+        $request->setParameter('softwareversion', $softwareversion_id);
+        $request->setParameter('date_install', '2026-01-05');
+
+        $new_location = null;
+        $this->api->call($request, function ($call) use (&$new_location) {
+            /** @var HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->headers(function ($headers) use (&$new_location) {
+                    $this->assertStringStartsWith('/Assets/Computer/' . getItemByTypeName('Computer', '_test_pc01', true) . '/SoftwareInstallation/', $headers['Location']);
+                    $new_location = $headers['Location'];
+                });
+        });
+
+        // Search
+        $this->api->call(new Request('GET', "/Assets/Computer/{$computer_id}/SoftwareInstallation"), function ($call) use ($softwareversion_id) {
+            /** @var HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) use ($softwareversion_id) {
+                    $this->assertCount(1, $content);
+                    $this->assertEquals($softwareversion_id, $content[0]['softwareversion']['id']);
+                });
+        });
+        $this->api->call(new Request('GET', "/Assets/Computer/{$other_computer_id}/SoftwareInstallation"), function ($call) {
+            /** @var HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) {
+                    $this->assertEmpty($content);
+                });
+        });
+
+        // Get
+        $this->api->call(new Request('GET', $new_location), function ($call) use ($softwareversion_id) {
+            /** @var HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) use ($softwareversion_id) {
+                    $this->assertEquals($softwareversion_id, $content['softwareversion']['id']);
+                    $this->assertEquals('2026-01-05', $content['date_install']);
+                });
+        });
+
+        // Update
+        $request = new Request('PATCH', $new_location);
+        $request->setParameter('date_install', '2026-02-10');
+        $this->api->call($request, function ($call) use ($softwareversion_id) {
+            /** @var HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) use ($softwareversion_id) {
+                    $this->assertEquals($softwareversion_id, $content['softwareversion']['id']);
+                    $this->assertEquals('2026-02-10', $content['date_install']);
+                });
+        });
+
+        // Delete
+        $this->api->call(new Request('DELETE', $new_location), function ($call) {
+            /** @var HLAPICallAsserter $call */
+            $call->response
+                ->isOK();
+        });
+
+        $this->api->call(new Request('GET', $new_location), function ($call) {
+            /** @var HLAPICallAsserter $call */
+            $call->response->isNotFoundError();
         });
     }
 }
