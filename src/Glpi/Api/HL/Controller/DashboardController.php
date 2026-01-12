@@ -41,6 +41,7 @@ use Glpi\Api\HL\RouteVersion;
 use Glpi\Dashboard as Dashboard;
 use Glpi\Http\Request;
 use Glpi\Http\Response;
+use Toolbox;
 
 #[Route(path: '/Dashboards', priority: 1, tags: ['Dashboards'])]
 #[Doc\Route(
@@ -244,7 +245,19 @@ final class DashboardController extends AbstractController
     #[Doc\CreateRoute(schema_name: 'Dashboard')]
     public function createDashboard(Request $request): Response
     {
-        return ResourceAccessor::createBySchema($this->getKnownSchema('Dashboard', $this->getAPIVersion($request)), $request->getParameters(), [self::class, 'getDashboard']);
+        //FIXME Dashboards do not use regular CRUD methods so we need to handle fields here as the are usually only handled in Dashboard\Dashboard::saveNew()
+        if (!$request->hasParameter('name')) {
+            throw new \InvalidArgumentException('Parameter "name" is required to create a Dashboard');
+        }
+        if (!$request->hasParameter('key')) {
+            $request->setParameter('key', Toolbox::slugify($request->getParameter('name')));
+        }
+        $dashboard_schema = $this->getKnownSchema('Dashboard', $this->getAPIVersion($request));
+        //remove readOnly flag on "key" to allow setting it during creation
+        unset($dashboard_schema['properties']['key']['readOnly']);
+        return ResourceAccessor::createBySchema($dashboard_schema, $request->getParameters(), [self::class, 'getDashboard'], [
+            'id' => 'dashboard_id',
+        ]);
     }
 
     #[Route(path: '/Dashboard', methods: ['GET'])]
