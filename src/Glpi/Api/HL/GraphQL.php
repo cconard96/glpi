@@ -36,10 +36,12 @@
 namespace Glpi\Api\HL;
 
 use CommonDBTM;
+use Glpi\Api\HL\GraphQL\RequestExecutor;
 use Glpi\Application\Environment;
 use Glpi\Debug\Profiler;
 use Glpi\Http\Request;
 use GraphQL\Error\Error;
+use GraphQL\Executor\Executor;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Utils\BuildSchema;
@@ -82,8 +84,10 @@ final class GraphQL
             $parsed = $GLPI_CACHE->get($cache_key);
         }
         $built_schema = BuildSchema::buildAST(ast: $parsed, options: ['assumeValid' => true, 'assumeValidSDL' => true]);
+        Executor::setImplementationFactory([RequestExecutor::class, 'create']);
         Profiler::getInstance()->stop('Build GraphQLSchema');
         try {
+            Profiler::getInstance()->start('Execute GraphQL Query', Profiler::CATEGORY_HLAPI);
             $result = \GraphQL\GraphQL::executeQuery(
                 schema: $built_schema,
                 source: $query,
@@ -119,6 +123,7 @@ final class GraphQL
                     return $source[$info->fieldName] ?? null;
                 }
             );
+            Profiler::getInstance()->stop('Execute GraphQL Query');
         } catch (Throwable $e) {
             global $PHPLOGGER;
             $PHPLOGGER->error(
