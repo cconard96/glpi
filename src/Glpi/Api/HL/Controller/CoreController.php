@@ -107,7 +107,7 @@ final class CoreController extends AbstractController
                         'recursive' => ['type' => Doc\Schema::TYPE_INTEGER],
                     ],
                 ],
-            ]
+            ],
         ];
         $all_right_names = array_keys(ProfileRight::getAllPossibleRights());
         $rights_info = [];
@@ -115,7 +115,7 @@ final class CoreController extends AbstractController
             foreach ($forms as $groups) {
                 foreach ($groups as $rights) {
                     foreach ($rights as $right) {
-                        if (!array_key_exists($right['name'], $rights_info)) {
+                        if (!array_key_exists($right['field'], $rights_info)) {
                             $rights_info[$right['field']] = $right;
                         }
                     }
@@ -444,7 +444,7 @@ HTML;
             $all_right_names = array_keys(ProfileRight::getAllPossibleRights());
             foreach ($active_profile as $key => $value) {
                 if (in_array($key, $all_right_names, true)) {
-                    $session['active_profile']['rights'][$key] = (int)$value;
+                    $session['active_profile']['rights'][$key] = (int) $value;
                 } else {
                     $session['active_profile']['rights'][$key] = 0;
                 }
