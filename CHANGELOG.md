@@ -6,7 +6,8 @@ The present file will list all changes made to the project; according to the
 ## [11.0.5] unreleased
 
 ### Added
-
+- New schemas/endpoints for Operating system installations on assets in the High-Level API v2.2.
+- 
 ### Changed
 - High-Level API performance improvements for both REST and GraphQL requests (3.3-10x performance uplift on average)
 - Some `string` properties in High-Level API schemas have been updated use the `html` format to indicate the context should be treated as HTML/Rich text.
