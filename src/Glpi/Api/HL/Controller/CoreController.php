@@ -139,7 +139,7 @@ final class CoreController extends AbstractController
                     $right_prop['enum'][] = $right_bit;
                 }
 
-                $right_prop['x-label'] = $right_label;
+                $right_prop['x-label'] = $rights_info[$right_name]['label'];
                 $right_prop['x-right-scope'] = $rights_info[$right_name]['scope'];
             }
             $session_schema['properties']['active_profile']['properties']['rights']['properties'][$right_name] = $right_prop;
