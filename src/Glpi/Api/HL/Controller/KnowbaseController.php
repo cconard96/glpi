@@ -37,7 +37,12 @@ namespace Glpi\Api\HL\Controller;
 use Entity;
 use Entity_KnowbaseItem;
 use Glpi\Api\HL\Doc as Doc;
+use Glpi\Api\HL\Middleware\ResultFormatterMiddleware;
+use Glpi\Api\HL\ResourceAccessor;
 use Glpi\Api\HL\Route;
+use Glpi\Api\HL\RouteVersion;
+use Glpi\Http\Request;
+use Glpi\Http\Response;
 use Glpi\UI\IllustrationManager;
 use Group;
 use Group_KnowbaseItem;
@@ -52,10 +57,16 @@ use Profile;
 use User;
 
 #[Route(path: '/Knowledgebase', requirements: [
+    'article_id' => '\d+',
     'id' => '\d+',
 ], tags: ['Knowledgebase'])]
 #[Doc\Route(
     parameters: [
+        new Doc\Parameter(
+            name: 'article_id',
+            schema: new Doc\Schema(type: Doc\Schema::TYPE_INTEGER),
+            location: Doc\Parameter::LOCATION_PATH,
+        ),
         new Doc\Parameter(
             name: 'id',
             schema: new Doc\Schema(type: Doc\Schema::TYPE_INTEGER),
@@ -78,10 +89,11 @@ class KnowbaseController extends AbstractController
                         'format' => Doc\Schema::FORMAT_INTEGER_INT64,
                         'readOnly' => true,
                     ],
+                    //TODO support FULLTEXT search instead of LIKE?
                     'name' => ['type' => Doc\Schema::TYPE_STRING],
                     'content' => [
-                        //TODO how to handle this? Content may be really long so searches will have a lot of data to process.
                         'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_HTML,
                         'x-field' => 'answer',
                     ],
                     'categories' => [
@@ -95,7 +107,8 @@ class KnowbaseController extends AbstractController
                                 'field' => 'id',
                                 'ref-join' => [
                                     'table' => \KnowbaseItem_KnowbaseItemCategory::getTable(),
-                                    'fkey' => KnowbaseItem::getForeignKeyField(),
+                                    'fkey' => 'id',
+                                    'field' => KnowbaseItem::getForeignKeyField(),
                                 ],
                             ],
                             'properties' => [
@@ -121,6 +134,7 @@ class KnowbaseController extends AbstractController
                     'description' => [
                         //TODO same as content
                         'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_HTML,
                         'description' => 'Short description of the article which may be shown in the service catalog. If null, the content field will be used as description.',
                     ],
                     'illustration' => [
@@ -146,6 +160,57 @@ class KnowbaseController extends AbstractController
                         'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
                         'description' => 'The date and time when the article is no longer visible. If null, the article is visible indefinitely.',
                         'x-field' => 'end_date',
+                    ],
+                    'revisions' => [
+                        'type' => Doc\Schema::TYPE_ARRAY,
+                        'items' => [
+                            'type' => Doc\Schema::TYPE_OBJECT,
+                            'x-full-schema' => 'KBArticleRevision',
+                            'x-join' => [
+                                'table' => KnowbaseItem_Revision::getTable(),
+                                'fkey' => 'id',
+                                'field' => KnowbaseItem::getForeignKeyField(),
+                                'primary-property' => 'id',
+                            ],
+                            'properties' => [
+                                'id' => [
+                                    'type' => Doc\Schema::TYPE_INTEGER,
+                                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                                    'readOnly' => true,
+                                ],
+                                'revision' => ['type' => Doc\Schema::TYPE_INTEGER],
+                                'language' => [
+                                    'type' => Doc\Schema::TYPE_STRING,
+                                    'description' => 'Language code (POSIX compliant format e.g. en_US or fr_FR)',
+                                ],
+                                'date' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                            ],
+                        ],
+                    ],
+                    'translations' => [
+                        'type' => Doc\Schema::TYPE_ARRAY,
+                        'items' => [
+                            'type' => Doc\Schema::TYPE_OBJECT,
+                            'x-full-schema' => 'KBArticleTranslation',
+                            'x-join' => [
+                                'table' => KnowbaseItemTranslation::getTable(),
+                                'fkey' => 'id',
+                                'field' => KnowbaseItem::getForeignKeyField(),
+                                'primary-property' => 'id',
+                            ],
+                            'properties' => [
+                                'id' => [
+                                    'type' => Doc\Schema::TYPE_INTEGER,
+                                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                                    'readOnly' => true,
+                                ],
+                                'language' => [
+                                    'type' => Doc\Schema::TYPE_STRING,
+                                    'description' => 'Language code (POSIX compliant format e.g. en_US or fr_FR)',
+                                ],
+                                'name' => ['type' => Doc\Schema::TYPE_STRING],
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -227,8 +292,8 @@ class KnowbaseController extends AbstractController
                     'revision' => ['type' => Doc\Schema::TYPE_INTEGER],
                     'name' => ['type' => Doc\Schema::TYPE_STRING],
                     'content' => [
-                        //TODO same as KB article content
                         'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_HTML,
                         'x-field' => 'answer',
                     ],
                     'language' => [
@@ -257,8 +322,8 @@ class KnowbaseController extends AbstractController
                     ],
                     'name' => ['type' => Doc\Schema::TYPE_STRING],
                     'content' => [
-                        //TODO same as KB article content
                         'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_HTML,
                         'x-field' => 'answer',
                     ],
                     'user' => self::getDropdownTypeSchema(class: User::class, full_schema: 'User'),
@@ -332,5 +397,197 @@ class KnowbaseController extends AbstractController
         ];
 
         return $schemas;
+    }
+
+    #[Route(path: '/Article', methods: ['POST'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\CreateRoute(schema_name: 'KBArticle')]
+    public function createKBArticle(Request $request): Response
+    {
+        return ResourceAccessor::createBySchema(
+            $this->getKnownSchema('KBArticle', $this->getAPIVersion($request)),
+            $request->getParameters(),
+            [self::class, 'getKBArticle'],
+            ['id' => 'article_id'],
+        );
+    }
+
+    #[Route(path: '/Article', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\SearchRoute(schema_name: 'KBArticle')]
+    public function searchKBArticles(Request $request): Response
+    {
+        return ResourceAccessor::searchBySchema($this->getKnownSchema('KBArticle', $this->getAPIVersion($request)), $request->getParameters());
+    }
+
+    #[Route(path: '/Article/{article_id}', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\GetRoute(schema_name: 'KBArticle')]
+    public function getKBArticle(Request $request): Response
+    {
+        $request->setAttribute('id', $request->getAttribute('article_id'));
+        return ResourceAccessor::getOneBySchema($this->getKnownSchema('KBArticle', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/Article/{article_id}', methods: ['PATCH'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\UpdateRoute('KBArticle')]
+    public function updateKBArticle(Request $request): Response
+    {
+        $request->setAttribute('id', $request->getAttribute('article_id'));
+        return ResourceAccessor::updateBySchema($this->getKnownSchema('KBArticle', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/Article/{article_id}', methods: ['DELETE'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\DeleteRoute('KBArticle')]
+    public function deleteKBArticle(Request $request): Response
+    {
+        $request->setAttribute('id', $request->getAttribute('article_id'));
+        return ResourceAccessor::deleteBySchema($this->getKnownSchema('KBArticle', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #[Route(path: '/Category', methods: ['POST'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\CreateRoute(schema_name: 'KBCategory')]
+    public function createKBCategory(Request $request): Response
+    {
+        return ResourceAccessor::createBySchema(
+            $this->getKnownSchema('KBCategory', $this->getAPIVersion($request)),
+            $request->getParameters(),
+            [self::class, 'getKBCategory'],
+        );
+    }
+
+    #[Route(path: '/Category', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\SearchRoute(schema_name: 'KBCategory')]
+    public function searchKBCategory(Request $request): Response
+    {
+        return ResourceAccessor::searchBySchema($this->getKnownSchema('KBCategory', $this->getAPIVersion($request)), $request->getParameters());
+    }
+
+    #[Route(path: '/Category/{id}', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\GetRoute(schema_name: 'KBCategory')]
+    public function getKBCategory(Request $request): Response
+    {
+        return ResourceAccessor::getOneBySchema($this->getKnownSchema('KBCategory', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/Category/{id}', methods: ['PATCH'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\UpdateRoute('KBCategory')]
+    public function updateKBCategory(Request $request): Response
+    {
+        return ResourceAccessor::updateBySchema($this->getKnownSchema('KBCategory', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/Category/{id}', methods: ['DELETE'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\DeleteRoute('KBCategory')]
+    public function deleteKBCategory(Request $request): Response
+    {
+        return ResourceAccessor::deleteBySchema($this->getKnownSchema('KBCategory', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #[Route(path: '/Article/{article_id}/Comment', methods: ['POST'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\CreateRoute(schema_name: 'KBArticleComment')]
+    public function createKBArticleComment(Request $request): Response
+    {
+        // comments do not use normal rights management, so we cannot use the ResourceAccessor
+        $article = new KnowbaseItem();
+        if (!$article->getFromDB((int) $request->getAttribute('article_id')) || !$article->canComment()) {
+            return AbstractController::getAccessDeniedErrorResponse();
+        }
+
+        $request->setParameter('kbarticle', (int) $request->getAttribute('article_id'));
+
+        $input = ResourceAccessor::getInputParamsBySchema(
+            $this->getKnownSchema('KBArticleComment', $this->getAPIVersion($request)),
+            $request->getParameters()
+        );
+        $item = new KnowbaseItem_Comment();
+        $items_id = $item->add($input);
+
+        return AbstractController::getCRUDCreateResponse($items_id, self::getAPIPathForRouteFunction(self::class, 'getKBArticleComment', [
+            'article_id' => $request->getAttribute('article_id'),
+            'id' => $items_id,
+        ]));
+    }
+
+    #[Route(path: '/Article/{article_id}/Comment', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\SearchRoute(schema_name: 'KBArticleComment')]
+    public function searchKBArticleComments(Request $request): Response
+    {
+        $filters = $request->hasParameter('filter') ? $request->getParameter('filter') : '';
+        $filters .= ';kbarticle==' . $request->getAttribute('article_id');
+        $request->setParameter('filter', $filters);
+        return ResourceAccessor::searchBySchema($this->getKnownSchema('KBArticleComment', $this->getAPIVersion($request)), $request->getParameters());
+    }
+
+    #[Route(path: '/Article/{article_id}/Comment/{id}', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\GetRoute(schema_name: 'KBArticleComment')]
+    public function getKBArticleComment(Request $request): Response
+    {
+        $filters = $request->hasParameter('filter') ? $request->getParameter('filter') : '';
+        $filters .= ';kbarticle==' . $request->getAttribute('article_id');
+        $request->setParameter('filter', $filters);
+        return ResourceAccessor::getOneBySchema($this->getKnownSchema('KBArticleComment', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/Article/{article_id}/Comment/{id}', methods: ['PATCH'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\UpdateRoute('KBArticleComment')]
+    public function updateKBArticleComment(Request $request): Response
+    {
+        $filters = $request->hasParameter('filter') ? $request->getParameter('filter') : '';
+        $filters .= ';kbarticle==' . $request->getAttribute('article_id');
+        $request->setParameter('filter', $filters);
+        return ResourceAccessor::updateBySchema($this->getKnownSchema('KBArticleComment', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/Article/{article_id}/Comment/{id}', methods: ['DELETE'])]
+    #[RouteVersion(introduced: '2.2')]
+    #[Doc\DeleteRoute('KBArticleComment')]
+    public function deleteKBArticleComment(Request $request): Response
+    {
+        $filters = $request->hasParameter('filter') ? $request->getParameter('filter') : '';
+        $filters .= ';kbarticle==' . $request->getAttribute('article_id');
+        $request->setParameter('filter', $filters);
+        return ResourceAccessor::deleteBySchema($this->getKnownSchema('KBArticleComment', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
     }
 }
