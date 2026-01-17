@@ -199,7 +199,6 @@ final class ResourceAccessor
         $result = $item->update($input);
 
         if ($result === false) {
-            var_dump($input);ob_flush();
             return AbstractController::getCRUDErrorResponse(AbstractController::CRUD_ACTION_UPDATE);
         }
         // We should return the updated item but we NEVER return the GLPI item fields directly. Need to use special API methods.
