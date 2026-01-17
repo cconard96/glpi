@@ -1657,7 +1657,7 @@ final class AssetController extends AbstractController
                     'itemtype' => $request->getAttribute('itemtype'),
                     'id' => $request->getAttribute('id'),
                 ],
-                'id' => 'noop'
+                'id' => 'noop',
             ]
         );
     }
