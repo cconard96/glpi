@@ -35,13 +35,8 @@
 namespace Glpi\Api\HL\Controller;
 
 use Glpi\Api\HL\Doc as Doc;
-use Glpi\Api\HL\ResourceAccessor;
 use Glpi\Api\HL\Route;
-use Glpi\Api\HL\RouteVersion;
-use Glpi\Dashboard as Dashboard;
-use Glpi\Http\Request;
-use Glpi\Http\Response;
-use Toolbox;
+use Glpi\Dashboard;
 
 #[Route(path: '/Dashboards', priority: 1, tags: ['Dashboards'])]
 #[Doc\Route(
