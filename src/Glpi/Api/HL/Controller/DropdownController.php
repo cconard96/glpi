@@ -280,6 +280,8 @@ final class DropdownController extends AbstractController
                 'State' => State::getTypeName(1),
                 'Manufacturer' => Manufacturer::getTypeName(1),
                 'Calendar' => Calendar::getTypeName(1),
+                'DatabaseInstanceCategory' => DatabaseInstanceCategory::getTypeName(1),
+                'DatabaseInstanceType' => DatabaseInstanceType::getTypeName(1),
             ];
         }
         return $types_only ? array_keys($dropdowns) : $dropdowns;

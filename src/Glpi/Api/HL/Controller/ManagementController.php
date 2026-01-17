@@ -575,7 +575,7 @@ final class ManagementController extends AbstractController
                             'name' => ['type' => Doc\Schema::TYPE_STRING],
                         ],
                     ],
-                ]
+                ],
             ],
         ];
         $schemas['Database']['properties']['instance'] = self::getDropdownTypeSchema(class: DatabaseInstance::class, full_schema: 'DatabaseInstance') + [
