@@ -61,7 +61,7 @@ class NotepadControllerTest extends HLAPITestCase
                 'itemtype' => 'Computer',
                 'items_id' => $computers_id,
                 'content' => 'This is a test note3',
-            ]
+            ],
         ], 'content');
     }
 
