@@ -6,6 +6,7 @@ The present file will list all changes made to the project; according to the
 ## [11.0.5] unreleased
 
 ### Added
+- New schema/endpoints for DatabaseInstance in the High-Level API v2.2.
 
 ### Changed
 - High-Level API performance improvements for both REST and GraphQL requests (3.3-10x performance uplift on average)
