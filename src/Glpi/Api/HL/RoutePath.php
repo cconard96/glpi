@@ -274,6 +274,11 @@ final class RoutePath
         return $this->security;
     }
 
+    public function getRouteScopes(): array
+    {
+        return $this->getRoute()->scopes;
+    }
+
     /**
      * @return string[]
      */
