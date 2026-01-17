@@ -1457,6 +1457,10 @@ final class AssetController extends AbstractController
         return $types_only ? array_keys($assets) : $assets;
     }
 
+    /**
+     * @param bool $types_only If true, only the type names are returned. If false, the type name => localized name pairs are returned.
+     * @return array<class-string<CommonDBTM>, string>
+     */
     public static function getAssetInfocomTypes(bool $types_only = true): array
     {
         static $assets = null;
