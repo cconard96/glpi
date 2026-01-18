@@ -60,6 +60,8 @@ use Glpi\Http\Response;
 use Group;
 use Holiday;
 use ITILCategory;
+use ITILFollowupTemplate;
+use ITILValidationTemplate;
 use KnowbaseItemCategory;
 use Location;
 use Manufacturer;
@@ -70,14 +72,19 @@ use OperatingSystemKernelVersion;
 use OperatingSystemServicePack;
 use OperatingSystemVersion;
 use PCIVendor;
+use Planning;
 use PlanningEventCategory;
 use ProblemTemplate;
 use RequestType;
+use SolutionTemplate;
+use SolutionType;
 use State;
 use TaskCategory;
+use TaskTemplate;
 use TicketTemplate;
 use USBVendor;
 use User;
+use ValidationStep;
 use VirtualMachineState;
 use VirtualMachineSystem;
 use VirtualMachineType;
@@ -836,6 +843,172 @@ EOT,
             ],
         ];
 
+        $schemas['FollowupTemplate'] = [
+            'x-version-introduced' => '2.2.0',
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => ITILFollowupTemplate::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'content' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_HTML,
+                ],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'is_private' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'request_type' => self::getDropdownTypeSchema(RequestType::class, full_schema: 'RequestType'),
+                'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+            ],
+        ];
+
+        $schemas['TaskTemplate'] = [
+            'x-version-introduced' => '2.2.0',
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => TaskTemplate::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'content' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_HTML,
+                ],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'category' => self::getDropdownTypeSchema(class: TaskCategory::class, full_schema: 'TaskCategory'),
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'is_private' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'duration' => ['type' => Doc\Schema::TYPE_INTEGER, 'x-field' => 'actiontime'],
+                'state' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'enum' => [
+                        Planning::INFO,
+                        Planning::TODO,
+                        Planning::DONE,
+                    ],
+                    'description' => <<<EOT
+                        The state of the task.
+                        - 0: Information
+                        - 1: To do
+                        - 2: Done
+                        EOT,
+                ],
+                'user_tech' => self::getDropdownTypeSchema(class: User::class, field: 'users_id_tech', full_schema: 'User'),
+                'group_tech' => self::getDropdownTypeSchema(class: Group::class, field: 'groups_id_tech', full_schema: 'Group'),
+                'use_current_user' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+            ],
+        ];
+
+        $schemas['SolutionTemplate'] = [
+            'x-version-introduced' => '2.2.0',
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => SolutionTemplate::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'content' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_HTML,
+                ],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'type' => self::getDropdownTypeSchema(SolutionType::class, full_schema: 'SolutionType'),
+                'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+            ],
+        ];
+
+        $schemas['ValidationTemplate'] = [
+            'x-version-introduced' => '2.2.0',
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => ITILValidationTemplate::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'content' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_HTML,
+                ],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'approval_step' => self::getDropdownTypeSchema(ValidationStep::class, full_schema: 'ApprovalStep'),
+                'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+            ],
+        ];
+
+        $schemas['SolutionType'] = [
+            'x-version-introduced' => '2.2.0',
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => SolutionType::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => false],
+                'is_incident' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => true],
+                'is_request' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => true],
+                'is_problem' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => true],
+                'is_change' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'default' => true],
+                'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+            ],
+        ];
+
+        $schemas['ApprovalStep'] = [
+            'x-version-introduced' => '2.2.0',
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-itemtype' => ValidationStep::class,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'is_default' => [
+                    'type' => Doc\Schema::TYPE_BOOLEAN,
+                    'description' => 'Indicates if this step is the default one for new approvals. If you set this to true, any other step previously set as the default will be unset.',
+                    'default' => false
+                ],
+                'min_required_approval_percent' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'x-field' => 'minimal_required_validation_percent',
+                    'minimum' => 0,
+                    'maximum' => 100,
+                    'default' => 100,
+                ],
+            ],
+        ];
+
         return $schemas;
     }
 
@@ -879,6 +1052,12 @@ EOT,
                 'OperatingSystemKernel' => OperatingSystemKernel::getTypeName(1),
                 'OperatingSystemKernelVersion' => OperatingSystemKernelVersion::getTypeName(1),
                 'AutoUpdateSystem' => AutoUpdateSystem::getTypeName(1),
+                'FollowupTemplate' => ITILFollowupTemplate::getTypeName(1),
+                'TaskTemplate' => TaskTemplate::getTypeName(1),
+                'SolutionTemplate' => SolutionTemplate::getTypeName(1),
+                'ValidationTemplate' => ITILValidationTemplate::getTypeName(1),
+                'SolutionType' => SolutionType::getTypeName(1),
+                'ApprovalStep' => ValidationStep::getTypeName(1),
             ];
         }
         return $types_only ? array_keys($dropdowns) : $dropdowns;
@@ -900,7 +1079,8 @@ EOT,
             'VirtualMachineType', 'VirtualMachineModel', 'VirtualMachineState',
             'CableType', 'CableStrand', 'OperatingSystemVersion', 'OperatingSystemServicePack',
             'OperatingSystemArchitecture', 'OperatingSystemEdition', 'OperatingSystemKernel',
-            'OperatingSystemKernelVersion', 'AutoUpdateSystem',
+            'OperatingSystemKernelVersion', 'AutoUpdateSystem', 'FollowupTemplate',
+            'TaskTemplate', 'SolutionTemplate', 'ValidationTemplate', 'SolutionType', 'ApprovalStep',
         ];
     }
 

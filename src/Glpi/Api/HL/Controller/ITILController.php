@@ -76,6 +76,7 @@ use RequestType;
 use Session;
 use SLA;
 use SlaLevel;
+use SolutionType;
 use TaskCategory;
 use Ticket;
 use TicketRecurrent;
@@ -746,6 +747,7 @@ final class ITILController extends AbstractController
                 ],
                 'itemtype' => ['type' => Doc\Schema::TYPE_STRING],
                 'items_id' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT64],
+                'type' => self::getDropdownTypeSchema(class: SolutionType::class, full_schema: 'SolutionType') + ['x-version-introduced' => '2.2.0'],
                 'content' => [
                     'type' => Doc\Schema::TYPE_STRING,
                     'format' => Doc\Schema::FORMAT_STRING_HTML,
@@ -774,6 +776,7 @@ final class ITILController extends AbstractController
                 'approval_followup' => [
                     'x-version-introduced' => '2.1.0',
                     'type' => Doc\Schema::TYPE_OBJECT,
+                    'x-full-schema' => 'Followup',
                     'x-field' => ITILFollowup::getForeignKeyField(),
                     'x-itemtype' => ITILFollowup::class,
                     'x-join' => [
