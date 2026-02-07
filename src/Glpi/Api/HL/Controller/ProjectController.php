@@ -35,6 +35,7 @@
 
 namespace Glpi\Api\HL\Controller;
 
+use Budget;
 use Entity;
 use Glpi\Api\HL\Doc as Doc;
 use Glpi\Api\HL\Middleware\ResultFormatterMiddleware;
@@ -46,6 +47,7 @@ use Glpi\Http\Response;
 use Item_Project;
 use Project;
 use ProjectState;
+use ProjectCost;
 use ProjectTask;
 use ProjectType;
 use Session;
@@ -181,6 +183,27 @@ final class ProjectController extends AbstractController
                     'is_deleted' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.3'],
                     'template_name' => ['type' => Doc\Schema::TYPE_STRING, 'x-version-introduced' => '2.3'],
                     'is_template' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.3'],
+                    'costs' => [
+                        'x-version-introduced' => '2.3.0',
+                        'type' => Doc\Schema::TYPE_ARRAY,
+                        'items' => [
+                            'type' => Doc\Schema::TYPE_OBJECT,
+                            'x-full-schema' => 'ProjectCost',
+                            'x-join' => [
+                                'table' => ProjectCost::getTable(),
+                                'fkey' => 'id',
+                                'field' => Project::getForeignKeyField(),
+                                'primary-property' => 'id',
+                            ],
+                            'properties' => [
+                                'id' => [
+                                    'type' => Doc\Schema::TYPE_INTEGER,
+                                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                                    'readOnly' => true,
+                                ],
+                            ],
+                        ]
+                    ]
                 ],
             ],
             'ProjectTask' => [
@@ -280,7 +303,36 @@ final class ProjectController extends AbstractController
                     'itemtype' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 100],
                     'items_id' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT64],
                 ],
-            ]
+            ],
+            'ProjectCost' => [
+                'x-version-introduced' => '2.3',
+                'x-itemtype' => ProjectCost::class,
+                'type' => Doc\Schema::TYPE_OBJECT,
+                'properties' => [
+                    'id' => [
+                        'type' => Doc\Schema::TYPE_INTEGER,
+                        'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                        'readOnly' => true,
+                    ],
+                    'project' => self::getDropdownTypeSchema(class: Project::class, full_schema: 'Project'),
+                    'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                    'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                    'date_begin' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
+                        'x-field' => 'begin_date',
+                    ],
+                    'date_end' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
+                        'x-field' => 'end_date',
+                    ],
+                    'cost' => ['type' => Doc\Schema::TYPE_NUMBER, 'format' => Doc\Schema::FORMAT_NUMBER_FLOAT, 'minimum' => 0],
+                    'budget' => self::getDropdownTypeSchema(class: Budget::class, full_schema: 'Budget'),
+                    'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                    'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN],
+                ],
+            ],
         ];
     }
 

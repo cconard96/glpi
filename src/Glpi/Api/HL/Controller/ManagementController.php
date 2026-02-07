@@ -48,6 +48,7 @@ use Contact;
 use ContactType;
 use Contract;
 use Contract_Item;
+use ContractCost;
 use ContractType;
 use Database;
 use DatabaseInstance;
@@ -507,6 +508,27 @@ EOT,
                         'type' => Doc\Schema::TYPE_BOOLEAN,
                         'x-version-introduced' => '2.3.0',
                     ],
+                    'costs' => [
+                        'x-version-introduced' => '2.3.0',
+                        'type' => Doc\Schema::TYPE_ARRAY,
+                        'items' => [
+                            'type' => Doc\Schema::TYPE_OBJECT,
+                            'x-full-schema' => 'ContractCost',
+                            'x-join' => [
+                                'table' => ContractCost::getTable(),
+                                'fkey' => 'id',
+                                'field' => Contract::getForeignKeyField(),
+                                'primary-property' => 'id',
+                            ],
+                            'properties' => [
+                                'id' => [
+                                    'type' => Doc\Schema::TYPE_INTEGER,
+                                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                                    'readOnly' => true,
+                                ],
+                            ],
+                        ]
+                    ]
                 ],
             ],
             'Database' => [
@@ -959,6 +981,36 @@ EOT,
                     'x-field' => 'sink_coeff',
                 ],
                 'business_criticity' => self::getDropdownTypeSchema(BusinessCriticity::class),
+            ],
+        ];
+
+        $schemas['ContractCost'] = [
+            'x-version-introduced' => '2.3',
+            'x-itemtype' => ContractCost::class,
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'properties' => [
+                'id' => [
+                    'type' => Doc\Schema::TYPE_INTEGER,
+                    'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                    'readOnly' => true,
+                ],
+                'contract' => self::getDropdownTypeSchema(class: Contract::class, full_schema: 'Contract'),
+                'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                'comment' => ['type' => Doc\Schema::TYPE_STRING],
+                'date_begin' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
+                    'x-field' => 'begin_date',
+                ],
+                'date_end' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
+                    'x-field' => 'end_date',
+                ],
+                'cost' => ['type' => Doc\Schema::TYPE_NUMBER, 'format' => Doc\Schema::FORMAT_NUMBER_FLOAT, 'minimum' => 0],
+                'budget' => self::getDropdownTypeSchema(class: Budget::class, full_schema: 'Budget'),
+                'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                'is_recursive' => ['type' => Doc\Schema::TYPE_BOOLEAN],
             ],
         ];
 
