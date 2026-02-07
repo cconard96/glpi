@@ -244,4 +244,17 @@ class ProjectControllerTest extends HLAPITestCase
             'project' => $projects_id,
         ]);
     }
+
+    public function testCRUDProjectCost()
+    {
+        $projects_id = getItemByTypeName(Project::class, '_project01', true);
+
+        $this->api->autoTestCRUD('/Project/Project/' . $projects_id . '/Cost', [
+            'name' => __FUNCTION__,
+            'cost' => 100,
+        ], [
+            'name' => __FUNCTION__ . '2',
+            'cost' => 150,
+        ]);
+    }
 }

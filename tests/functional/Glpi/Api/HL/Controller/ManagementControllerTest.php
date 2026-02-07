@@ -197,4 +197,21 @@ class ManagementControllerTest extends HLAPITestCase
             'contract' => $contracts_id,
         ]);
     }
+
+    public function testCRUDContractCost()
+    {
+        $this->loginWeb();
+        $contracts_id = $this->createItem('Contract', [
+            'name' => __FUNCTION__,
+            'entities_id' => getItemByTypeName('Entity', '_test_root_entity', true),
+        ])->getID();
+
+        $this->api->autoTestCRUD('/Management/Contract/' . $contracts_id . '/Cost', [
+            'name' => __FUNCTION__,
+            'cost' => 100,
+        ], [
+            'name' => __FUNCTION__ . '2',
+            'cost' => 150,
+        ]);
+    }
 }
