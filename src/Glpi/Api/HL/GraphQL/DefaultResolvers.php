@@ -298,7 +298,7 @@ class DefaultResolvers
 
             if ($schema['properties'][$field_name]['type'] === 'object') {
                 if (array_key_exists('id', $schema['properties'][$field_name]['properties'])) {
-                    $criteria['SELECT'][] = $search->getSelectCriteriaForProperty("{$field_name}.id");
+                    $criteria['SELECT'][] = $search->getSelectCriteriaForProperty("{$field_name}.id", true);
                 } else {
                     foreach ($schema['properties'][$field_name]['properties'] as $sub_field_name => $sub_field_schema) {
                         $criteria['SELECT'][] = $search->getSelectCriteriaForProperty("{$field_name}.{$sub_field_name}");
@@ -314,7 +314,7 @@ class DefaultResolvers
                     continue;
                 }
                 if (array_key_exists('id', $schema['properties'][$field_name]['items']['properties'])) {
-                    $criteria['SELECT'][] = $search->getSelectCriteriaForProperty("{$field_name}.id");
+                    $criteria['SELECT'][] = $search->getSelectCriteriaForProperty("{$field_name}.id", true);
                 }
             } else {
                 $criteria['SELECT'][] = $search->getSelectCriteriaForProperty($field_name);

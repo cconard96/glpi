@@ -487,6 +487,12 @@ final class ITILController extends AbstractController
                     'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
                     'x-field' => 'takeintoaccountdate',
                 ];
+                $schemas[$itil_type]['properties']['own_date'] = [
+                    'x-version-introduced' => '2.3.0',
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_DATE_TIME,
+                    'x-field' => 'time_to_own',
+                ];
             }
             if ($itil_type === Ticket::class || $itil_type === Change::class) {
                 $schemas[$itil_type]['properties']['global_validation'] = [
