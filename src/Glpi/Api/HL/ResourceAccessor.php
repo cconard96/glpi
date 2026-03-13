@@ -105,10 +105,11 @@ final class ResourceAccessor
     {
         global $DB;
 
-        if (!isset($schema['properties'][$field])) {
+        $prop = ArrayPathAccessor::getElementByArrayPath($schema['properties'], $field);
+
+        if ($prop === null) {
             throw new RuntimeException('Invalid primary key');
         }
-        $prop = $schema['properties'][$field];
         $pk_sql_name = $prop['x-field'] ?? $field;
         $context = new SearchContext($schema, []);
         $iterator = $DB->request([
@@ -824,9 +825,12 @@ final class ResourceAccessor
             );
         }
         $item = self::getItemFromSchema($schema);
-        if (!$item->getFromDB($items_id)) {
-            return AbstractController::getNotFoundErrorResponse();
-        }
+
+        // need to manually get the item from the DB because GLPI is too inconsistent.
+        // Sometimes it uses the `getIndexName` and sometimes not.
+        $item->getFromDBByCrit(['id' => $items_id]);
+        // other manual changes because the actual update action tries loading the item again
+        $input[$item::getIndexName()] = $item->fields[$item::getIndexName()];
 
         // Update permission checks do not use the $input parameter so we can check before even converting the input parameters
         if (!$item->can($items_id, UPDATE)) {
@@ -880,9 +884,10 @@ final class ResourceAccessor
         }
 
         // We should return the updated item but we NEVER return the GLPI item fields directly. Need to use special API methods.
+        $request_attrs['id'] = $item->fields['id'];
         return self::getOneBySchema(
             schema: $schema,
-            request_attrs: $request_attrs + ['id' => $items_id],
+            request_attrs: $request_attrs,
             request_params: $request_params,
             check_preconditions: false
         );
@@ -1036,6 +1041,9 @@ final class ResourceAccessor
         }
         // Shortcut implementation using the search functionality with a mandatory RSQL scope and returning the first result.
         // This shouldn't have much if any unneeded overhead as the filter would be mapped to a SQL condition.
+        if ($schema['properties'][$field]['type'] === Doc\Schema::TYPE_OBJECT) {
+            $field .= '.id';
+        }
         // The scope is passed as a mandatory filter (not appended to the user filter) so it cannot be escaped.
         $scope = $field . '==' . $request_attrs[$field];
         $existing_scope = $request_params[Search::MANDATORY_FILTER_PARAM] ?? '';
@@ -1097,6 +1105,13 @@ final class ResourceAccessor
         $force = filter_var($request_params['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $input = ['id' => (int) $items_id];
         $purge = !$item->maybeDeleted() || $force;
+
+        // need to manually get the item from the DB because GLPI is too inconsistent.
+        // Sometimes it uses the `getIndexName` and sometimes not.
+        $item->getFromDBByCrit(['id' => $items_id]);
+        // other manual changes because the actual delete action tries loading the item again before deleting
+        $input[$item::getIndexName()] = $item->fields[$item::getIndexName()];
+
         if (!$item->can($items_id, $purge ? PURGE : DELETE, $input)) {
             return AbstractController::getAccessDeniedErrorResponse();
         }

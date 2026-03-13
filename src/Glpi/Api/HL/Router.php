@@ -55,6 +55,7 @@ use Glpi\Api\HL\Controller\ITILController;
 use Glpi\Api\HL\Controller\KanbanController;
 use Glpi\Api\HL\Controller\KnowbaseController;
 use Glpi\Api\HL\Controller\ManagementController;
+use Glpi\Api\HL\Controller\NetworkController;
 use Glpi\Api\HL\Controller\NotepadController;
 use Glpi\Api\HL\Controller\NotificationController;
 use Glpi\Api\HL\Controller\ProjectController;
@@ -280,6 +281,7 @@ EOT;
             self::$instance->registerController(new HelpdeskController());
             self::$instance->registerController(new KanbanController());
             self::$instance->registerController(new FormController());
+            self::$instance->registerController(new NetworkController());
 
             // Register controllers from plugins
             if (isset($PLUGIN_HOOKS[Hooks::API_CONTROLLERS])) {
