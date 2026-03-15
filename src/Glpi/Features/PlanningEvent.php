@@ -43,6 +43,7 @@ use Entity;
 use ExtraVisibilityCriteria;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
+use Glpi\Debug\Profiler;
 use Glpi\RichText\RichText;
 use Glpi\Toolbox\ArrayNormalizer;
 use Group_User;
@@ -416,6 +417,7 @@ trait PlanningEvent
     {
         global $CFG_GLPI, $DB;
 
+        Profiler::getInstance()->start('populate_planning');
         $default_options = [
             'genical'             => false,
             'color'               => '',
@@ -427,7 +429,7 @@ trait PlanningEvent
 
         $events    = [];
         $event_obj = new static();
-        $itemtype  = $event_obj->getType();
+        $itemtype  = static::class;
         $item_fk   = getForeignKeyFieldForItemType($itemtype);
         $table     = static::getTable();
         $has_bg    = $DB->fieldExists($table, 'background');
@@ -436,6 +438,7 @@ trait PlanningEvent
             !isset($options['begin']) || $options['begin'] == 'NULL'
             || !isset($options['end']) || $options['end'] == 'NULL'
         ) {
+            Profiler::getInstance()->stop('populate_planning');
             return $events;
         }
 
@@ -585,99 +588,104 @@ trait PlanningEvent
 
         $events_toadd = [];
 
-        if (count($iterator)) {
-            foreach ($iterator as $data) {
-                if ($event_obj->getFromDB($data["id"]) && $event_obj->canViewItem()) {
-                    $key = $data["begin"]
-                      . "$$" . $itemtype
-                      . "$$" . $data["id"]
-                      . "$$" . $who
-                      . "$$" . $whogroup;
-                    if (isset($options['from_group_users'])) {
-                        $key .= "_gu";
-                    }
-
-                    $url = (!$options['genical'])
-                    ? $event_obj->getFormURLWithID($data['id'])
-                    : $CFG_GLPI["url_base"]
-                    . static::getFormURLWithID($data['id'], false);
-
-                    $is_rrule = isset($data['rrule']) && (string) $data['rrule'] !== '';
-
-                    $events[$key] = [
-                        'color'            => $options['color'],
-                        'event_type_color' => $options['event_type_color'],
-                        'event_cat_color'  => $data['cat_color'] ?? "",
-                        'itemtype'         => $itemtype,
-                        $item_fk           => $data['id'],
-                        'id'               => $data['id'],
-                        'users_id'         => $data["users_id"],
-                        'state'            => $data["state"],
-                        'background'       => $has_bg ? $data['background'] : false,
-                        'name'             => $data['name'],
-                        'text'             => $data['text'] !== null
-                     ? RichText::getSafeHtml($data['text'])
-                     : '',
-                        'ajaxurl'          => $CFG_GLPI["root_doc"] . "/ajax/planning.php"
-                                        . "?action=edit_event_form"
-                                        . "&itemtype=$itemtype"
-                                        . "&id=" . $data['id'],
-                        'editable'         => $event_obj->canUpdateItem(),
-                        'url'              => $url,
-                        'begin'            => !$is_rrule && (strcmp($begin, $data["begin"]) > 0)
-                                          ? $begin
-                                          : $data["begin"],
-                        'end'              => !$is_rrule && (strcmp($end, $data["end"]) < 0)
-                                          ? $end
-                                          : $data["end"],
-                        'rrule'            => isset($data['rrule']) && !empty($data['rrule'])
-                                          ? json_decode($data['rrule'], true)
-                                          : [],
-                    ];
-
-                    // when checking availability, we need to explode rrules events
-                    // to check if future occurrences of the primary event
-                    // doesn't match current range
-                    if ($options['check_planned'] && count($events[$key]['rrule'])) {
-                        $event      = $events[$key];
-                        $duration   = strtotime($event['end']) - strtotime($event['begin']);
-
-                        $rset = static::getRsetFromRRuleField($event['rrule'], $event['begin']);
-
-                        // - rrule object doesn't any duration property,
-                        //   so we remove the duration from the begin part of the range
-                        //   (minus 1 second to avoid matching precise end date)
-                        //   to check if event started before begin and could be still valid
-                        // - also set begin and end dates like it was as UTC
-                        //   (Rrule lib will always compare with UTC)
-                        $begin_datetime = new DateTime($options['begin'], new DateTimeZone('UTC'));
-                        $begin_datetime->sub(new DateInterval("PT" . ($duration - 1) . "S"));
-                        $end_datetime   = new DateTime($options['end'], new DateTimeZone('UTC'));
-                        $occurrences = $rset->getOccurrencesBetween($begin_datetime, $end_datetime);
-
-                        // add the found occurrences to the final tab after replacing their dates
-                        foreach ($occurrences as $currentDate) {
-                            $occurrence_begin = $currentDate;
-                            $occurrence_end   = (clone $currentDate)->add(new DateInterval("PT" . $duration . "S"));
-
-                            $events_toadd[] = array_merge($event, [
-                                'begin' => $occurrence_begin->format('Y-m-d H:i:s'),
-                                'end'   => $occurrence_end->format('Y-m-d H:i:s'),
-                            ]);
-                        }
-
-                        // remove primary event (with rrule)
-                        // as the final array now have all the occurrences
-                        unset($events[$key]);
-                    }
+        Profiler::getInstance()->start('populate_planning_loop');
+        foreach ($iterator as $data) {
+            $event_obj->getFromResultSet($data);
+            if ($event_obj->canViewItem()) {
+                $key = $data["begin"]
+                  . "$$" . $itemtype
+                  . "$$" . $data["id"]
+                  . "$$" . $who
+                  . "$$" . $whogroup;
+                if (isset($options['from_group_users'])) {
+                    $key .= "_gu";
                 }
+
+                $url = (!$options['genical'])
+                ? static::getFormURLWithID($data['id'])
+                : $CFG_GLPI["url_base"]
+                . static::getFormURLWithID($data['id'], false);
+
+                $is_rrule = isset($data['rrule']) && (string) $data['rrule'] !== '';
+
+                Profiler::getInstance()->start('populate_planning_event_format');
+                $events[$key] = [
+                    'color'            => $options['color'],
+                    'event_type_color' => $options['event_type_color'],
+                    'event_cat_color'  => $data['cat_color'] ?? "",
+                    'itemtype'         => $itemtype,
+                    $item_fk           => $data['id'],
+                    'id'               => $data['id'],
+                    'users_id'         => $data["users_id"],
+                    'state'            => $data["state"],
+                    'background'       => $has_bg ? $data['background'] : false,
+                    'name'             => $data['name'],
+                    'text'             => $data['text'] !== null
+                 ? RichText::getSafeHtml($data['text'])
+                 : '',
+                    'ajaxurl'          => $CFG_GLPI["root_doc"] . "/ajax/planning.php"
+                                    . "?action=edit_event_form"
+                                    . "&itemtype=$itemtype"
+                                    . "&id=" . $data['id'],
+                    'editable'         => $event_obj->canUpdateItem(),
+                    'url'              => $url,
+                    'begin'            => !$is_rrule && (strcmp($begin, $data["begin"]) > 0)
+                                      ? $begin
+                                      : $data["begin"],
+                    'end'              => !$is_rrule && (strcmp($end, $data["end"]) < 0)
+                                      ? $end
+                                      : $data["end"],
+                    'rrule'            => !empty($data['rrule'])
+                                      ? json_decode($data['rrule'], true)
+                                      : [],
+                ];
+                Profiler::getInstance()->stop('populate_planning_event_format');
+
+                Profiler::getInstance()->start('populate_planning_event_rrule');
+                // when checking availability, we need to explode rrules events
+                // to check if future occurrences of the primary event
+                // doesn't match current range
+                if ($options['check_planned'] && count($events[$key]['rrule'])) {
+                    $event      = $events[$key];
+                    $duration   = strtotime($event['end']) - strtotime($event['begin']);
+
+                    $rset = static::getRsetFromRRuleField($event['rrule'], $event['begin']);
+
+                    // - rrule object doesn't any duration property,
+                    //   so we remove the duration from the begin part of the range
+                    //   (minus 1 second to avoid matching precise end date)
+                    //   to check if event started before begin and could be still valid
+                    // - also set begin and end dates like it was as UTC
+                    //   (Rrule lib will always compare with UTC)
+                    $begin_datetime = new DateTime($options['begin'], new DateTimeZone('UTC'));
+                    $begin_datetime->sub(new DateInterval("PT" . ($duration - 1) . "S"));
+                    $end_datetime   = new DateTime($options['end'], new DateTimeZone('UTC'));
+                    $occurrences = $rset->getOccurrencesBetween($begin_datetime, $end_datetime);
+
+                    // add the found occurrences to the final tab after replacing their dates
+                    foreach ($occurrences as $currentDate) {
+                        $occurrence_begin = $currentDate;
+                        $occurrence_end   = (clone $currentDate)->add(new DateInterval("PT" . $duration . "S"));
+
+                        $events_toadd[] = array_merge($event, [
+                            'begin' => $occurrence_begin->format('Y-m-d H:i:s'),
+                            'end'   => $occurrence_end->format('Y-m-d H:i:s'),
+                        ]);
+                    }
+
+                    // remove primary event (with rrule)
+                    // as the final array now have all the occurrences
+                    unset($events[$key]);
+                }
+                Profiler::getInstance()->stop('populate_planning_event_rrule');
             }
         }
+        Profiler::getInstance()->stop('populate_planning_loop');
 
         if (count($events_toadd)) {
             $events += $events_toadd;
         }
-
+        Profiler::getInstance()->stop('populate_planning');
         return $events;
     }
 

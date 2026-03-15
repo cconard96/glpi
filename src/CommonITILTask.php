@@ -1352,8 +1352,9 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
         $whogroup = $options['whogroup']; // direct group
         $begin    = $options['begin'];
         $end      = $options['end'];
+        $item_table = $item::getTable();
 
-        $SELECT = [$item->getTable() . '.*'];
+        $SELECT = [$item_table . '.*'];
 
         // Get items to print
         if (isset($options['not_planned'])) {
@@ -1370,9 +1371,9 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
             $edate = $DB::quoteName($item::getTable() . '.date');
             $SELECT[] = new QueryExpression($edate, 'notp_edate');
             $WHERE = [
-                $item->getTable() . '.end'     => null,
-                $item->getTable() . '.begin'   => null,
-                $item->getTable() . '.actiontime' => ['>', 0],
+                $item_table . '.end'     => null,
+                $item_table . '.begin'   => null,
+                $item_table . '.actiontime' => ['>', 0],
                 //begin is replaced with creation tim minus duration
                 new QueryExpression($edate . " >= '" . $begin . "'"),
                 new QueryExpression($bdate . " <= '" . $end . "'"),
@@ -1380,19 +1381,19 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
         } else {
             //std case: get tasks for current view dates
             $WHERE = [
-                $item->getTable() . '.end'     => ['>=', $begin],
-                $item->getTable() . '.begin'   => ['<=', $end],
+                $item_table . '.end'     => ['>=', $begin],
+                $item_table . '.begin'   => ['<=', $end],
             ];
         }
 
         if (!$options['state_done']) {
             $WHERE[] = [
                 'OR' => [
-                    $item->getTable() . ".state" => Planning::TODO,
+                    $item_table . ".state" => Planning::TODO,
                     [
                         'AND' => [
-                            $item->getTable() . '.state' => Planning::INFO,
-                            $item->getTable() . '.end' => ['>', QueryFunction::now()],
+                            $item_table . '.state' => Planning::INFO,
+                            $item_table . '.end' => ['>', QueryFunction::now()],
                         ],
                     ],
                 ],
@@ -1419,17 +1420,17 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
         }
 
         if ($who > 0) {
-            $ADDWHERE[$item->getTable() . '.users_id_tech'] = $who;
+            $ADDWHERE[$item_table . '.users_id_tech'] = $who;
         }
 
         //This means we can pass 2 groups here, not sure this is expected. Not documented :/
         if ($whogroup > 0) {
-            $ADDWHERE[$item->getTable() . '.groups_id_tech'] = $whogroup;
+            $ADDWHERE[$item_table . '.groups_id_tech'] = $whogroup;
         }
 
         if (!count($ADDWHERE)) {
             $ADDWHERE = [
-                $item->getTable() . '.users_id_tech' => new QuerySubQuery([
+                $item_table . '.users_id_tech' => new QuerySubQuery([
                     'SELECT'          => 'glpi_profiles_users.users_id',
                     'DISTINCT'        => true,
                     'FROM'            => 'glpi_profiles',
@@ -1458,27 +1459,25 @@ abstract class CommonITILTask extends CommonDBTM implements CalDAVCompatibleItem
 
         $iterator = $DB->request([
             'SELECT'       => $SELECT,
-            'FROM'         => $item->getTable(),
+            'FROM'         => $item_table,
             'INNER JOIN'   => [
                 $parentitem->getTable() => [
                     'ON' => [
                         $parentitem->getTable() => 'id',
-                        $item->getTable()       => $parentitem->getForeignKeyField(),
+                        $item_table       => $parentitem->getForeignKeyField(),
                     ],
                 ],
             ],
             'WHERE'        => $WHERE,
-            'ORDERBY'      => $item->getTable() . '.begin',
+            'ORDERBY'      => $item_table . '.begin',
         ]);
 
         $interv = [];
 
         if (count($iterator)) {
             foreach ($iterator as $data) {
-                if (
-                    $item->getFromDB($data["id"])
-                    && $item->canViewItem()
-                ) {
+                $item->getFromResultSet($data);
+                if ($item->canViewItem()) {
                     if ($parentitem->getFromDBwithData($item->fields[$parentitem->getForeignKeyField()])) {
                         //not planned
                         if (isset($data['notp_date'])) {

@@ -1638,8 +1638,11 @@ TWIG, $twig_params);
 
         $raw_events = [];
         $not_planned = [];
+        \Glpi\Debug\Profiler::getInstance()->start('constructEventsArray - construct events array for all planning types');
         foreach ($CFG_GLPI['planning_types'] as $planning_type) {
+            \Glpi\Debug\Profiler::getInstance()->start("constructEventsArray - construct events for $planning_type");
             if (!$planning_type::canView()) {
+                \Glpi\Debug\Profiler::getInstance()->stop("constructEventsArray - construct events for $planning_type");
                 continue;
             }
             if ($_SESSION['glpi_plannings']['filters'][$planning_type]['display']) {
@@ -1658,11 +1661,16 @@ TWIG, $twig_params);
                     );
                 }
             }
+            \Glpi\Debug\Profiler::getInstance()->stop("constructEventsArray - construct events for $planning_type");
         }
+        \Glpi\Debug\Profiler::getInstance()->stop('constructEventsArray - construct events array for all planning types');
 
+        \Glpi\Debug\Profiler::getInstance()->start('constructEventsArray - handle not planned events');
         //handle not planned events
         $raw_events = array_merge($raw_events, $not_planned);
+        \Glpi\Debug\Profiler::getInstance()->stop('constructEventsArray - handle not planned events');
 
+        \Glpi\Debug\Profiler::getInstance()->start('constructEventsArray - get external calendar events');
         // get external calendars events (ical)
         // and on list view, only get future events
         $begin_ical = $param['begin'];
@@ -1673,7 +1681,9 @@ TWIG, $twig_params);
             $raw_events,
             self::getExternalCalendarRawEvents($begin_ical, $param['end'])
         );
+        \Glpi\Debug\Profiler::getInstance()->stop('constructEventsArray - get external calendar events');
 
+        \Glpi\Debug\Profiler::getInstance()->start('constructEventsArray - construct events array for fullcalendar');
         // construct events (in fullcalendar format)
         $events = [];
         foreach ($raw_events as $event) {
@@ -1840,6 +1850,7 @@ TWIG, $twig_params);
 
             $events[] = $new_event;
         }
+        \Glpi\Debug\Profiler::getInstance()->stop('constructEventsArray - construct events array for fullcalendar');
 
         return $events;
     }
