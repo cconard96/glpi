@@ -18,12 +18,14 @@ The present file will list all changes made to the project; according to the
 ### API changes
 
 #### Added
+- `Migration::renameColumn()` method to rename a column without causing the table to be recreated (metadata-only operation).
 
 #### Changes
 - `Session::haveRight()` now only returns a boolean
 - All `CommonGLPI`, `CommonDBTM` parameters now have a native PHP type
 - `KnowbaseItem_Comment` is now final
 - `KnowbaseItem_Revision` is now final
+- `date_mod` field for Log class (glpi_logs DB table) is now `date`
 
 #### Deprecated
 - `CommonITILSatisfaction::showSatisactionForm()`, use `CommonITILSatisfaction::showSatisfactionForm()` instead.

@@ -228,7 +228,7 @@ class Log extends CommonDBTM
     {
         global $DB;
 
-        $date_mod = $_SESSION["glpi_currenttime"];
+        $date = $_SESSION["glpi_currenttime"];
         if (empty($changes)) {
             return false;
         }
@@ -279,7 +279,7 @@ class Log extends CommonDBTM
             'itemtype_link'     => $itemtype_link,
             'linked_action'     => $linked_action,
             'user_name'         => $username,
-            'date_mod'          => $date_mod,
+            'date'              => $date,
             'id_search_option'  => $id_search_option,
             'old_value'         => $old_value,
             'old_id'            => $old_id,
@@ -371,7 +371,7 @@ class Log extends CommonDBTM
      * @return array of log entries, each containing the following keys:
      *      - int id: the           id of the entry in the `glpi_logs` table
      *      - bool display_history: whether the data should be displayed in the history tab
-     *      - string date_mod:      the entry date
+     *      - string date:          the entry date
      *      - string user_name:     the name of the user that made the change
      *      - string field:         the name of the updated field
      *      - string change:        the description of the change (contains HTML)
@@ -408,7 +408,7 @@ class Log extends CommonDBTM
 
             $tmp['display_history'] = true;
             $tmp['id']              = $data["id"];
-            $tmp['date_mod']        = $data["date_mod"];
+            $tmp['date']            = $data["date"];
             $tmp['user_name']       = $data["user_name"];
             $tmp['field']           = "";
             $tmp['change']          = "";
@@ -1379,8 +1379,8 @@ class Log extends CommonDBTM
 
         if (isset($filters['date']) && !empty($filters['date'])) {
             $sql_filters[] = [
-                ['date_mod' => ['>=', "{$filters['date']} 00:00:00"]],
-                ['date_mod' => ['<=', "{$filters['date']} 23:59:59"]],
+                ['date' => ['>=', "{$filters['date']} 00:00:00"]],
+                ['date' => ['<=', "{$filters['date']} 23:59:59"]],
             ];
         }
 

@@ -658,6 +658,55 @@ class Migration
     }
 
     /**
+     * Unlike {@link self::changeField}, this uses the RENAME COLUMN syntax for ALTER TABLE which is a
+     * metadata-only operation and therefore doesn't need to recreate the table.
+     * @param string $table Table name
+     * @param string $oldcolumn Old column name
+     * @param string $newcolumn New column name
+     * @return void
+     */
+    public function renameColumn($table, $oldcolumn, $newcolumn)
+    {
+        if ($this->db->fieldExists($table, $oldcolumn, false)) {
+            $query = "ALTER TABLE `$table` RENAME COLUMN `$oldcolumn` TO `$newcolumn`";
+            $this->db->doQuery($query);
+        } else {
+            $message = sprintf(
+                __('Unable to rename column %1$s to %2$s in table %3$s!'),
+                $oldcolumn,
+                $newcolumn,
+                $table
+            );
+            throw new RuntimeException($message);
+        }
+    }
+
+    /**
+     * Rename index for migration
+     *
+     * @param string $table Table name
+     * @param string $oldindex Old index name
+     * @param string $newindex New index name
+     *
+     * @return void
+     **/
+    public function renameIndex($table, $oldindex, $newindex)
+    {
+        if ($this->hasKey($table, $oldindex)) {
+            $query = "ALTER TABLE `$table` RENAME INDEX `$oldindex` TO `$newindex`";
+            $this->db->doQuery($query);
+        } else {
+            $message = sprintf(
+                __('Unable to rename index %1$s to %2$s in table %3$s!'),
+                $oldindex,
+                $newindex,
+                $table
+            );
+            throw new RuntimeException($message);
+        }
+    }
+
+    /**
      * Copy table for migration
      *
      * @since 0.84
