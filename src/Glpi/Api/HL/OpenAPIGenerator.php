@@ -660,7 +660,7 @@ EOT;
             if ($response->isReference()) {
                 $resolved_schema = $this->getComponentReference($response->getSchema()['ref'], $route_path->getController());
             } else {
-                $resolved_schema = $response->getSchema()?->toArray() ?? [];
+                $resolved_schema = $response->getSchema()?->toArray() ?? new \stdClass();
             }
             $response_media_type = $response->getMediaType();
             $response_schema = [
