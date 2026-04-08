@@ -578,11 +578,14 @@ final class HLAPIHelper
         };
 
         $deny_read();
-        // No READ = No List
-        $this->call(new Request('GET', $endpoint), function ($call) {
-            /** @var HLAPICallAsserter $call */
-            $call->response->isAccessDenied();
-        }, false);
+
+        if (!($extra_options['skip_search_test'] ?? false)) {
+            // No READ = No List
+            $this->call(new Request('GET', $endpoint), function ($call) {
+                /** @var HLAPICallAsserter $call */
+                $call->response->isAccessDenied();
+            }, false);
+        }
         // No READ = No GET
         $this->call(new Request('GET', $endpoint . '/' . $items_id), function ($call) {
             /** @var HLAPICallAsserter $call */

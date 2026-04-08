@@ -64,6 +64,7 @@ use OLA;
 use OlaLevel;
 use Plugin;
 use QueuedWebhook;
+use RegisteredID;
 use SLA;
 use SlaLevel;
 use SLM;
@@ -966,6 +967,28 @@ EOT,
                     ],
                 ],
             ],
+            'RegisteredID' => [
+                'x-version-introduced' => '2.3',
+                'x-itemtype' => RegisteredID::class,
+                'type' => Doc\Schema::TYPE_OBJECT,
+                'properties' => [
+                    'id' => [
+                        'type' => Doc\Schema::TYPE_INTEGER,
+                        'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                        'readOnly' => true,
+                    ],
+                    'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                    'itemtype' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 100, 'required' => true],
+                    'items_id' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT64, 'required' => true],
+                    'device_type' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'maxLength' => 100,
+                        'description' => 'The type of device the registered ID is for',
+                        'enum' => ['', 'PCI', 'USB'],
+                        'required' => true,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -1047,6 +1070,10 @@ EOT,
                 'OAuthClient' => [
                     'itemtype' => OAuthClient::class,
                     'label' => OAuthClient::getTypeName(1),
+                ],
+                'RegisteredID' => [
+                    'itemtype' => RegisteredID::class,
+                    'label' => RegisteredID::getTypeName(1),
                 ],
             ];
         }
@@ -1503,6 +1530,72 @@ EOT,
     {
         return ResourceAccessor::deleteBySchema(
             schema: $this->getKnownSchema('NotImportedEmail', $this->getAPIVersion($request)),
+            request_attrs: $request->getAttributes(),
+            request_params: $request->getParameters()
+        );
+    }
+
+    #[Route(path: '/{itemtype}/{items_id}/RegisteredID', methods: ['POST'], requirements: [
+        'itemtype' => '\w+',
+        'items_id' => '\d+',
+    ])]
+    #[RouteVersion(introduced: '2.3')]
+    #[Doc\CreateRoute(schema_name: 'RegisteredID')]
+    public function createRegisteredID(Request $request): Response
+    {
+        $itemtype = $request->getAttribute('itemtype');
+        $items_id = $request->getAttribute('items_id');
+
+        return ResourceAccessor::createBySchema(
+            schema: $this->getKnownSchema('RegisteredID', $this->getAPIVersion($request)),
+            request_params: $request->getParameters() + ['itemtype' => $itemtype, 'items_id' => $items_id],
+            get_route: [self::class, 'getRegisteredID'],
+        );
+    }
+
+    #[Route(path: '/{itemtype}/{items_id}/RegisteredID/{id}', methods: ['GET'], requirements: [
+        'itemtype' => '\w+',
+        'items_id' => '\d+',
+        'id' => '\d+',
+    ], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.3')]
+    #[Doc\GetRoute(schema_name: 'RegisteredID')]
+    public function getRegisteredID(Request $request): Response
+    {
+        return ResourceAccessor::getOneBySchema(
+            schema: $this->getKnownSchema('RegisteredID', $this->getAPIVersion($request)),
+            request_attrs: $request->getAttributes(),
+            request_params: $request->getParameters()
+        );
+    }
+
+    #[Route(path: '/{itemtype}/{items_id}/RegisteredID/{id}', methods: ['PATCH'], requirements: [
+        'itemtype' => '\w+',
+        'items_id' => '\d+',
+        'id' => '\d+',
+    ])]
+    #[RouteVersion(introduced: '2.3')]
+    #[Doc\UpdateRoute(schema_name: 'RegisteredID')]
+    public function updateRegisteredID(Request $request): Response
+    {
+        return ResourceAccessor::updateBySchema(
+            schema: $this->getKnownSchema('RegisteredID', $this->getAPIVersion($request)),
+            request_attrs: $request->getAttributes(),
+            request_params: $request->getParameters()
+        );
+    }
+
+    #[Route(path: '/{itemtype}/{items_id}/RegisteredID/{id}', methods: ['DELETE'], requirements: [
+        'itemtype' => '\w+',
+        'items_id' => '\d+',
+        'id' => '\d+',
+    ])]
+    #[RouteVersion(introduced: '2.3')]
+    #[Doc\DeleteRoute(schema_name: 'RegisteredID')]
+    public function deleteRegisteredID(Request $request): Response
+    {
+        return ResourceAccessor::deleteBySchema(
+            schema: $this->getKnownSchema('RegisteredID', $this->getAPIVersion($request)),
             request_attrs: $request->getAttributes(),
             request_params: $request->getParameters()
         );

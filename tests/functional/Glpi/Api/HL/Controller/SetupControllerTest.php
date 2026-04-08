@@ -45,8 +45,10 @@ use Glpi\Http\Request;
 use Glpi\Tests\HLAPITestCase;
 use Link;
 use MailCollector;
+use Manufacturer;
 use NotImportedEmail;
 use QueuedWebhook;
+use RegisteredID;
 use SLM;
 
 class SetupControllerTest extends HLAPITestCase
@@ -165,7 +167,7 @@ class SetupControllerTest extends HLAPITestCase
                         'definition_time' => 'hour',
                     ]);
                     foreach ($content as $type) {
-                        if ($type['itemtype'] === 'CronTask' || $type['itemtype'] === 'QueuedWebhook') {
+                        if ($type['itemtype'] === 'CronTask' || $type['itemtype'] === 'QueuedWebhook' || $type['itemtype'] === 'RegisteredID') {
                             continue;
                         }
                         $create_params = [];
@@ -653,6 +655,56 @@ class SetupControllerTest extends HLAPITestCase
                 'reason' => NotImportedEmail::USER_UNKNOWN,
             ],
             extra_options: ['skip_create_test' => true, 'skip_update_test' => true],
+        );
+    }
+
+    public function testCRUDRegisteredID()
+    {
+        $manufacturers_id = getItemByTypeName(Manufacturer::class, 'My Manufacturer', true);
+        $this->api->autoTestCRUD('/Setup/Manufacturer/' . $manufacturers_id . '/RegisteredID', [
+            'name' => '1234',
+            'device_type' => 'PCI',
+        ], [
+            'name' => '5678',
+        ]);
+    }
+
+    public function testCRUDRegisteredIDNoRights()
+    {
+        $manufacturers_id = getItemByTypeName(Manufacturer::class, 'My Manufacturer', true);
+        $registered_id = $this->createItem('RegisteredID', [
+            'name' => '1234',
+            'device_type' => 'PCI',
+            'itemtype' => Manufacturer::class,
+            'items_id' => $manufacturers_id,
+        ]);
+
+        $this->api->autoTestCRUDNoRights(
+            endpoint: '/Setup/Manufacturer/' . $manufacturers_id . '/RegisteredID',
+            itemtype: RegisteredID::class,
+            items_id: $registered_id->getID(),
+            deny_read: static function () {
+                $_SESSION['glpiactiveprofile'][Manufacturer::$rightname] = ALLSTANDARDRIGHT & ~READ;
+            },
+            deny_create: static function () {
+                $_SESSION['glpiactiveprofile'][Manufacturer::$rightname] = ALLSTANDARDRIGHT & ~UPDATE;
+            },
+            deny_update: static function () {
+                $_SESSION['glpiactiveprofile'][Manufacturer::$rightname] = ALLSTANDARDRIGHT & ~UPDATE;
+            },
+            deny_purge: static function () {
+                $_SESSION['glpiactiveprofile'][Manufacturer::$rightname] = ALLSTANDARDRIGHT & ~UPDATE;
+            },
+            create_params: [
+                'itemtype' => Manufacturer::class,
+                'items_id' => $manufacturers_id,
+                'name' => '5678',
+                'device_type' => 'PCI',
+            ],
+            update_params: [
+                'name' => '5678',
+            ],
+            extra_options: ['skip_search_test' => true],
         );
     }
 }
