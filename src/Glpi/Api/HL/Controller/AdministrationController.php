@@ -607,7 +607,7 @@ EOD,
                         'maxLength' => 255,
                         'description' => 'Tag of the entity populated by an inventory tool.'
                     ],
-                    'authldap' => self::getDropdownTypeSchema(class: 'AuthLDAP', full_schema: 'AuthLDAP') + ['x-version-introduced' => '2.3.0'],
+                    'authldap' => self::getDropdownTypeSchema(class: 'AuthLDAP', full_schema: 'LDAPDirectory') + ['x-version-introduced' => '2.3.0'],
                     'mail_domain' => [
                         'x-version-introduced' => '2.3.0',
                         'type' => Doc\Schema::TYPE_STRING,
