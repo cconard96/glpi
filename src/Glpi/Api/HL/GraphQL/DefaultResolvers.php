@@ -45,6 +45,9 @@ use Glpi\Api\HL\OpenAPIGenerator;
 use Glpi\Api\HL\RSQL\Lexer;
 use Glpi\Api\HL\RSQL\RSQLException;
 use Glpi\Api\HL\Search;
+use Glpi\Api\HL\Search\SearchContext;
+use Glpi\DBAL\QueryFunction;
+use Glpi\DBAL\QuerySubQuery;
 use Glpi\Debug\Profiler;
 use GraphQL\Deferred;
 use GraphQL\Error\Error;
@@ -321,8 +324,8 @@ class DefaultResolvers
             }
         }
 
+        $search->addRSQLCriteria($criteria, fn(SearchContext $context, array $properties) => $this->resolveSchemaFromProperties($context, $properties));
         $search->addJoinsCriteria($criteria);
-        $search->addRSQLCriteria($criteria);
 
         if ($request_params['id'] ?? null) {
             if (!is_array($request_params['id'])) {
@@ -339,5 +342,60 @@ class DefaultResolvers
         Profiler::getInstance()->stop('GraphQL2::getCriteriaForObject');
 
         return $criteria;
+    }
+
+    /**
+     * @param array<string, mixed> $criteria
+     * @return array<string, mixed>|QuerySubQuery[]
+     */
+    private function getCountCriteriaFromCriteria(array $criteria): array
+    {
+        $count_criteria = $criteria;
+        if (!array_key_exists('HAVING', $count_criteria) || empty($count_criteria['HAVING'])) {
+            $table_alias = '_';
+            unset($count_criteria['GROUPBY'], $count_criteria['ORDERBY']);
+        } else {
+            // Some queries may use HAVING to filter on computed fields so the main query must be done as a subquery and then count that
+            $table_alias = 'subquery_count';
+            $subquery_criteria = new QuerySubQuery($count_criteria, 'subquery_count');
+            $count_criteria = [
+                'FROM' => $subquery_criteria,
+            ];
+        }
+        $count_select = [QueryFunction::count("$table_alias.id", true, 'count')];
+        $count_criteria['SELECT'] = $count_select;
+        return $count_criteria;
+    }
+
+    /**
+     * @param SearchContext &$context
+     * @param string[] $properties
+     * @return void
+     */
+    private function resolveSchemaFromProperties(SearchContext $context, array $properties): void
+    {
+        $joins = $context->getJoins();
+        $new_schema = $context->getSchema();
+        foreach ($properties as $property) {
+            if (!str_contains($property, '.')) {
+                continue;
+            }
+            $parent_path = substr($property, 0, (int) strrpos($property, '.'));
+            $join_name = $context->getJoinNameForProperty($parent_path);
+            if (array_key_exists($join_name, $joins)) {
+                $join_schema_name = $joins[$join_name]['x-full-schema'] ?? null;
+                if ($join_schema_name !== null) {
+                    $join_schema = $this->getSchemaForObjectName($join_schema_name);
+                    if (($join_schema !== null)) {
+                        if (array_key_exists('items', $new_schema['properties'][$join_name])) {
+                            $new_schema['properties'][$join_name]['items']['properties'] = $join_schema['properties'];
+                        } else {
+                            $new_schema['properties'][$join_name]['properties'] = $join_schema['properties'];
+                        }
+                    }
+                }
+            }
+        }
+        $context->updateSchema($new_schema);
     }
 }
