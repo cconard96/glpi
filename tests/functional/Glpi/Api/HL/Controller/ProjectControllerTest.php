@@ -42,6 +42,7 @@ use Glpi\Http\Request;
 use Glpi\Tests\HLAPITestCase;
 use Project;
 use ProjectTask;
+use Session;
 
 class ProjectControllerTest extends HLAPITestCase
 {
@@ -256,5 +257,142 @@ class ProjectControllerTest extends HLAPITestCase
             'name' => __FUNCTION__ . '2',
             'cost' => 150,
         ]);
+    }
+
+    public function testCRUDItemProjectLink()
+    {
+        $computers_id = getItemByTypeName(Computer::class, '_test_pc01', true);
+        $projects_id = getItemByTypeName(Project::class, '_project01', true);
+
+        $this->api->autoTestCRUD('/Assets/Computer/' . $computers_id . '/Project', [
+            'project' => $projects_id,
+        ], [
+            'project' => $projects_id,
+        ]);
+    }
+
+    public function testCRUDProjectTeamMember()
+    {
+        $this->loginWeb();
+        $this->login();
+
+        $project = $this->createItem(Project::class, [
+            'name' => __FUNCTION__,
+            'entities_id' => getItemByTypeName(Entity::class, '_test_root_entity', true),
+            'content' => 'test',
+        ]);
+
+        $teammember_endpoint = "/Project/{$project->getID()}/TeamMember";
+
+        $this->api->call(new Request('GET', $teammember_endpoint), function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) {
+                    $this->assertEmpty($content);
+                });
+        });
+
+        $user_id = Session::getLoginUserID();
+        $request = new Request('POST', $teammember_endpoint);
+        $request->setParameter('itemtype', 'User');
+        $request->setParameter('items_id', $user_id);
+        $this->api->call($request, function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK();
+        });
+
+        $teammember_id = null;
+        $this->api->call(new Request('GET', $teammember_endpoint), function ($call) use ($user_id, &$teammember_id) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) use ($user_id, &$teammember_id) {
+                    $this->assertCount(1, $content);
+                    $this->assertEquals('User', $content[0]['itemtype']);
+                    $this->assertEquals($user_id, $content[0]['items_id']);
+                    $teammember_id = $content[0]['id'];
+                });
+        });
+
+        $request = new Request('DELETE', $teammember_endpoint . '/' . $teammember_id);
+        $request->setParameter('itemtype', 'User');
+        $request->setParameter('items_id', $user_id);
+        $this->api->call($request, function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK();
+        });
+
+        $this->api->call(new Request('GET', $teammember_endpoint), function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) {
+                    $this->assertEmpty($content);
+                });
+        });
+    }
+
+    public function testCRUDProjectTaskTeamMember()
+    {
+        $this->loginWeb();
+        $this->login();
+
+        $project = $this->createItem(Project::class, [
+            'name' => __FUNCTION__,
+            'entities_id' => getItemByTypeName(Entity::class, '_test_root_entity', true),
+            'content' => 'test',
+        ]);
+
+        $task = $this->createItem(ProjectTask::class, [
+            'projects_id' => $project->getID(),
+            'name'     => __FUNCTION__ . '_task',
+            'entities_id' => getItemByTypeName(Entity::class, '_test_root_entity', true),
+        ]);
+
+        $teammember_endpoint = "/Project/Task/{$task->getID()}/TeamMember";
+
+        $user_id = Session::getLoginUserID();
+        $request = new Request('POST', $teammember_endpoint);
+        $request->setParameter('itemtype', 'User');
+        $request->setParameter('items_id', $user_id);
+        $this->api->call($request, function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK();
+        });
+
+        $teammember_id = null;
+        $this->api->call(new Request('GET', $teammember_endpoint), function ($call) use ($user_id, &$teammember_id) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) use ($user_id, &$teammember_id) {
+                    $this->assertCount(1, $content);
+                    $this->assertEquals('User', $content[0]['itemtype']);
+                    $this->assertEquals($user_id, $content[0]['items_id']);
+                    $teammember_id = $content[0]['id'];
+                });
+        });
+
+        $request = new Request('DELETE', $teammember_endpoint . '/' . $teammember_id);
+        $request->setParameter('itemtype', 'User');
+        $request->setParameter('items_id', $user_id);
+        $this->api->call($request, function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK();
+        });
+
+        $this->api->call(new Request('GET', $teammember_endpoint), function ($call) {
+            /** @var \HLAPICallAsserter $call */
+            $call->response
+                ->isOK()
+                ->jsonContent(function ($content) {
+                    $this->assertEmpty($content);
+                });
+        });
     }
 }
