@@ -338,33 +338,6 @@ class ConfigTest extends DbTestCase
         );
     }
 
-    public function testGetPalettes()
-    {
-        $expected = [
-            'aerialgreen'     => 'Aerial Green',
-            'auror'           => 'Auror',
-            'auror_dark'      => 'Dark Auror',
-            'automn'          => 'Autumn',
-            'classic'         => 'Classic',
-            'clockworkorange' => 'Clockwork Orange',
-            'dark'            => 'Dark',
-            'darker'          => 'Darker',
-            'flood'           => 'Flood',
-            'greenflat'       => 'Green Flat',
-            'hipster'         => 'Hipster',
-            'icecream'        => 'Ice Cream',
-            'lightblue'       => 'Light Blue',
-            'midnight'        => 'Midnight',
-            'premiumred'      => 'Premium Red',
-            'purplehaze'      => 'Purple Haze',
-            'teclib'          => 'Teclib',
-            'vintage'         => 'Vintage',
-        ];
-
-        $instance = new Config();
-        $this->assertSame($expected, $instance->getPalettes());
-    }
-
     /**
      * Database engines data provider
      *

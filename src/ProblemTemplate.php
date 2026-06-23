@@ -56,11 +56,6 @@ class ProblemTemplate extends ITILTemplate
         return _n('Problem template', 'Problem templates', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['helpdesk', Problem::class, self::class];
-    }
-
     public function getCloneRelations(): array
     {
         return [

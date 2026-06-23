@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryParam;
 use Glpi\Error\ErrorHandler;
@@ -74,11 +73,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
         return _n('Saved search', 'Saved searches', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['tools', self::class];
-    }
-
     public function canUpdateItem(): bool
     {
         return Session::haveRight(self::$rightname, UPDATE)
@@ -111,42 +105,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
                      = "<i class='ti ti-corner-right-up'></i>" . __s('Change entity');
         }
         return $actions;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'change_count_method':
-                $values = [self::COUNT_AUTO  => __('Auto'),
-                    self::COUNT_YES   => __('Yes'),
-                    self::COUNT_NO    => __('No'),
-                ];
-                Dropdown::showFromArray('do_count', $values, ['width' => '20%']);
-                break;
-
-            case 'change_entity':
-                Entity::dropdown(['entity' => $_SESSION['glpiactiveentities'],
-                    'value'  => $_SESSION['glpiactive_entity'],
-                    'name'   => 'entities_id',
-                ]);
-                echo '<br/>';
-                echo __s('Child entities');
-                Dropdown::showYesNo('is_recursive');
-                echo '<br/>';
-                break;
-            case 'change_visibility':
-                echo __s('Visibility');
-                Dropdown::showFromArray(
-                    'is_private',
-                    [
-                        1  => __('Private'),
-                        0  => __('Public'),
-                    ],
-                );
-                break;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(
@@ -265,7 +223,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
 
     public function canCreateItem(): bool
     {
-
         if ($this->fields['is_private'] == 1) {
             return (Session::haveRight('config', UPDATE)
                  || $this->fields['users_id'] == Session::getLoginUserID());
@@ -286,14 +243,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
                  || $this->fields['users_id'] == Session::getLoginUserID());
         }
         return parent::canViewItem();
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-           ->addStandardTab(SavedSearch_Alert::class, $ong, $options);
-        return $ong;
     }
 
     public function rawSearchOptions()
@@ -444,7 +393,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
 
     public function pre_updateInDB()
     {
-
         // Set new user if initial user have been deleted
         if (
             ($this->fields['users_id'] == 0)
@@ -472,28 +420,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
                 SavedSearch_User::class,
             ]
         );
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        if (empty($this->fields) && $ID > 0) {
-            $this->getFromDB($ID);
-        }
-        // If this form is used to edit a saved search from the search screen
-        $is_ajax = $options['ajax'] ?? false;
-        if ($is_ajax && $this->getID() > 0) {
-            // Allow an extra option to save as a new search instead of editing the current one
-            $options['addbuttons'] = ["add" => __("Save as a new search")];
-            // Do not allow delete from this modal
-            $options['candel'] = false;
-        }
-
-        TemplateRenderer::getInstance()->display('pages/tools/savedsearch/form.html.twig', [
-            'item' => $this,
-            'can_create' => self::canCreate(),
-            'params' => $options,
-        ]);
-        return true;
     }
 
     /**
@@ -799,22 +725,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
     }
 
     /**
-     * return Html list of saved searches for a given itemtype
-     *
-     * @param string|null $itemtype
-     * @param bool   $inverse
-     *
-     * @return void
-     */
-    public function displayMine(?string $itemtype = null, bool $inverse = false)
-    {
-        TemplateRenderer::getInstance()->display('layout/parts/saved_searches_list.html.twig', [
-            'active'         => $_SESSION['glpi_loaded_savedsearch'] ?? "",
-            'saved_searches' => $this->getMine($itemtype, $inverse),
-        ]);
-    }
-
-    /**
      * Save order
      *
      * @param array $items Ordered ids
@@ -894,44 +804,6 @@ class SavedSearch extends CommonDBTM implements ExtraVisibilityCriteria
                 ]
             );
         }
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'do_count':
-                switch ($values[$field]) {
-                    case SavedSearch::COUNT_NO:
-                        return __s('No');
-
-                    case SavedSearch::COUNT_YES:
-                        return __s('Yes');
-
-                    case SavedSearch::COUNT_AUTO:
-                        return __s('Auto');
-                }
-                break;
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'do_count':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return self::dropdownDoCount($options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
     /**

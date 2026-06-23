@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssetImage;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
@@ -75,11 +74,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
         ];
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
@@ -89,31 +83,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
     {
         return _n('Appliance', 'Appliances', $nb);
     }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Appliance_Item::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Certificate_Item::class, $ong, $options)
-         ->addStandardTab(Domain_Item::class, $ong, $options)
-         ->addStandardTab(KnowbaseItem_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Item_Project::class, $ong, $options)
-         ->addStandardTab(ManualLink::class, $ong, $options)
-         ->addStandardTab(DatabaseInstance::class, $ong, $options)
-         ->addStandardTab(Notepad::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
 
     public function prepareInputForAdd($input)
     {
@@ -131,26 +100,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
             return false;
         }
         return $this->managePictures($input);
-    }
-
-    /**
-     * Print the appliance form
-     *
-     * @param $ID        integer ID of the item
-     * @param $options   array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return bool item found
-     */
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/management/appliance.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
     }
 
     public function rawSearchOptions()
@@ -356,7 +305,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
         return $tab;
     }
 
-
     /**
      * @param string $itemtype
      *
@@ -464,7 +412,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
         return $tab;
     }
 
-
     public function cleanDBonPurge()
     {
 
@@ -473,12 +420,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
                 Appliance_Item::class,
             ]
         );
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-versions";
     }
 
     /**
@@ -520,18 +461,6 @@ class Appliance extends CommonDBTM implements AssignableItemInterface, StateInte
         KnowbaseItem_Item::getMassiveActionsForItemtype($actions, self::class, false, $checkitem);
 
         return $actions;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'add_item':
-                Appliance::dropdown();
-                echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(

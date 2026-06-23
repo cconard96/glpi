@@ -58,11 +58,6 @@ class KnowbaseItemCategory extends CommonTreeDropdown
         return parent::canView();
     }
 
-    public static function getIcon()
-    {
-        return KnowbaseItem::getIcon();
-    }
-
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(

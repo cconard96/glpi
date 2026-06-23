@@ -94,12 +94,6 @@ class RuleCollection extends CommonDBTM
 
     public static $rightname                             = 'config';
 
-    /**
-     * @var string Tab orientation : horizontal or vertical
-     * @phpstan-var 'horizontal'|'vertical'
-     */
-    public $taborientation = 'horizontal';
-
     public static function getTable($classname = null)
     {
         return parent::getTable('Rule');

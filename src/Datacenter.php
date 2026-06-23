@@ -52,11 +52,6 @@ class Datacenter extends CommonDBTM
         return _n('Data center', 'Data centers', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public function prepareInputForAdd($input)
     {
         $input = parent::prepareInputForAdd($input);
@@ -68,16 +63,6 @@ class Datacenter extends CommonDBTM
         $input = parent::prepareInputForUpdate($input);
         return $this->managePictures($input);
     }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(DCRoom::class, $ong, $options);
-        return $ong;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -200,45 +185,5 @@ class Datacenter extends CommonDBTM
         }
 
         return $tab;
-    }
-
-    public static function getAdditionalMenuLinks()
-    {
-        $links = [];
-        $label = htmlescape(DCRoom::getTypeName(Session::getPluralNumber()));
-        if (static::canView()) {
-            $rooms = "<i class='ti ti-building pointer'
-                      title=\"$label\"></i>
-            <span class='d-none d-xxl-block ps-1'>$label</span>";
-            $links[$rooms] = DCRoom::getSearchURL(false);
-        }
-        if (count($links)) {
-            return $links;
-        }
-        return false;
-    }
-
-    public static function getAdditionalMenuOptions()
-    {
-        if (static::canView()) {
-            return [
-                DCRoom::class => [
-                    'title' => DCRoom::getTypeName(Session::getPluralNumber()),
-                    'page'  => DCRoom::getSearchURL(false),
-                    'icon'  => DCRoom::getIcon(),
-                    'links' => [
-                        'add'    => '/front/dcroom.form.php',
-                        'search' => '/front/dcroom.php',
-                    ],
-                ],
-            ];
-        }
-        return false;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-building-warehouse";
     }
 }

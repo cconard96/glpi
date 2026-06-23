@@ -44,18 +44,15 @@ class ChangeCost extends CommonITILCost
     public static $itemtype = Change::class;
     public static $items_id  = 'changes_id';
 
-
     public static function canCreate(): bool
     {
         return Session::haveRight('change', UPDATE);
     }
 
-
     public static function canView(): bool
     {
         return Session::haveRightsOr('change', [Change::READALL, Change::READMY]);
     }
-
 
     public static function canUpdate(): bool
     {

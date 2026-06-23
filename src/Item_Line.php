@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 class Item_Line extends CommonDBRelation
 {
     public static $itemtype_1 = Line::class;
@@ -45,40 +43,6 @@ class Item_Line extends CommonDBRelation
     public static function getTypeName($nb = 0)
     {
         return _n('Line item', 'Line items', $nb);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return '';
-        }
-
-        $nb = 0;
-        if ($item instanceof Line) {
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = self::countForMainItem($item) + self::countSimcardItemsForLine($item);
-            }
-            return self::createTabEntry(_n('Item', 'Items', Session::getPluralNumber()), $nb, $item::getType(), 'ti ti-package');
-        } else {
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = self::countForItem($item) + self::countSimcardLinesForItem($item);
-            }
-            return self::createTabEntry(Line::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-
-        if ($item instanceof Line) {
-            self::showItemsForLine($item);
-        } else {
-            self::showLinesForItem($item);
-        }
-        return true;
     }
 
     public function getForbiddenStandardMassiveAction()
@@ -93,19 +57,12 @@ class Item_Line extends CommonDBRelation
 
     public static function getRelationMassiveActionsPeerForSubForm(MassiveAction $ma)
     {
-
-        switch ($ma->getAction()) {
-            case 'add':
-            case 'remove':
-                return 1;
-
-            case 'add_item':
-            case 'remove_item':
-                return 2;
-        }
-        return 0;
+        return match ($ma->getAction()) {
+            'add', 'remove' => 1,
+            'add_item', 'remove_item' => 2,
+            default => 0,
+        };
     }
-
 
     public static function getRelationMassiveActionsSpecificities()
     {
@@ -153,294 +110,6 @@ class Item_Line extends CommonDBRelation
         return countElementsInTable(Item_DeviceSimcard::getTable(), [
             'lines_id' => $line->getID(),
         ]);
-    }
-
-    /**
-     * Show a list of items linked to a Line
-     *
-     * This includes directly linked items and items linked by a simcard.
-     * It allows linking items directly to a line.
-     *
-     * @return void|false False if the line is not valid or the user does not have the right to view the line
-     **/
-    public static function showItemsForLine(Line $line)
-    {
-        global $DB, $CFG_GLPI;
-
-        $ID = $line->fields['id'];
-
-        if (
-            !$line->getFromDB($ID)
-            || !$line->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $line->canEdit($ID);
-
-        $items = $DB->request([
-            'SELECT' => ['id', 'itemtype', 'items_id'],
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                'lines_id' => $ID,
-            ],
-        ]);
-
-        $simcards = $DB->request([
-            'SELECT' => ['id'],
-            'FROM'   => Item_DeviceSimcard::getTable(),
-            'WHERE'  => [
-                'lines_id' => $ID,
-            ],
-        ]);
-
-        $simcard_entries = [];
-        foreach ($simcards as $row) {
-            $item = new Item_DeviceSimcard();
-            $item->getFromDB($row['id']);
-            $simcard_entries[] = [
-                'itemtype' => Item_DeviceSimcard::class,
-                'id'      => $row['id'],
-                'name'    => $item->getLink(),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'super_header' => [
-                'label' => Item_DeviceSimcard::getTypeName(Session::getPluralNumber()),
-            ],
-            'columns' => [
-                'name' => __('Name'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $simcard_entries,
-            'total_number' => count($simcard_entries),
-            'filtered_number' => count($simcard_entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($simcard_entries),
-                'container'     => 'mass' . Item_DeviceSimcard::class . mt_rand(),
-            ],
-        ]);
-
-        if (static::canCreate()) {
-            //get all used items
-            $used = [];
-            $iterator = $DB->request([
-                'FROM'   => static::getTable(),
-                'WHERE'  => [
-                    'lines_id' => $line->getID(),
-                ],
-            ]);
-            foreach ($iterator as $row) {
-                $used[$row['itemtype']][$row['items_id']] = $row['items_id'];
-            }
-
-            $rand = mt_rand();
-            TemplateRenderer::getInstance()->display('components/form/link_existing_or_new.html.twig', [
-                'rand' => $rand,
-                'link_itemtype' => self::class,
-                'source_itemtype' => $line::class,
-                'source_items_id' => $ID,
-                'link_types' => $CFG_GLPI['line_types'],
-                'generic_target' => true,
-                'dropdown_options' => [
-                    'entity'      => $line->getEntityID(),
-                    'entity_sons' => $line->isRecursive(),
-                    'used'        => $used,
-                ],
-                'form_label' => __('Add an item'),
-            ]);
-        }
-
-        $item_entries = [];
-        foreach ($items as $row) {
-            if (!is_a($row['itemtype'], CommonDBTM::class, true)) {
-                continue;
-            }
-            $item = getItemForItemtype($row['itemtype']);
-            $item->getFromDB($row['items_id']);
-            $item_entries[] = [
-                'itemtype' => static::class,
-                'id'      => $row['id'],
-                'name'    => $item->getLink(),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'super_header' => [
-                'label' => _n('Item', 'Items', Session::getPluralNumber()),
-            ],
-            'columns' => [
-                'name' => __('Name'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $item_entries,
-            'total_number' => count($item_entries),
-            'filtered_number' => count($item_entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($item_entries),
-                'container'     => 'mass' . static::class . mt_rand(),
-            ],
-        ]);
-    }
-
-    /**
-     * Show a list of lines linked to an item.
-     *
-     * This includes directly linked lines and lines linked by a simcard.
-     * It allows linking lines directly to an item.
-     *
-     * @param CommonDBTM $item
-     * @return void|false False if the item is not valid or the user does not have the right to view the item
-     **/
-    public static function showLinesForItem(CommonDBTM $item)
-    {
-        global $DB;
-
-        $itemtype = $item::getType();
-        $ID = $item->fields['id'];
-
-        if (
-            !$item->getFromDB($ID)
-            || !$item->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $item->canEdit($ID);
-
-        $lines = $DB->request([
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                'itemtype' => $itemtype,
-                'items_id' => $ID,
-            ],
-        ]);
-
-        $lines_from_sim = $DB->request([
-            'SELECT' => ['id'],
-            'FROM'   => Item_DeviceSimcard::getTable(),
-            'WHERE'  => [
-                'itemtype' => $itemtype,
-                'items_id' => $ID,
-                'NOT'   => [
-                    'lines_id' => 0,
-                ],
-            ],
-        ]);
-
-        $simcard_entries = [];
-        foreach ($lines_from_sim as $row) {
-            $item = new Item_DeviceSimcard();
-            $item->getFromDB($row['id']);
-            $simcard_entries[] = [
-                'itemtype' => Item_DeviceSimcard::class,
-                'id'      => $row['id'],
-                'name'    => $item->getLink(),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'super_header' => [
-                'label' => Item_DeviceSimcard::getTypeName(Session::getPluralNumber()),
-            ],
-            'columns' => [
-                'name' => __('Name'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $simcard_entries,
-            'total_number' => count($simcard_entries),
-            'filtered_number' => count($simcard_entries),
-            'showmassiveactions' => $simcard_entries,
-            'massiveactionparams' => [
-                'num_displayed' => count($simcard_entries),
-                'container'     => 'mass' . Item_DeviceSimcard::class . mt_rand(),
-            ],
-        ]);
-
-        if (static::canCreate()) {
-            //get all used items
-            $used = [];
-            $iterator = $DB->request([
-                'FROM'   => static::getTable(),
-                'WHERE'  => [
-                    'itemtype' => $itemtype,
-                    'items_id' => $ID,
-                ],
-            ]);
-            foreach ($iterator as $row) {
-                $used[] = $row['lines_id'];
-            }
-
-            TemplateRenderer::getInstance()->display('components/form/link_existing_or_new.html.twig', [
-                'rand' => mt_rand(),
-                'link_itemtype' => self::class,
-                'generic_source' => true,
-                'source_itemtype' => $item::class,
-                'source_items_id' => $ID,
-                'target_itemtype' => Line::class,
-                'dropdown_options' => [
-                    'entity'      => $item->getEntityID(),
-                    'entity_sons' => $item->isRecursive(),
-                    'used'        => $used,
-                ],
-                'form_label' => __('Add a phone line'),
-            ]);
-        }
-
-        $line_entries = [];
-        foreach ($lines as $row) {
-            $line = new Line();
-            $line->getFromDB($row['lines_id']);
-            $line_entries[] = [
-                'itemtype' => static::class,
-                'id'      => $row['id'],
-                'name'    => $line->getLink(),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'super_header' => [
-                'label' => Line::getTypeName(Session::getPluralNumber()),
-            ],
-            'columns' => [
-                'name' => __('Name'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $line_entries,
-            'total_number' => count($line_entries),
-            'filtered_number' => count($line_entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($line_entries),
-                'container'     => 'mass' . static::class . mt_rand(),
-            ],
-        ]);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        return false;
     }
 
     public function prepareInputForAdd($input)
@@ -496,11 +165,5 @@ class Item_Line extends CommonDBRelation
         }
 
         return $input;
-    }
-
-
-    public static function getIcon()
-    {
-        return Line::getIcon();
     }
 }

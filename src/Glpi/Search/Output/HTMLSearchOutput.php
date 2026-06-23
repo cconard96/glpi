@@ -72,18 +72,6 @@ class HTMLSearchOutput extends AbstractSearchOutput
         return true;
     }
 
-    public static function showPreSearchDisplay(string $itemtype): void
-    {
-        if (
-            $itemtype === Ticket::class
-            && Session::getCurrentInterface() === 'central'
-            && $default = Grid::getDefaultDashboardForMenu('mini_ticket', true)
-        ) {
-            $dashboard = new Grid($default, 33, 2);
-            $dashboard->show(true);
-        }
-    }
-
     public function displayData(array $data, array $params = [])
     {
         global $CFG_GLPI;

@@ -35,7 +35,6 @@
 namespace Glpi\Dropdown;
 
 use CommonTreeDropdown;
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\CustomObject\AbstractDefinition;
 use Glpi\CustomObject\CustomObjectTrait;
 use RuntimeException;
@@ -104,20 +103,6 @@ abstract class Dropdown extends CommonTreeDropdown
         }
 
         return $this->prepareDefinitionInput($input);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display(
-            'pages/setup/custom_dropdown.html.twig',
-            [
-                'item'   => $this,
-                'params' => $options,
-                'additional_fields' => $this->getAdditionalFields(),
-            ]
-        );
-        return true;
     }
 
     public function rawSearchOptions()

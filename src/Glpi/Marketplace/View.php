@@ -56,9 +56,6 @@ class View extends CommonGLPI
     /** @var ?PluginsApi */
     public static $api       = null;
 
-    public $get_item_to_display_tab = true;
-
-
     public const COL_PAGE = 12;
 
     protected static bool $offline_mode = false;

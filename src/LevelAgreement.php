@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QuerySubQuery;
 
 use function Safe\strtotime;
@@ -60,15 +59,6 @@ abstract class LevelAgreement extends CommonDBChild
     protected static $levelclass        = '';
     /** @var string|class-string<CommonDBTM> */
     protected static $levelticketclass  = '';
-
-
-    /**
-     * Display a specific OLA or SLA warning.
-     * Called into the above showForm() function
-     *
-     * @return void
-     */
-    abstract public function showFormWarning();
 
     /**
      * Return the text needed for a confirmation of adding level agreement to a ticket
@@ -108,17 +98,6 @@ abstract class LevelAgreement extends CommonDBChild
         return static::$prefix . '_waiting_duration';
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(static::$levelclass, $ong, $options);
-        $this->addStandardTab(Rule::class, $ong, $options);
-        $this->addStandardTab(Ticket::class, $ong, $options);
-
-        return $ong;
-    }
-
     /**
      * Define calendar of the ticket using the SLA/OLA when using this calendar as sla/ola-s calendar
      *
@@ -137,114 +116,6 @@ abstract class LevelAgreement extends CommonDBChild
     {
         $this->fields['number_time'] = 4;
         $this->fields['definition_time'] = 'hour';
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $rowspan = 3;
-        if ($ID > 0) {
-            $rowspan = 5;
-        }
-
-        // Get SLM object
-        $slm = new SLM();
-        if (isset($options['parent'])) {
-            $slm = $options['parent'];
-        } else {
-            $slm->getFromDB($this->fields['slms_id']);
-        }
-
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $options[static::$items_id] = $slm->getField('id');
-
-            // force itemtype of parent
-            static::$itemtype = get_class($slm);
-
-            $this->check(-1, CREATE, $options);
-        }
-
-        $this->showFormHeader($options);
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __s('Name') . "</td>";
-        echo "<td>";
-        echo Html::input("name", ['value' => $this->fields["name"]]);
-        echo "<td rowspan='" . $rowspan . "'>" . __s('Comments') . "</td>";
-        echo "<td rowspan='" . $rowspan . "'>
-            <textarea class='form-control' rows='8' name='comment' >" . htmlescape($this->fields["comment"]) . "</textarea>";
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __s('SLM') . "</td>";
-        echo "<td>";
-        echo $slm->getLink();
-        echo "<input type='hidden' name='slms_id' value='" . intval($this->fields['slms_id']) . "'>";
-        echo "</td></tr>";
-
-        if ($ID > 0) {
-            echo "<tr class='tab_bg_1'>";
-            echo "<td>" . __s('Last update') . "</td>";
-            echo "<td>" . htmlescape($this->fields["date_mod"] ? Html::convDateTime($this->fields["date_mod"]) : __('Never'));
-            echo "</td></tr>";
-        }
-
-        echo "<tr class='tab_bg_1'><td>" . _sn('Type', 'Types', 1) . "</td>";
-        echo "<td>";
-        self::getTypeDropdown(['value' => $this->fields["type"]]);
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s('Maximum time') . "</td>";
-        echo "<td>";
-        Dropdown::showNumber("number_time", ['value' => $this->fields["number_time"],
-            'min'   => 0,
-            'max'   => 1000,
-        ]);
-        $possible_values = self::getDefinitionTimeValues();
-        $rand = Dropdown::showFromArray(
-            'definition_time',
-            $possible_values,
-            ['value'     => $this->fields["definition_time"],
-                'on_change' => 'appearhideendofworking()',
-            ]
-        );
-
-        echo Html::scriptBlock(
-            <<<JAVASCRIPT
-            function appearhideendofworking() {
-                if (
-                    $('#dropdown_definition_time$rand option:selected').val() == 'day'
-                    || $('#dropdown_definition_time$rand option:selected').val() == 'month'
-                ) {
-                    $('#title_endworkingday').show();
-                    $('#dropdown_endworkingday').show();
-                } else {
-                    $('#title_endworkingday').hide();
-                    $('#dropdown_endworkingday').hide();
-                }
-            }
-            appearhideendofworking();
-JAVASCRIPT
-        );
-
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'>";
-        echo "<td><div id='title_endworkingday'>" . __s('End of working day') . "</div></td>";
-        echo "<td><div id='dropdown_endworkingday'>";
-        Dropdown::showYesNo("end_of_working_day", $this->fields["end_of_working_day"]);
-        echo "</div></td>";
-
-        echo "<td colspan='2'>";
-        $this->showFormWarning();
-        echo "</td>";
-        echo "</tr>";
-
-        $this->showFormButtons($options);
-
-        return true;
     }
 
     /**
@@ -323,202 +194,6 @@ JAVASCRIPT
         }
 
         return $nextaction;
-    }
-
-    /**
-     * Print the HTML for a SLM
-     *
-     * @param SLM $slm Slm item
-     *
-     * @return void
-     */
-    public static function showForSLM(SLM $slm)
-    {
-        if (!$slm->can($slm->fields['id'], READ)) {
-            return;
-        }
-
-        $instID   = $slm->fields['id'];
-        $la       = new static();
-        $calendar = new Calendar();
-        $rand     = mt_rand();
-        $canedit  = $slm->canEdit($instID) && Session::getCurrentInterface() === 'central';
-
-        if ($canedit) {
-            $twig_params = [
-                'instID' => $instID,
-                'rand'   => $rand,
-                'la'     => $la,
-                'slm'    => $slm,
-                'btn_msg' => __('Add a new item'),
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div id="showLa{{ instID }}{{ rand }}"></div>
-                <script>
-                    function viewAddEditLa{{ instID }}{{ rand }}(item_id = -1) {
-                        $('#showLa{{ instID }}{{ rand }}').load("{{ config('root_doc') }}/ajax/viewsubitem.php", {
-                            type: "{{ la.getType() }}",
-                            parenttype: "{{ slm.getType() }}",
-                            {{ slm.getForeignKeyField() }}: {{ instID }},
-                            id: item_id,
-                        });
-                    }
-                    $(() => {
-                        $('#levelagreement{{ instID }}').on('click', 'tbody tr', function () {
-                            viewAddEditLa{{ instID }}{{ rand }}($(this).data('id'));
-                        });
-                    });
-                </script>
-                <div class="text-center mb-3">
-                    <button name="new_la" type="button" class="btn btn-primary" onclick="viewAddEditLa{{ instID }}{{ rand }}();">{{ btn_msg }}</button>
-                </div>
-TWIG, $twig_params);
-        }
-
-        // list
-        $laList = $la->find(['slms_id' => $instID]);
-
-        $entries = [];
-        foreach ($laList as $val) {
-            $la->getFromResultSet($val);
-            $link = '';
-            if ($slm->fields['use_ticket_calendar']) {
-                $link = __s('Calendar of the ticket');
-            } elseif (!$slm->fields['calendars_id']) {
-                $link =  __s('24/7');
-            } elseif ($calendar->getFromDB($slm->fields['calendars_id'])) {
-                $link = $calendar->getLink();
-            }
-            $entries[] = [
-                'itemtype' => static::class,
-                'id'       => $val['id'],
-                'row_class' => 'cursor-pointer',
-                'name'     => $la->getLink(),
-                'type'     => $la::getSpecificValueToDisplay('type', $la->fields['type']),
-                'maximum_time' => $la::getSpecificValueToDisplay('number_time', [
-                    'number_time'     => $la->fields['number_time'],
-                    'definition_time' => $la->fields['definition_time'],
-                ]),
-                'calendar' => $link,
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'datatable_id' => 'levelagreement' . $instID,
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'type' => _n('Type', 'Types', 1),
-                'maximum_time' => __('Maximum time'),
-                'calendar' => _n('Calendar', 'Calendars', 1),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-                'calendar' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . mt_rand(),
-            ],
-        ]);
-    }
-
-    /**
-     * Display a list of rule for the current sla/ola
-     * @return void
-     */
-    public function showRulesList()
-    {
-        global $DB;
-
-        $fk      = static::getFieldNames($this->fields['type'])[1];
-        $rule    = new RuleTicket();
-        $canedit = self::canUpdate();
-
-        $rules_id_list = iterator_to_array($DB->request([
-            'SELECT'          => 'rules_id',
-            'DISTINCT'        => true,
-            'FROM'            => 'glpi_ruleactions',
-            'WHERE'           => [
-                'field' => $fk,
-                'value' => $this->getID(),
-            ],
-        ]));
-        $nb = count($rules_id_list);
-
-        $entries = [];
-        foreach ($rules_id_list as $data) {
-            $rule->getFromDB($data['rules_id']);
-            $entries[] = [
-                'itemtype' => RuleTicket::class,
-                'id'       => $rule->getID(),
-                'rule'     => $canedit ? $rule->getLink() : htmlescape($rule->fields["name"]),
-                'active'   => Dropdown::getYesNo($rule->fields["is_active"]),
-                'description' => $rule->fields["description"],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'rule' => RuleTicket::getTypeName($nb),
-                'active' => __('Active'),
-                'description' => __('Description'),
-            ],
-            'formatters' => [
-                'rule' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . RuleTicket::class . mt_rand(),
-                'specific_actions' => [
-                    'update' => _x('button', 'Update'),
-                    'purge'  => _x('button', 'Delete permanently'),
-                ],
-            ],
-        ]);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            $nb = 0;
-            switch ($item->getType()) {
-                case 'SLM':
-                    /** @var SLM $item */
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(
-                            self::getTable(),
-                            ['slms_id' => $item->getField('id')]
-                        );
-                    }
-                    return self::createTabEntry(static::getTypeName($nb), $nb, $item::getType());
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        switch (true) {
-            case $item instanceof SLM:
-                self::showForSLM($item);
-                break;
-        }
-        return true;
     }
 
     /**
@@ -646,43 +321,6 @@ TWIG, $twig_params);
         ];
 
         return $tab;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'number_time':
-                switch ($values['definition_time']) {
-                    case 'minute':
-                        return htmlescape(sprintf(_n('%d minute', '%d minutes', $values[$field]), $values[$field]));
-                    case 'hour':
-                        return htmlescape(sprintf(_n('%d hour', '%d hours', $values[$field]), $values[$field]));
-                    case 'day':
-                        return htmlescape(sprintf(_n('%d day', '%d days', $values[$field]), $values[$field]));
-                }
-                break;
-
-            case 'type':
-                return htmlescape(self::getOneTypeName($values[$field]));
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'type':
-                $options['value'] = $values[$field];
-                return self::getTypeDropdown($options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
     /**

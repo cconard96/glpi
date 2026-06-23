@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 use function Safe\json_decode;
 use function Safe\json_encode;
 
@@ -217,20 +215,6 @@ class DomainRecordType extends CommonDropdown
         ];
     }
 
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        $field_name  = $field['name'];
-        $field_type  = $field['type'];
-        $field_value = $this->fields[$field_name];
-
-        switch ($field_type) {
-            case 'fields':
-                $printable = !empty($field_value) ? json_encode(json_decode($field_value), JSON_PRETTY_PRINT) : '';
-                echo '<textarea name="' . htmlescape($field_name) . '" cols="75" rows="25">' . htmlescape($printable) . '</textarea >';
-                break;
-        }
-    }
-
     public function prepareInputForAdd($input)
     {
         if (!array_key_exists('fields', $input)) {
@@ -368,32 +352,5 @@ class DomainRecordType extends CommonDropdown
             },
             self::$knowtypes
         );
-    }
-
-    /**
-     * Display ajax form used to fill record data.
-     *
-     * @param string $str_input_id    Id of input used to get/store record data as string.
-     * @param string $obj_input_id    Id of input used to get/store record data as object.
-     *
-     * @return void
-     */
-    public function showDataAjaxForm(string $str_input_id, string $obj_input_id)
-    {
-        $fields = json_decode($this->fields['fields'] ?: '[]', true);
-        if (empty($fields)) {
-            $fields = [
-                [
-                    'key'   => 'data',
-                    'label' => __('Data'),
-                ],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('pages/management/domainrecordtype_helper.html.twig', [
-            'fields' => $fields,
-            'str_input_id' => $str_input_id,
-            'obj_input_id' => $obj_input_id,
-        ]);
     }
 }

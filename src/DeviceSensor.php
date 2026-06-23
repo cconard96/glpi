@@ -73,49 +73,6 @@ class DeviceSensor extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($itemtype) {
-            case 'Computer':
-            case 'Peripheral':
-                Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                $base->addHeader('devicesensor_type', _sn('Type', 'Types', 1), $super, $father);
-                break;
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($item::class) {
-            case Computer::class:
-            case Peripheral::class:
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                break;
-        }
-        return null;
-    }
-
     /**
      * Criteria used for import function
      */

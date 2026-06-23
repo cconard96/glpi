@@ -43,46 +43,6 @@ class SavedSearch_User extends CommonDBRelation
     public static $itemtype_2 = User::class;
     public static $items_id_2          = 'users_id';
 
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'users_id':
-                if (!empty($values[$field])) {
-                    return "<span class='ti ti-star-filled bookmark_default'><span class='sr-only'>" . __s('Yes') . "</span></span>";
-                } else {
-                    return "<span class='ti ti-star-filled bookmark_record'><span class='sr-only'>" . __s('No') . "</span></span>";
-                }
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'users_id':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return Dropdown::showFromArray(
-                    $options['name'],
-                    [
-                        '1'   => __('Yes'),
-                        '0'   => __('No'),
-                    ],
-                    $options
-                );
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
     public function prepareInputForUpdate($input)
     {
         return $this->can($input['id'], READ) ? $input : false;

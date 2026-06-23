@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 
@@ -57,11 +56,6 @@ class Item_Disk extends CommonDBChild
         return _n('Volume', 'Volumes', $nb);
     }
 
-    public static function getIcon()
-    {
-        return 'ti ti-server-2';
-    }
-
     public function post_getEmpty()
     {
         $this->fields["totalsize"] = '0';
@@ -71,92 +65,6 @@ class Item_Disk extends CommonDBChild
     public function useDeletedToLockIfDynamic()
     {
         return false;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        // can exists for template
-        if (
-            ($item instanceof CommonDBTM)
-            && $item::canView()
-        ) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(
-                    self::getTable(),
-                    [
-                        'items_id'     => $item->getID(),
-                        'itemtype'     => $item->getType(),
-                        'is_deleted'   => 0,
-                    ]
-                );
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof CommonDBTM) {
-            return self::showForItem($item, $withtemplate);
-        }
-        return false;
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Lock::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $itemtype = null;
-        if (isset($options['itemtype']) && !empty($options['itemtype'])) {
-            $itemtype = $options['itemtype'];
-        } elseif (isset($this->fields['itemtype']) && !empty($this->fields['itemtype'])) {
-            $itemtype = $this->fields['itemtype'];
-        } else {
-            throw new RuntimeException('Unable to retrieve itemtype');
-        }
-
-        if (!is_a($itemtype, CommonDBTM::class, true)) {
-            throw new RuntimeException(sprintf(
-                'Item type %s is not a valid item type',
-                $itemtype
-            ));
-        }
-
-        if (!Session::haveRight($itemtype::$rightname, READ)) {
-            return false;
-        }
-
-        $asset_item = new $itemtype();
-        if ($ID > 0) {
-            $this->check($ID, READ);
-            $asset_item->getFromDB($this->fields['items_id']);
-        } else {
-            $this->check(-1, CREATE, $options);
-            $asset_item->getFromDB($options['items_id']);
-        }
-
-        $itemtype = $this->fields['itemtype'];
-        $options['canedit'] = Session::haveRight($itemtype::$rightname, UPDATE);
-
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('components/form/item_disk.html.twig', [
-            'item'                      => $this,
-            'asset_item'                => $asset_item,
-            'encryption_status_list'    => self::getAllEncryptionStatus(),
-            'params'                    => $options,
-        ]);
-
-        return true;
     }
 
     /**
@@ -192,128 +100,6 @@ class Item_Disk extends CommonDBChild
             ],
         ]);
         return $iterator;
-    }
-
-    /**
-     * Print the disks
-     *
-     * @param CommonDBTM $item          Item object
-     * @param int    $withtemplate  Template or basic item (default 0)
-     *
-     * @return bool
-     **/
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0): bool
-    {
-        $ID = $item->getID();
-        $rand = mt_rand();
-
-        if (
-            !$item->getFromDB($ID)
-            || !$item->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $item->canEdit($ID);
-
-        if (
-            $canedit
-            && !(!empty($withtemplate) && ($withtemplate == 2))
-        ) {
-            $link = self::getFormURL() . '?itemtype=' . $item::class . '&items_id=' . $ID . '&withtemplate=' . (int) $withtemplate;
-
-            TemplateRenderer::getInstance()->display(
-                'components/tab/addlink_block.html.twig',
-                [
-                    'add_link' => $link,
-                    'button_label' => __('Add a volume'),
-                ]
-            );
-        }
-
-        $iterator = self::getFromItem($item);
-
-        $disk = new self();
-        $entries = [];
-        foreach ($iterator as $data) {
-            $disk->getFromResultSet($data);
-            $used = $data['totalsize'] - $data['freesize'];
-            $usedpercent = 0;
-            if ($data['totalsize'] > 0) {
-                $usedpercent = round(100 * $used / $data['totalsize']);
-            }
-
-            $encryption_label = '';
-            if ($data['encryption_status'] !== self::ENCRYPTION_STATUS_NO) {
-                $twig_params = [
-                    'encryption_status_label'    => __('Partial encryption'),
-                    'encryption_status_value'    => Dropdown::getYesNo($data['encryption_status'] === self::ENCRYPTION_STATUS_YES),
-                    'encryption_tool_label'      => __('Encryption tool'),
-                    'encryption_tool_value'      => $data['encryption_tool'],
-                    'encryption_algorithm_label' => __('Encryption algorithm'),
-                    'encryption_algorithm_value' => $data['encryption_algorithm'],
-                    'encryption_type_label'      => __('Encryption type'),
-                    'encryption_type_value'      => $data['encryption_type'],
-                ];
-                $encryptionTooltip = TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                    <strong>{{ encryption_status_label }}</strong> : {{ encryption_status_value }}<br/>
-                    <strong>{{ encryption_tool_label }}</strong> : {{ encryption_tool_value }}</br>
-                    <strong>{{ encryption_algorithm_label }}</strong> : {{ encryption_algorithm_value }}<br/>
-                    <strong>{{ encryption_type_label }}</strong> : {{ encryption_type_value }}
-TWIG, $twig_params);
-
-                $encryption_label = Html::showTooltip($encryptionTooltip, [
-                    'awesome-class' => "ti ti-lock-password",
-                    'display' => false,
-                ]);
-            }
-            $entries[] = [
-                'itemtype' => self::class,
-                'id' => $data['id'],
-                'name' => $disk->getLink(),
-                'is_dynamic' => Dropdown::getYesNo($data['is_dynamic']),
-                'device' => $data['device'],
-                'mountpoint' => $data['mountpoint'],
-                'fsname' => $data['fsname'],
-                'totalsize' => $data['totalsize'] * 1024 * 1024, //size in MiB in DB
-                'freesize' => $data['freesize'] * 1024 * 1024, //size in MiB in DB
-                'usedpercent' => $usedpercent,
-                'encryption_status' => $encryption_label,
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'is_dynamic' => __('Automatic inventory'),
-                'device' => __('Partition'),
-                'mountpoint' => __('Mount point'),
-                'fsname' => Filesystem::getTypeName(1),
-                'totalsize' => __('Global size'),
-                'freesize' => __('Free size'),
-                'usedpercent' => __('Used percentage'),
-                'encryption_status' => __('Encryption'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-                'totalsize' => 'bytesize',
-                'freesize' => 'bytesize',
-                'usedpercent' => 'progress',
-                'encryption_status' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => min($_SESSION['glpilist_limit'], count($entries)),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-
-        return true;
     }
 
     public function rawSearchOptions()

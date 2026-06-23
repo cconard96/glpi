@@ -43,16 +43,10 @@ class Plug extends CommonDropdown
 
     public function cleanDBonPurge()
     {
-
         $this->deleteChildrenAndRelationsFromDb(
             [
                 Item_Plug::class,
             ]
         );
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-plug";
     }
 }

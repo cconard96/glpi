@@ -33,31 +33,11 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Api\HL\Router;
-use Glpi\Application\Environment;
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\Cache\CacheManager;
-use Glpi\Config\ProxyExclusion;
-use Glpi\Config\ProxyExclusions;
-use Glpi\Dashboard\Grid;
-use Glpi\Event;
-use Glpi\Helpdesk\HelpdeskTranslation;
-use Glpi\Mail\SMTP\OauthConfig;
 use Glpi\Plugin\Hooks;
-use Glpi\System\Diagnostic\SourceCodeIntegrityChecker;
-use Glpi\System\RequirementsManager;
 use Glpi\Toolbox\ArrayNormalizer;
-use Glpi\UI\ThemeManager;
-use Safe\Exceptions\OpcacheException;
 use Symfony\Component\HttpFoundation\Request;
-
-use function Safe\chdir;
-use function Safe\exec;
-use function Safe\getcwd;
-use function Safe\glob;
 use function Safe\json_decode;
 use function Safe\json_encode;
-use function Safe\opcache_get_status;
 use function Safe\parse_url;
 use function Safe\preg_match;
 use function Safe\preg_replace;
@@ -80,12 +60,8 @@ class Config extends CommonDBTM
     public const TIMELINE_RELATIVE_DATE = 0;
     public const TIMELINE_ABSOLUTE_DATE = 1;
 
-    // From CommonGLPI
-    protected $displaylist         = false;
-
     // From CommonDBTM
     public $auto_message_on_action = false;
-    public $showdebug              = true;
 
     public static $rightname              = 'config';
 
@@ -114,33 +90,10 @@ class Config extends CommonDBTM
         return __('Setup');
     }
 
-
-    public static function getMenuContent()
-    {
-        $menu = [];
-        if (static::canView()) {
-            $menu['title']   = _x('setup', 'General');
-            $menu['page']    = Config::getFormURL(false);
-            $menu['icon']    = Config::getIcon();
-
-            $menu['options'][APIClient::class]['icon']            = APIClient::getIcon();
-            $menu['options'][APIClient::class]['title']           = APIClient::getTypeName(Session::getPluralNumber());
-            $menu['options'][APIClient::class]['page']            = Config::getFormURL(false) . '?forcetab=Config$8';
-            $menu['options'][APIClient::class]['links']['search'] = Config::getFormURL(false) . '?forcetab=Config$8';
-            $menu['options'][APIClient::class]['links']['add']    = '/front/apiclient.form.php';
-        }
-        if (count($menu)) {
-            return $menu;
-        }
-        return false;
-    }
-
-
     public static function canCreate(): bool
     {
         return false;
     }
-
 
     public function canViewItem(): bool
     {
@@ -154,20 +107,6 @@ class Config extends CommonDBTM
             return true;
         }
         return false;
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addStandardTab(self::class, $ong, $options);
-        $this->addStandardTab(DisplayPreference::class, $ong, $options);
-        $this->addStandardTab(GLPINetwork::class, $ong, $options);
-        $this->addStandardTab(HelpdeskTranslation::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function prepareInputForUpdate($input)
@@ -480,244 +419,6 @@ class Config extends CommonDBTM
     }
 
     /**
-     * Print the config form for display
-     *
-     * @return void
-     **/
-    public function showFormDisplay()
-    {
-        global $CFG_GLPI;
-
-        if (!self::canView()) {
-            return;
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/general_setup.html.twig', [
-            'canedit' => Session::haveRight(self::$rightname, UPDATE),
-            'config'  => $CFG_GLPI,
-        ]);
-    }
-
-
-    /**
-     * Print the config form for restrictions
-     *
-     * @return void
-     **/
-    public function showFormInventory()
-    {
-        global $CFG_GLPI;
-
-        if (!self::canView()) {
-            return;
-        }
-
-        $canedit = static::canUpdate();
-        $item_devices_types = [];
-        foreach (Item_Devices::getDeviceTypes() as $itemtype) {
-            $item_devices_types[$itemtype] = $itemtype::getTypeName();
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/assets_setup.html.twig', [
-            'config' => $CFG_GLPI,
-            'item_devices_types' => $item_devices_types,
-            'canedit' => $canedit,
-        ]);
-    }
-
-
-    /**
-     * Print the config form for restrictions
-     *
-     * @return void
-     **/
-    public function showFormAuthentication()
-    {
-        if (!Config::canUpdate()) {
-            return;
-        }
-
-        $twig = TemplateRenderer::getInstance();
-        $twig->display('pages/setup/authentication/setup.html.twig', [
-            'token'                                    => Session::getNewCSRFToken(),
-            'user_restored_ldap_choices'               => AuthLDAP::getLdapRestoredUserActionOptions(),
-            'gmt_values'                               => Dropdown::getGMTValues(),
-            'user_deleted_ldap_user_choices'           => AuthLDAP::getLdapDeletedUserActionOptions_User(),
-            'user_deleted_ldap_groups_choices'         => AuthLDAP::getLdapDeletedUserActionOptions_Groups(),
-            'user_deleted_ldap_authorizations_choices' => AuthLDAP::getLdapDeletedUserActionOptions_Authorizations(),
-        ]);
-    }
-
-
-    /**
-     * Print the config form for slave DB
-     *
-     * @return void
-     **/
-    public function showFormDBSlave()
-    {
-        global $CFG_GLPI, $DB;
-
-        if (!static::canUpdate()) {
-            return;
-        }
-
-        $DBslave = DBConnection::getDBSlaveConf();
-        $replica_config = [
-            'host' => is_array($DBslave->dbhost) ? implode(' ', $DBslave->dbhost) : $DBslave->dbhost,
-            'default' => $DBslave->dbdefault,
-            'user' => $DBslave->dbuser,
-            'password' => rawurldecode($DBslave->dbpassword),
-        ];
-
-        $hosts = is_array($DBslave->dbhost) ? $DBslave->dbhost : [$DBslave->dbhost];
-        $replication_delay = [];
-        foreach (array_keys($hosts) as $host_num) {
-            $replication_delay[$host_num] = DBConnection::getReplicateDelay($host_num);
-        }
-
-        $replication_status = DBConnection::getReplicationStatus();
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/dbreplica_setup.html.twig', [
-            'config'             => $CFG_GLPI,
-            'canedit'            => static::canUpdate(),
-            'source_dbhost'      => $DB->dbhost,
-            'replica_config'     => $replica_config,
-            'replication_status' => $replication_status,
-            'replication_delay'  => $replication_delay,
-        ]);
-    }
-
-    /**
-     * Print the config form for External API
-     *
-     * @since 9.1
-     * @return void
-     **/
-    public function showFormAPI()
-    {
-        global $CFG_GLPI;
-
-        if (!self::canView()) {
-            return;
-        }
-
-        // Options just for new API
-        $api_versions = Router::getAPIVersions();
-        $legacy_version = array_filter($api_versions, static fn($version) => $version['api_version'] === '1');
-        $legacy_version = reset($legacy_version);
-        $current_version = array_filter($api_versions, static fn($version) => $version['version'] === Router::API_VERSION);
-        $current_version = reset($current_version);
-        $getting_started_doc = $current_version['endpoint'] . '/getting-started';
-        $endpoint_doc = $current_version['endpoint'] . '/doc';
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/api_setup.html.twig', [
-            'config_object' => new Config(),
-            'config' => $CFG_GLPI,
-            'canedit' => static::canUpdate(),
-            'getting_started_doc_url' => $getting_started_doc,
-            'endpoint_doc_url' => $endpoint_doc,
-            'api_url' => $current_version['endpoint'],
-            'legacy_doc_url' => $legacy_version['endpoint'] . '/',
-            'legacy_api_url' => $legacy_version['endpoint'],
-        ]);
-        if ($CFG_GLPI['enable_api']) {
-            TemplateRenderer::getInstance()->display('pages/setup/general/api_apiclients_section.html.twig');
-        }
-    }
-
-
-    /**
-     * Print the config form for connections
-     *
-     * @return void
-     **/
-    public function showFormHelpdesk()
-    {
-        global $CFG_GLPI;
-
-        if (!self::canView()) {
-            return;
-        }
-        $isimpact = [];
-        for ($impact = 5; $impact >= 1; $impact--) {
-            if ($impact === 3) {
-                $isimpact[3] = 1;
-            } else {
-                $isimpact[$impact] = (($CFG_GLPI['impact_mask'] & (1 << $impact)) > 0);
-            }
-        }
-
-        $isurgency = [];
-        for ($urgency = 5; $urgency >= 1; $urgency--) {
-            if ($urgency === 3) {
-                $isurgency[3] = 1;
-            } else {
-                $isurgency[$urgency] = (($CFG_GLPI['urgency_mask'] & (1 << $urgency)) > 0);
-            }
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/assistance_setup.html.twig', [
-            'config' => $CFG_GLPI,
-            'is_impact' => $isimpact,
-            'is_urgency' => $isurgency,
-            'canedit' => static::canUpdate(),
-        ]);
-    }
-
-
-    /**
-     * Print the config form for default user prefs
-     *
-     * @param array $data data (CFG_GLPI for global config / glpi_users fields for user prefs)
-     *
-     * @return void
-     */
-    public function showFormUserPrefs($data = [])
-    {
-        global $CFG_GLPI, $DB;
-
-        $userpref  = false;
-        $url       = Toolbox::getItemTypeFormURL(self::class);
-
-        $canedit = static::canUpdate();
-        $canedituser = Session::haveRight('personalization', UPDATE);
-        if (array_key_exists('last_login', $data)) {
-            $userpref = true;
-            if ($data["id"] === Session::getLoginUserID()) {
-                $url  = $CFG_GLPI['root_doc'] . "/front/preference.php";
-            } else {
-                $url  = User::getFormURL();
-            }
-        }
-
-        $central_tabs = [
-            1 => __('Personal View'),
-            2 => __('Group View'),
-            3 => __('Global View'),
-            4 => _n('RSS feed', 'RSS feeds', Session::getPluralNumber()),
-        ];
-        $grid = new Grid('central');
-        if ($grid::canViewOneDashboard()) {
-            array_unshift($central_tabs, __('Dashboard'));
-        }
-
-        $palettes = $this->getPalettes(true);
-        TemplateRenderer::getInstance()->display('pages/setup/general/preferences_setup.html.twig', [
-            'is_user' => $userpref,
-            'canedit' => (!$userpref && $canedit) || ($userpref && $canedituser),
-            'form_path' => $url,
-            'can_edit_config' => $canedit,
-            'config' => $data,
-            'palettes' => array_combine(array_keys($palettes), array_column($palettes, 'name')),
-            'palettes_isdark' => array_combine(array_keys($palettes), array_column($palettes, 'dark')),
-            'use_timezones' => $DB->use_timezones,
-            'timezones' => $DB->use_timezones ? $DB->getTimezones() : [],
-            'central_tabs' => $central_tabs,
-        ]);
-    }
-
-    /**
      * Check if the "use_password_security" parameter is enabled
      *
      * @return bool
@@ -728,226 +429,6 @@ class Config extends CommonDBTM
 
         return $CFG_GLPI["use_password_security"];
     }
-
-    /**
-     * Display security checks on password
-     *
-     * @param string $field id of the field containing password to check (default 'password')
-     *
-     * @since 0.84
-     *
-     * @return void
-     */
-    public static function displayPasswordSecurityChecks($field = 'password')
-    {
-        TemplateRenderer::getInstance()->display('components/user/password_security_checks.html.twig', [
-            'field' => $field,
-        ]);
-    }
-
-
-    /**
-     * Display a report about system performance
-     * - opcode cache (opcache)
-     * - core cache
-     * - translations cache
-     *
-     * @since 9.1
-     *
-     * @return void
-     */
-    public function showPerformanceInformations()
-    {
-        if (!Config::canUpdate()) {
-            return;
-        }
-
-        $opcache_info = false;
-        $opcache_ext = 'Zend OPcache';
-        $opcache_enabled = false;
-        try {
-            $opcache_enabled = extension_loaded($opcache_ext) && ($opcache_info = opcache_get_status(false));
-        } catch (OpcacheException) {
-            //empty catch
-        }
-        $opcache_version = $opcache_enabled ? phpversion($opcache_ext) : '';
-
-        $cache_manager = new CacheManager();
-        $user_cache_ext = strtolower(get_class($cache_manager->getCacheStorageAdapter(CacheManager::CONTEXT_CORE)));
-        $user_cache_ext = preg_replace('/^.*\\\([a-z]+?)(?:adapter)?$/', '$1', $user_cache_ext);
-        $user_cache_version = phpversion($user_cache_ext);
-
-        $trans_cache_adapter = strtolower(get_class($cache_manager->getCacheStorageAdapter(CacheManager::CONTEXT_TRANSLATIONS)));
-        $trans_cache_adapter = preg_replace('/^.*\\\([a-z]+?)(?:adapter)?$/', '$1', $trans_cache_adapter);
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/performance.html.twig', [
-            'opcache_ext' => $opcache_ext,
-            'opcache_enabled' => $opcache_enabled,
-            'opcache_version' => $opcache_version,
-            'opcache_info' => $opcache_info,
-            'user_cache_ext' => $user_cache_ext,
-            'user_cache_version' => $user_cache_version,
-            'trans_cache_adapter' => $trans_cache_adapter,
-        ]);
-    }
-
-    /**
-     * @return void
-     */
-    public static function showSystemInfoTable()
-    {
-        global $CFG_GLPI, $DB;
-
-        $oldlang = $_SESSION['glpilanguage'];
-        // Keep this, for some function call which still use translation (ex showAllReplicateDelay)
-        Session::loadLanguage('en_GB');
-
-        // No need to translate, this part always display in english (for copy/paste to forum)
-
-        // Try to compute a better version for .git
-        $ver = GLPI_VERSION;
-        if (is_dir(GLPI_ROOT . "/.git")) {
-            $dir = getcwd();
-            chdir(GLPI_ROOT);
-            $returnCode = 1;
-            $output = [];
-            $gitrev = @exec('git show --format="%h" --no-patch 2>&1', $output, $returnCode);
-            $gitbranch = '';
-            if (!$returnCode) {
-                $gitbranch = @exec('git symbolic-ref --quiet --short HEAD || git rev-parse --short HEAD 2>&1', $output, $returnCode);
-            }
-            chdir($dir);
-            if (!$returnCode) {
-                $ver .= '-git-' . $gitbranch . '-' . $gitrev;
-            }
-        }
-
-        $core_requirements = (new RequirementsManager())->getCoreRequirementList($DB);
-        $requirements = [];
-        /* @var \Glpi\System\Requirement\RequirementInterface $requirement */
-        foreach ($core_requirements as $k => $requirement) {
-            if ($requirement->isOutOfContext()) {
-                continue; // skip requirement if not relevant
-            }
-
-            $status = $requirement->isValidated()
-            ? 'ok'
-            : ($requirement->isOptional() ? 'warning' : 'ko');
-            $requirements[$k] = [
-                'status' => $status,
-                'messages' => $requirement->getValidationMessages(),
-            ];
-        }
-
-        $system_info_objs = [];
-        foreach ($CFG_GLPI["systeminformations_types"] as $type) {
-            $system_info_objs[] = getItemForItemtype($type);
-        }
-
-        Session::loadLanguage($oldlang);
-
-        $files = array_merge(
-            glob(GLPI_LOCAL_I18N_DIR . "/**/*.php"),
-            glob(GLPI_LOCAL_I18N_DIR . "/**/*.mo")
-        );
-        sort($files);
-
-        // Compute code integrity summary
-        $code_integrity = null;
-        if (Environment::get()->shouldExpectResourcesToChange() === false) {
-            try {
-                $code_integrity = (new SourceCodeIntegrityChecker())->getSummary();
-            } catch (Throwable $e) {
-                global $PHPLOGGER;
-                $PHPLOGGER->error(
-                    'Unable to get code integrity check summary.',
-                    ['exception' => $e]
-                );
-            }
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/systeminfo_table.html.twig', [
-            'ver' => $ver,
-            'language' => $oldlang,
-            '_server' => $_SERVER,
-            'db_info' => $DB->getInfo(),
-            'core_requirements' => $requirements,
-            'system_info_objs' => $system_info_objs,
-            'locales_overrides' => $files,
-            'code_integrity' => $code_integrity,
-        ]);
-    }
-
-    /**
-     * Display an HTML report about system information / configuration
-     *
-     * @return void
-     **/
-    public function showSystemInformations()
-    {
-        global $CFG_GLPI;
-
-        if (!static::canUpdate()) {
-            return;
-        }
-
-        /** @var ProxyExclusions $proxy_exclusions */
-        $proxy_exclusions = $CFG_GLPI['possible_proxy_exclusions'];
-        $proxy_exclusions->addExclusions([
-            new ProxyExclusion(
-                Agent::class,
-                Agent::getTypeName()
-            ),
-            new ProxyExclusion(
-                GLPINetwork::class,
-                GLPINetwork::getTypeName(),
-                __('GLPI network related calls (marketplace, versions check, telemetry, ...')
-            ),
-            new ProxyExclusion(
-                RSSFeed::class,
-                RSSFeed::getTypeName()
-            ),
-            new ProxyExclusion(
-                Planning::class,
-                Planning::getTypeName()
-            ),
-            new ProxyExclusion(
-                OauthConfig::class,
-                __('SMTP OAuth Authentication')
-            ),
-            new ProxyExclusion(
-                Webhook::class,
-                Webhook::getTypeName()
-            ),
-        ]);
-        TemplateRenderer::getInstance()->display('pages/setup/general/systeminfo_form.html.twig', [
-            'config' => $CFG_GLPI,
-            'canedit' => static::canUpdate(),
-            'possible_proxy_exclusions' => $proxy_exclusions,
-        ]);
-        self::showSystemInfoTable();
-    }
-
-
-    /**
-     * Dropdown for global management config
-     *
-     * @param string       $name   select name
-     * @param string       $value  default value
-     * @param int|null $rand   rand
-     *
-     * @return void
-     */
-    public static function dropdownGlobalManagement($name, $value, $rand = null)
-    {
-        $choices = [
-            self::UNIT_MANAGEMENT => __('Yes - Restrict to unit management'),
-            self::GLOBAL_MANAGEMENT => __('Yes - Restrict to global management'),
-            self::NO_MANAGEMENT => __('No'),
-        ];
-        Dropdown::showFromArray($name, $choices, ['value' => $value, 'rand' => $rand]);
-    }
-
 
     /**
      * Get language in GLPI associated with the value coming from LDAP/SSO
@@ -993,142 +474,6 @@ class Config extends CommonDBTM
         }
 
         return "";
-    }
-
-    /**
-     * Display field unicity criteria form
-     *
-     * @return void
-     */
-    public function showFormFieldUnicity()
-    {
-        Toolbox::deprecated(
-            message: "This method will be removed in the next version",
-            version: "11.1.0"
-        );
-        $unicity = new FieldUnicity();
-        $unicity->showForm(1);
-    }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        switch (get_class($item)) {
-            case Preference::class:
-                return self::createTabEntry(text: __('Personalization'), icon: 'ti ti-adjustments');
-
-            case User::class:
-                if (
-                    User::canUpdate()
-                    && $item->currentUserHaveMoreRightThan($item->getID())
-                ) {
-                    return self::createTabEntry(__('Settings'));
-                }
-                break;
-
-            case self::class:
-                $tabs = [
-                    1 => self::createTabEntry(__('General setup')),  // Display
-                    2 => self::createTabEntry(__('Default values')), // Prefs
-                    3 => self::createTabEntry(_n('Asset', 'Assets', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-package'),
-                    4 => self::createTabEntry(__('Assistance'), 0, $item::getType(), 'ti ti-headset'),
-                    12 => self::createTabEntry(__('Management'), 0, $item::getType(), 'ti ti-wallet'),
-                ];
-                if (Config::canUpdate()) {
-                    $tabs[9]  = self::createTabEntry(__('Logs purge'), 0, $item::getType(), Event::getIcon());
-                    $tabs[5]  = self::createTabEntry(__('System'));
-                    $tabs[10] = self::createTabEntry(__('Security'), 0, $item::getType(), 'ti ti-shield-lock');
-                    $tabs[7]  = self::createTabEntry(__('Performance'), 0, $item::getType(), 'ti ti-dashboard');
-                    $tabs[8]  = self::createTabEntry(__('API'), 0, $item::getType(), 'ti ti-api-app');
-                    $tabs[11] = self::createTabEntry(Impact::getTypeName(), 0, $item::getType(), Impact::getIcon());
-                }
-
-                if (
-                    DBConnection::isDBSlaveActive()
-                    && Config::canUpdate()
-                ) {
-                    $tabs[6]  = self::createTabEntry(_n('SQL replica', 'SQL replicas', Session::getPluralNumber()), 0, $item::getType(), 'ti ti-database');  // Slave
-                }
-                return $tabs;
-
-            case 'GLPINetwork':
-                return self::createTabEntry(GLPINetwork::getTypeName(), 0, $item::getType(), GLPINetwork::getIcon());
-
-            case Impact::getType():
-                return self::createTabEntry(Impact::getTypeName());
-        }
-        return '';
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        global $CFG_GLPI;
-
-        if ($item instanceof Preference) {
-            $config = new self();
-            $user   = new User();
-            if ($user->getFromDB(Session::getLoginUserID())) {
-                $user->computePreferences();
-                $config->showFormUserPrefs($user->fields);
-            }
-        } elseif ($item instanceof User) {
-            $config = new self();
-            $item->computePreferences();
-            $config->showFormUserPrefs($item->fields);
-        } elseif ($item instanceof self) {
-            switch ($tabnum) {
-                case 1:
-                    $item->showFormDisplay();
-                    break;
-
-                case 2:
-                    $item->showFormUserPrefs($CFG_GLPI);
-                    break;
-
-                case 3:
-                    $item->showFormInventory();
-                    break;
-
-                case 4:
-                    $item->showFormHelpdesk();
-                    break;
-
-                case 5:
-                    $item->showSystemInformations();
-                    break;
-
-                case 6:
-                    $item->showFormDBSlave();
-                    break;
-
-                case 7:
-                    $item->showPerformanceInformations();
-                    break;
-
-                case 8:
-                    $item->showFormAPI();
-                    break;
-
-                case 9:
-                    $item->showFormLogs();
-                    break;
-
-                case 10:
-                    $item->showFormSecurity();
-                    break;
-
-                case 11:
-                    Impact::showConfigForm();
-                    break;
-
-                case 12:
-                    $item->showFormManagement();
-                    break;
-            }
-        }
-        return true;
     }
 
     /**
@@ -1180,7 +525,6 @@ class Config extends CommonDBTM
         return $error;
     }
 
-
     /**
      * Check for needed extensions
      *
@@ -1207,7 +551,6 @@ class Config extends CommonDBTM
 
         return [$version => $is_supported];
     }
-
 
     /**
      * Check for needed extensions
@@ -1330,7 +673,6 @@ class Config extends CommonDBTM
         return $report;
     }
 
-
     /**
      * Get config values
      *
@@ -1363,7 +705,6 @@ class Config extends CommonDBTM
         }
         return $result;
     }
-
 
     /**
      * Get config value
@@ -1490,7 +831,6 @@ class Config extends CommonDBTM
         return self::$loaded;
     }
 
-
     /**
      * Set config values : create or update entry
      *
@@ -1573,7 +913,6 @@ class Config extends CommonDBTM
         }
     }
 
-
     public function getRights($interface = 'central')
     {
 
@@ -1585,146 +924,6 @@ class Config extends CommonDBTM
         );
 
         return $values;
-    }
-
-    /**
-     * Get message that informs the user he is using an unstable version.
-     *
-     * @param bool $is_dev
-     *
-     * @return string
-     */
-    public static function agreeUnstableMessage(bool $is_dev)
-    {
-        return TemplateRenderer::getInstance()->render('install/agree_unstable.html.twig', [
-            'is_dev' => $is_dev,
-        ]);
-    }
-
-    /**
-     * Get available palettes
-     *
-     * @param bool $expanded_info Get expanded info for each palette
-     * @return array
-     * @phpstan-return ($expanded_info is true ? array<string, array{name: string, dark: boolean}> : array<string, string>)
-     */
-    public function getPalettes(bool $expanded_info = false)
-    {
-        $all_themes = ThemeManager::getInstance()->getAllThemes();
-        $themes = [];
-        foreach ($all_themes as $theme) {
-            if ($expanded_info) {
-                $themes[$theme->getKey()] = [
-                    'name' => $theme->getName(),
-                    'dark' => $theme->isDarkTheme(),
-                ];
-            } else {
-                $themes[$theme->getKey()] = $theme->getName();
-            }
-        }
-        return $themes;
-    }
-
-    /**
-     * Logs purge form
-     *
-     * @since 9.3
-     *
-     * @return void|bool (display) Returns false if there is a rights error.
-     */
-    public function showFormLogs()
-    {
-        global $CFG_GLPI;
-
-        if (!static::canUpdate()) {
-            return false;
-        }
-        TemplateRenderer::getInstance()->display('pages/setup/general/logs_setup.html.twig', [
-            'config' => $CFG_GLPI,
-            'canedit' => static::canUpdate(),
-        ]);
-    }
-
-    /**
-     * Show intervals for logs purge
-     *
-     * @since 9.3
-     *
-     * @param string $name    Parameter name
-     * @param mixed  $value   Parameter value
-     * @param array  $options Options
-     *
-     * @return void
-     */
-    public static function showLogsInterval($name, $value, $options = [])
-    {
-
-        $values = [
-            self::DELETE_ALL => __("Delete all"),
-            self::KEEP_ALL   => __("Keep all"),
-        ];
-        for ($i = 1; $i < 121; $i++) {
-            $values[$i] = sprintf(
-                _n(
-                    "Delete if older than %s month",
-                    "Delete if older than %s months",
-                    $i
-                ),
-                $i
-            );
-        }
-        $options = array_merge([
-            'value'   => $value,
-            'display' => false,
-            'class'   => 'purgelog_interval',
-        ], $options);
-
-        $out = "<div class='" . htmlescape($options['class']) . "'>";
-        $out .= Dropdown::showFromArray($name, $values, $options);
-        $out .= "</div>";
-
-        echo $out;
-    }
-
-    /**
-     * Security policy form
-     *
-     * @since 9.5.0
-     *
-     * @return void|bool (display) Returns false if there is a rights error.
-     */
-    public function showFormSecurity()
-    {
-        global $CFG_GLPI;
-
-        if (!Config::canUpdate()) {
-            return false;
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/general/security_setup.html.twig', [
-            'canedit' => Session::haveRight(self::$rightname, UPDATE),
-            'config'  => $CFG_GLPI,
-        ]);
-    }
-
-    /**
-     * Security form related to management entries.
-     *
-     * @since 10.0.0
-     *
-     * @return void|bool (display) Returns false if there is a rights error.
-     */
-    public function showFormManagement()
-    {
-        global $CFG_GLPI;
-
-        if (!self::canView()) {
-            return false;
-        }
-        TemplateRenderer::getInstance()->display('pages/setup/general/management_setup.html.twig', [
-            'config' => $CFG_GLPI,
-            'canedit' => static::canUpdate(),
-        ]);
     }
 
     public function rawSearchOptions()
@@ -1888,12 +1087,6 @@ class Config extends CommonDBTM
         }
 
         return $safe_config;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-adjustments";
     }
 
     /**

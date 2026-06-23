@@ -53,11 +53,6 @@ class FieldUnicity extends CommonDropdown
         return __('Fields unicity');
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', self::class];
-    }
-
     public static function canCreate(): bool
     {
         return static::canUpdate();
@@ -97,90 +92,6 @@ class FieldUnicity extends CommonDropdown
                 'type'  => 'bool',
             ],
         ];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong          = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(self::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            if ($item::class === static::class) {
-                return self::createTabEntry(__('Duplicates'), 0, $item::class, 'ti ti-copy');
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === self::class) {
-            self::showDoubles($item);
-        }
-        return true;
-    }
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        switch ($field['type']) {
-            case 'unicity_itemtype':
-                $this->showItemtype($ID, $this->fields['itemtype']);
-                break;
-
-            case 'unicity_fields':
-                self::selectCriterias($this);
-                break;
-        }
-    }
-
-    /**
-     * Display a dropdown which contains all the available itemtypes
-     *
-     * @param int $ID     The field unicity item id
-     * @param int $value  The selected value (default 0)
-     *
-     * @return void
-     **/
-    public function showItemtype($ID, $value = 0)
-    {
-        global $CFG_GLPI;
-
-        //Criteria already added : only display the selected itemtype
-        if ($ID > 0) {
-            if ($item = getItemForItemtype($this->fields['itemtype'])) {
-                echo htmlescape($item::getTypeName());
-            }
-            echo "<input type='hidden' name='itemtype' value='" . htmlescape($this->fields['itemtype']) . "'>";
-        } else {
-            $options = [];
-            //Add criteria : display dropdown
-            foreach ($CFG_GLPI['unicity_types'] as $itemtype) {
-                if ($item = getItemForItemtype($itemtype)) {
-                    if ($item::canCreate()) {
-                        $options[$itemtype] = $item::getTypeName(1);
-                    }
-                }
-            }
-            asort($options);
-            $rand = Dropdown::showFromArray('itemtype', $options, ['display_emptychoice' => true]);
-
-            $params = ['itemtype' => '__VALUE__',
-                'id'       => $ID,
-            ];
-            Ajax::updateItemOnSelectEvent(
-                "dropdown_itemtype$rand",
-                "span_fields",
-                $CFG_GLPI["root_doc"] . "/ajax/dropdownUnicityFields.php",
-                $params
-            );
-        }
     }
 
     /**
@@ -224,37 +135,6 @@ class FieldUnicity extends CommonDropdown
             $return[] = $data;
         }
         return $return;
-    }
-
-    /**
-     * Display a list of available fields for unicity checks
-     *
-     * @param CommonDBTM $unicity
-     *
-     * @return void
-     **/
-    public static function selectCriterias(CommonDBTM $unicity)
-    {
-        echo "<span id='span_fields'>";
-
-        if (!isset($unicity->fields['itemtype']) || !$unicity->fields['itemtype']) {
-            echo  "</span>";
-            return;
-        }
-
-        if (!isset($unicity->fields['entities_id'])) {
-            $unicity->fields['entities_id'] = $_SESSION['glpiactive_entity'];
-        }
-
-        $unicity_fields = explode(',', $unicity->fields['fields']);
-
-        self::dropdownFields(
-            $unicity->fields['itemtype'],
-            ['values' => $unicity_fields,
-                'name'   => '_fields',
-            ]
-        );
-        echo "</span>";
     }
 
     /** Dropdown fields for a specific itemtype
@@ -402,52 +282,6 @@ class FieldUnicity extends CommonDropdown
         return $tab;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'fields':
-                if (!empty($values['itemtype'])) {
-                    if ($target = getItemForItemtype($values['itemtype'])) {
-                        $searchOption = $target->getSearchOptionByField('field', $values[$field]);
-                        $fields       = explode(',', $values[$field]);
-                        $message      = [];
-                        foreach ($fields as $f) {
-                            $searchOption = $target->getSearchOptionByField('field', $f);
-
-                            if (isset($searchOption['name'])) {
-                                $message[] = $searchOption['name'];
-                            }
-                        }
-                        return htmlescape(implode(', ', $message));
-                    }
-                }
-                break;
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'fields':
-                if (!empty($values['itemtype'])) {
-                    $options['values'] = explode(',', $values[$field]);
-                    $options['name']   = $name;
-                    return self::dropdownFields($values['itemtype'], $options);
-                }
-                break;
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
     private function prepareInput(array $input): array|false
     {
         if (array_key_exists('_fields', $input) && !empty($input['_fields'])) {
@@ -503,91 +337,5 @@ class FieldUnicity extends CommonDropdown
                 'itemtype'  => ['LIKE', "%Plugin$itemtype%"],
             ]
         );
-    }
-
-    /**
-     * List doubles
-     *
-     * @param FieldUnicity $unicity
-     *
-     * @return void
-     **/
-    public static function showDoubles(FieldUnicity $unicity)
-    {
-        global $DB;
-
-        $fields       = [];
-        $where_fields = [];
-        if (!$item = getItemForItemtype($unicity->fields['itemtype'])) {
-            return;
-        }
-        foreach (explode(',', $unicity->fields['fields']) as $field) {
-            $fields[]       = $field;
-            $where_fields[] = $field;
-        }
-
-        $entities = [$unicity->fields['entities_id']];
-        if ($unicity->fields['is_recursive']) {
-            $entities = getSonsOf('glpi_entities', $unicity->fields['entities_id']);
-        }
-
-        $where = [];
-        if ($item->maybeTemplate()) {
-            $where[$item::getTable() . '.is_template'] = 0;
-        }
-
-        foreach ($where_fields as $where_field) {
-            $where += [
-                'NOT' => [$where_field => null],
-                $where_field => ['<>', getTableNameForForeignKeyField($where_field) ? 0 : ''],
-            ];
-        }
-        $where += $item::getSystemSQLCriteria();
-        $item_table = $item::getTable();
-
-        $iterator = $DB->request([
-            'SELECT'    => $fields,
-            'COUNT'     => 'cpt',
-            'FROM'      => $item_table,
-            'WHERE'     => [
-                $item_table . '.entities_id'  => $entities,
-            ] + $where,
-            'GROUPBY'   => $fields,
-            'ORDERBY'   => 'cpt DESC',
-        ]);
-
-        $entries = [];
-        foreach ($iterator as $data) {
-            if ($data['cpt'] > 1) {
-                $entry = [];
-                foreach ($fields as $field) {
-                    $table = getTableNameForForeignKeyField($field);
-                    $entry[$field] = $table !== '' ? Dropdown::getDropdownName($table, $data[$field]) : $data[$field];
-                }
-                $entry['number'] = $data['cpt'];
-                $entries[] = $entry;
-            }
-        }
-
-        $columns = [];
-        foreach ($fields as $field) {
-            $searchOption = $item->getSearchOptionByField('field', $field);
-            $columns[$field] = $searchOption["name"];
-        }
-        $columns['number'] = _x('quantity', 'Number');
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => $columns,
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => false,
-        ]);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-fingerprint";
     }
 }

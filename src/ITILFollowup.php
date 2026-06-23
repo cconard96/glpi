@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 use Glpi\DBAL\QuerySubQuery;
 use Glpi\Features\ParentStatus;
@@ -84,11 +83,6 @@ class ITILFollowup extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return _n('Followup', 'Followups', $nb);
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-message-circle';
     }
 
     /**
@@ -155,7 +149,6 @@ class ITILFollowup extends CommonDBChild
 
     public function canViewItem(): bool
     {
-
         if ($this->isParentAlreadyLoaded()) {
             $itilobject = $this->item;
         } else {
@@ -345,7 +338,6 @@ class ITILFollowup extends CommonDBChild
         }
     }
 
-
     public function post_deleteFromDB()
     {
         global $CFG_GLPI;
@@ -388,7 +380,6 @@ class ITILFollowup extends CommonDBChild
             NotificationEvent::raiseEvent('delete_followup', $job, $options, $this);
         }
     }
-
 
     public function prepareInputForAdd($input)
     {
@@ -535,7 +526,6 @@ class ITILFollowup extends CommonDBChild
         return $input;
     }
 
-
     public function post_updateItem($history = true)
     {
         global $CFG_GLPI;
@@ -659,10 +649,8 @@ class ITILFollowup extends CommonDBChild
         }
     }
 
-
     protected function computeFriendlyName()
     {
-
         if (isset($this->fields['requesttypes_id'])) {
             if ($this->fields['requesttypes_id']) {
                 return Dropdown::getDropdownName('glpi_requesttypes', $this->fields['requesttypes_id']);
@@ -671,7 +659,6 @@ class ITILFollowup extends CommonDBChild
         }
         return '';
     }
-
 
     public function rawSearchOptions()
     {
@@ -747,7 +734,6 @@ class ITILFollowup extends CommonDBChild
 
         return $tab;
     }
-
 
     /**
      * @param class-string<CommonDBTM> $itemtype
@@ -892,115 +878,6 @@ class ITILFollowup extends CommonDBChild
         ];
 
         return $tab;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'itemtype':
-                if (in_array($values['itemtype'], [Ticket::class, Change::class, Problem::class])) {
-                    return htmlescape($values['itemtype']::getTypeName(1));
-                }
-                return htmlescape($values['itemtype']);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'itemtype':
-                return Dropdown::showFromArray($field, [
-                    Ticket::class => Ticket::getTypeName(1),
-                    Change::class => Change::getTypeName(1),
-                    Problem::class => Problem::getTypeName(1),
-                ], $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-    public static function getFormURL($full = true)
-    {
-        return Toolbox::getItemTypeFormURL("ITILFollowup", $full);
-    }
-
-
-    /** form for Followup
-     *
-     *@param $ID      integer : Id of the followup
-     *@param $options array of possible options:
-     *     - item Object : the ITILObject parent
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        if ($this->isNewItem()) {
-            $this->getEmpty();
-        }
-
-        TemplateRenderer::getInstance()->display('components/itilobject/timeline/form_followup.html.twig', [
-            'item'               => $options['parent'],
-            'subitem'            => $this,
-            'has_pending_reason' => PendingReason_Item::getForItem($options['parent']) !== false,
-        ]);
-
-        return true;
-    }
-
-    /**
-     * @return void
-     */
-    public static function showMassiveActionAddFollowupForm()
-    {
-        echo "<table class='tab_cadre_fixe'>";
-        echo '<tr><th colspan=4>' . __s('Add a new followup') . '</th></tr>';
-
-        echo "<tr class='tab_bg_2'>";
-        echo "<td>" . __s('Source of followup') . "</td>";
-        echo "<td>";
-        RequestType::dropdown(
-            [
-                'value' => RequestType::getDefault('followup'),
-                'condition' => ['is_active' => 1, 'is_itilfollowup' => 1],
-            ]
-        );
-        echo "</td>";
-        echo "</tr>";
-
-        echo "<tr class='tab_bg_2'>";
-        echo "<td>" . __s('Description') . "</td>";
-        echo "<td><textarea name='content' cols='50' rows='6'></textarea></td>";
-        echo "</tr>";
-
-        echo "<tr class='tab_bg_2'>";
-        echo "<td class='center' colspan='2'>";
-        echo "<input type='hidden' name='is_private' value='" . htmlescape($_SESSION['glpifollowup_private']) . "'>";
-        echo "<input type='submit' name='add' value=\"" . _sx('button', 'Add') . "\" class='btn btn-primary'>";
-        echo "</td>";
-        echo "</tr>";
-
-        echo "</table>";
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'add_followup':
-                static::showMassiveActionAddFollowupForm();
-                return true;
-        }
-
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(

@@ -36,39 +36,12 @@ namespace Glpi\CustomObject;
 
 use LogicException;
 use RuntimeException;
-use Toolbox;
 
 trait CustomObjectTrait
 {
     public static function getTypeName($nb = 0)
     {
         return static::getDefinition()->getTranslatedName($nb);
-    }
-
-    /**
-     * @see \CommonGLPI::getSearchURL()
-     */
-    public static function getSearchURL($full = true)
-    {
-        return Toolbox::getItemTypeSearchURL(static::getDefinition()->getCustomObjectBaseClass(), $full)
-            . '?class=' . static::getDefinition()->fields['system_name'];
-    }
-
-    /**
-     * @see \CommonGLPI::getFormURL()
-     */
-    public static function getFormURL($full = true)
-    {
-        return Toolbox::getItemTypeFormURL(static::getDefinition()->getCustomObjectBaseClass(), $full)
-            . '?class=' . static::getDefinition()->fields['system_name'];
-    }
-
-    /**
-     * @see \CommonDBTM:: getIcon()
-     */
-    public static function getIcon()
-    {
-        return static::getDefinition()->getCustomObjectIcon();
     }
 
     /**

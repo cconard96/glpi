@@ -88,14 +88,6 @@ class TicketRecurrent extends CommonITILRecurrent
         return $input;
     }
 
-
-    public function defineTabs($options = [])
-    {
-        $ong = parent::defineTabs($options);
-        $this->addStandardTab(Item_TicketRecurrent::class, $ong, $options);
-        return $ong;
-    }
-
     public static function getItemLinkClass(): ?string
     {
         return Item_TicketRecurrent::class;

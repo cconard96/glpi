@@ -94,11 +94,6 @@ class Peripheral extends CommonDBTM implements AssignableItemInterface, DCBreadc
         return _n('Peripheral', 'Peripherals', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
@@ -114,42 +109,6 @@ class Peripheral extends CommonDBTM implements AssignableItemInterface, DCBreadc
         return false;
     }
 
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Item_OperatingSystem::class, $ong, $options);
-        $this->addStandardTab(Item_SoftwareVersion::class, $ong, $options);
-        $this->addStandardTab(Item_Devices::class, $ong, $options);
-        $this->addStandardTab(Item_Line::class, $ong, $options);
-        $this->addStandardTab(Asset_PeripheralAsset::class, $ong, $options);
-        $this->addStandardTab(NetworkPort::class, $ong, $options);
-        $this->addStandardTab(Socket::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(KnowbaseItem_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Ticket::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        $this->addStandardTab(Change_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Project::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Lock::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Reservation::class, $ong, $options);
-        $this->addStandardTab(Certificate_Item::class, $ong, $options);
-        $this->addStandardTab(Domain_Item::class, $ong, $options);
-        $this->addStandardTab(Appliance_Item::class, $ong, $options);
-        $this->addStandardTab(RuleMatchedLog::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-
     public function prepareInputForAdd($input)
     {
         if (isset($input["id"]) && ($input["id"] > 0)) {
@@ -160,7 +119,6 @@ class Peripheral extends CommonDBTM implements AssignableItemInterface, DCBreadc
         $input = $this->prepareInputForAddAssignableItem($input);
         return $input;
     }
-
 
     /**
      * Return the linked items (`Asset_PeripheralAsset` relations)
@@ -456,10 +414,5 @@ class Peripheral extends CommonDBTM implements AssignableItemInterface, DCBreadc
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "fab fa-usb";
     }
 }

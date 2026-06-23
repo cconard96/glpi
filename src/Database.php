@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * Database Class
  **/
@@ -54,57 +52,12 @@ class Database extends CommonDBChild
         return _n('Database', 'Databases', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public function getCloneRelations(): array
     {
         return [
             Appliance_Item::class,
             Domain_Item::class,
         ];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(KnowbaseItem_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Lock::class, $ong, $options)
-         ->addStandardTab(Notepad::class, $ong, $options)
-         ->addStandardTab(Domain_Item::class, $ong, $options)
-         ->addStandardTab(Appliance_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        }
-        $database = new DatabaseInstance();
-        $database->getFromDB($this->fields['databaseinstances_id']);
-
-        TemplateRenderer::getInstance()->display('pages/management/database.html.twig', [
-            'item' => $this,
-            'database_instance' => $database,
-        ]);
-
-        return true;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-database";
     }
 
     public function rawSearchOptions()
@@ -346,119 +299,6 @@ class Database extends CommonDBChild
         return $tab;
     }
 
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (
-            !$withtemplate
-            && ($item::class === DatabaseInstance::class)
-            && $item->canView()
-        ) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(
-                    self::getTable(),
-                    [
-                        'databaseinstances_id' => $item->getID(),
-                        'is_deleted' => 0,
-                    ]
-                );
-            }
-            return self::createTabEntry(self::getTypeName(), $nb, $item::class);
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof DatabaseInstance) {
-            return false;
-        }
-
-        self::showForInstance($item);
-        return true;
-    }
-
-    /**
-     * Display instances for database
-     *
-     * @param DatabaseInstance $instance Database object
-     *
-     * @return void|bool
-     **/
-    public static function showForInstance(DatabaseInstance $instance)
-    {
-
-        $ID = $instance->getID();
-
-        if (!$instance->getFromDB($ID) || !$instance->can($ID, READ)) {
-            return false;
-        }
-        $canedit = $instance->canEdit($ID);
-
-        if ($canedit) {
-            TemplateRenderer::getInstance()->display(
-                'components/tab/addlink_block.html.twig',
-                [
-                    'add_link' => static::getFormURL() . "?databaseinstances_id=$ID",
-                    'button_label' => __('Add a database'),
-                ]
-            );
-        }
-
-        echo "<div class='center'>";
-
-        $databases = getAllDataFromTable(
-            self::getTable(),
-            [
-                'WHERE'  => [
-                    'databaseinstances_id' => $ID,
-                ],
-                'ORDER'  => 'name',
-            ]
-        );
-
-        echo "<table class='tab_cadre_fixehov'>";
-
-        Session::initNavigateListItems(
-            self::class,
-            sprintf(
-                __('%1$s = %2$s'),
-                DatabaseInstance::getTypeName(1),
-                (empty($instance->fields['name']) ? "($ID)" : $instance->fields['name'])
-            )
-        );
-
-        if (empty($databases)) {
-            echo "<tr><th>" . __s('No database') . "</th></tr>";
-        } else {
-            echo "<tr class='noHover'><th colspan='10'>" . htmlescape(self::getTypeName(Session::getPluralNumber())) . "</th></tr>";
-
-            $header = "<tr><th>" . __s('Name') . "</th>";
-            $header .= "<th>" . sprintf(__s('%1$s (%2$s)'), __s('Size'), __s('Mio')) . "</th>";
-            $header .= "<th>" . __s('Is active') . "</th>";
-            $header .= "<th>" . __s('Has backup') . "</th>";
-            $header .= "<th>" . __s('Is dynamic') . "</th>";
-            $header .= "</tr>";
-            echo $header;
-
-            $db = new self();
-            foreach ($databases as $row) {
-                $db->getFromDB($row['id']);
-                echo "<tr class='" . ((isset($row['is_deleted']) && $row['is_deleted']) ? "tab_bg_2_2'" : "tab_bg_2") . "'>";
-                echo "<td>" . $db->getLink() . "</td>";
-                echo "<td>" . htmlescape($row['size']) . "</td>";
-                echo "<td>" . htmlescape(Dropdown::getYesNo($db->fields['is_active'])) . "</td>";
-                echo "<td>" . htmlescape(Dropdown::getYesNo($db->fields['is_onbackup'])) . "</td>";
-                echo "<td>" . htmlescape(Dropdown::getYesNo($db->fields['is_dynamic'])) . "</td>";
-                echo "</tr>";
-                Session::addToNavigateListItems('DatabaseInstance', $row['id']);
-            }
-            echo $header;
-        }
-        echo "</table>";
-        echo "</div>";
-    }
-
     public function prepareInputForAdd($input)
     {
         if (isset($input['date_lastbackup']) && empty($input['date_lastbackup'])) {
@@ -470,39 +310,6 @@ class Database extends CommonDBChild
         }
 
         return parent::prepareInputForAdd($input);
-    }
-
-    public static function getAdditionalMenuLinks()
-    {
-        $links = [];
-        $label = htmlescape(DatabaseInstance::getTypeName(Session::getPluralNumber()));
-        if (static::canView()) {
-            $insts = "<i class=\"ti ti-database-import\" title=\"$label\""
-            . "></i><span class='d-none d-xxl-block'>$label</span>";
-            $links[$insts] = DatabaseInstance::getSearchURL(false);
-        }
-        if (count($links)) {
-            return $links;
-        }
-        return false;
-    }
-
-    public static function getAdditionalMenuOptions()
-    {
-        if (static::canView()) {
-            return [
-                DatabaseInstance::class => [
-                    'title' => DatabaseInstance::getTypeName(Session::getPluralNumber()),
-                    'page'  => DatabaseInstance::getSearchURL(false),
-                    'icon'  => DatabaseInstance::getIcon(),
-                    'links' => [
-                        'add'    => '/front/databaseinstance.form.php',
-                        'search' => '/front/databaseinstance.php',
-                    ],
-                ],
-            ];
-        }
-        return false;
     }
 
     public function useDeletedToLockIfDynamic()

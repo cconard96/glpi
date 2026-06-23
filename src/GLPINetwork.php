@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Toolbox\VersionParser;
 
 use function Safe\json_decode;
@@ -44,63 +43,6 @@ class GLPINetwork extends CommonGLPI
     public static function getTypeName($nb = 0)
     {
         return __('GLPI Network');
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        return self::createTabEntry('GLPI Network');
-    }
-
-    /**
-     * @return string
-     */
-    public static function getIcon()
-    {
-        return 'ti ti-headset';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === Config::class) {
-            self::showForConfig();
-        }
-        return true;
-    }
-
-    /**
-     * @return void
-     */
-    public static function showForConfig()
-    {
-        if (!Config::canView()) {
-            return;
-        }
-
-        // warning and no form if can't read keyfile
-        $glpi_encryption_key = new GLPIKey();
-        if ($glpi_encryption_key->hasReadErrors()) {
-            $glpi_encryption_key->showReadErrors();
-
-            return;
-        }
-
-        $registration_key = self::getRegistrationKey();
-
-        $canedit = Config::canUpdate();
-        $curl_error = null;
-        $informations = [];
-        if ($registration_key !== "") {
-            $informations = self::getRegistrationInformations(true);
-        }
-
-        $services_available = self::isServicesAvailable($curl_error);
-        TemplateRenderer::getInstance()->display('pages/setup/general/glpinetwork_setup.html.twig', [
-            'registration_key' => $registration_key,
-            'informations'     => $informations,
-            'canedit' => $canedit,
-            'services_available' => $services_available,
-            'curl_error'       => $curl_error,
-        ]);
     }
 
     /**
@@ -249,39 +191,6 @@ class GLPINetwork extends CommonGLPI
     public static function isRegistered(): bool
     {
         return self::getRegistrationInformations()['is_valid'];
-    }
-
-    public static function showInstallMessage(): string
-    {
-        $url = htmlescape(GLPI_NETWORK_SERVICES);
-
-        return nl2br(
-            sprintf(
-                __s(
-                    "You need help to integrate GLPI in your IT, have a bug fixed or benefit from pre-configured rules or dictionaries?\n\n"
-                    . "We provide the %s space for you.\n"
-                    . "GLPI-Network is a commercial service that includes a subscription for tier 3 support, ensuring the correction of bugs encountered with a commitment time.\n\n"
-                    . "In this same space, you will be able to contact an official partner to help you with your GLPI integration."
-                ),
-                "<a href='" . $url . "' target='_blank'>" . $url . "</a>"
-            )
-        );
-    }
-
-    public static function getSupportPromoteMessage(): string
-    {
-        $url = htmlescape(GLPI_NETWORK_SERVICES);
-
-        return nl2br(sprintf(
-            __s("Having troubles setting up an advanced GLPI module?\n"
-            . "We can help you solve them. Sign up for support on %s."),
-            "<a href='" . $url . "' target='_blank'>" . $url . "</a>"
-        ));
-    }
-
-    public static function addErrorMessageAfterRedirect(): void
-    {
-        Session::addMessageAfterRedirect(self::getSupportPromoteMessage(), false, ERROR);
     }
 
     /**

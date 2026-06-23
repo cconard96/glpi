@@ -77,7 +77,6 @@ class SolutionType extends CommonDropdown
         return $tab;
     }
 
-
     public function rawSearchOptions()
     {
         $tab                       = parent::rawSearchOptions();
@@ -117,10 +116,8 @@ class SolutionType extends CommonDropdown
         return $tab;
     }
 
-
     public function post_getEmpty()
     {
-
         $this->fields['is_request']         = 1;
         $this->fields['is_incident']        = 1;
         $this->fields['is_problem']         = 1;

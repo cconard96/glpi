@@ -56,7 +56,6 @@ class ProblemTask extends CommonITILTask
         return parent::genericPopulatePlanning(self::class, $options);
     }
 
-
     /**
      * Display a Planning Item
      *

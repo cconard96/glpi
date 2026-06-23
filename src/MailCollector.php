@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Error\ErrorHandler;
 use Laminas\Mail\Address;
 use Laminas\Mail\Header\AbstractAddressList;
@@ -277,84 +276,6 @@ class MailCollector extends CommonDBTM
             return false;
         }
         return $input;
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(self::class, $ong, $options);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    /**
-     * Print the mailgate form
-     *
-     * @param $ID        integer  Id of the item to print
-     * @param $options   array
-     *     - target filename : where to go when done.
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        // warning and no form if can't read keyfile
-        $glpi_encryption_key = new GLPIKey();
-        if ($glpi_encryption_key->hasReadErrors()) {
-            $glpi_encryption_key->showReadErrors();
-
-            return false;
-        }
-
-        $protocol_choices = [];
-        foreach (Toolbox::getMailServerProtocols(allow_plugins_protocols: true) as $key => $protocol) {
-            $protocol_choices['/' . $key] = $protocol['label'];
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/mailcollector/setup_form.html.twig', [
-            'item'             => $this,
-            'protocol_choices' => $protocol_choices,
-        ]);
-        return true;
-    }
-
-    /**
-     * Display the list of folder for current connections
-     *
-     * @since 9.3.1
-     *
-     * @param string $input_id dom id where to insert folder name
-     *
-     * @return void
-     */
-    public function displayFoldersList($input_id = "")
-    {
-        $connected = false;
-        $folders = [];
-        try {
-            $this->connect();
-            $connected = true;
-            if (!$this->storage instanceof FolderInterface) {
-                throw new RuntimeException("This mailbox do not support listing folders");
-            }
-            foreach ($this->storage->getFolders() as $folder) {
-                $folders[] = $this->extractFolderData($folder);
-            }
-        } catch (Throwable $e) {
-            ErrorHandler::logCaughtException($e);
-            ErrorHandler::displayCaughtExceptionMessage($e);
-        }
-        TemplateRenderer::getInstance()->display('pages/setup/mailcollector/folder_list.html.twig', [
-            'item' => $this,
-            'connected' => $connected,
-            'folders' => $folders,
-            'input_id' => $input_id,
-        ]);
     }
 
     /**
@@ -2044,40 +1965,6 @@ class MailCollector extends CommonDBTM
     }
 
     /**
-     * @return void
-     * @used-by templates/components/search/controls.html.twig
-     */
-    public static function showSearchStatusArea()
-    {
-        $errors  = getAllDataFromTable(self::getTable(), ['errors' => ['>', 0]]);
-        $collector = new self();
-        $servers = [];
-        if (count($errors)) {
-            foreach ($errors as $data) {
-                $collector->getFromDB($data['id']);
-                $servers[] = [
-                    'link' => htmlescape($collector->getLinkURL()),
-                    'name' => htmlescape($collector->getName(['complete' => true])),
-                ];
-            }
-        }
-
-        if (count($servers)) {
-            $server_links = implode(' ', array_map(
-                static fn($v) => '<a class="btn btn-sm btn-ghost-danger align-baseline" href="' . $v['link'] . '">' . $v['name'] . '</a>',
-                $servers
-            ));
-            TemplateRenderer::getInstance()->display(
-                'components/search/status_area.html.twig',
-                [
-                    'status_message' => sprintf(__s('Receivers in error: %s'), $server_links),
-                ]
-            );
-        }
-    }
-
-
-    /**
      * Count collectors
      *
      * @param bool $active Count active only, defaults to false
@@ -2348,29 +2235,6 @@ class MailCollector extends CommonDBTM
 
         return null;
     }
-
-    /**
-     * @param string $name
-     * @param int $value  (default 0)
-     * @param int $rand
-     *
-     * @return void
-     **/
-    public static function showMaxFilesize($name, $value = 0, $rand = null)
-    {
-
-        $sizes[0] = __('No import');
-        for ($index = 1; $index < 100; $index++) {
-            $sizes[$index * 1048576] = sprintf(__('%s Mio'), $index);
-        }
-
-        if ($rand === null) {
-            $rand = mt_rand();
-        }
-
-        Dropdown::showFromArray($name, $sizes, ['value' => $value, 'rand' => $rand]);
-    }
-
 
     public function cleanDBonPurge()
     {

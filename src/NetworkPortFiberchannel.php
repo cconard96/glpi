@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 use function Safe\preg_replace;
 
 /**
@@ -84,54 +82,6 @@ class NetworkPortFiberchannel extends NetworkPortInstantiation
     public function prepareInputForUpdate($input)
     {
         return parent::prepareInputForUpdate($this->prepareInput($input));
-    }
-
-    public function showInstantiationForm(NetworkPort $netport, $options, $recursiveItems)
-    {
-        if (!$options['several']) {
-            $this->showSocketField($netport, $options, $recursiveItems);
-            $this->showNetworkCardField($netport, $options, $recursiveItems);
-        }
-
-        $standard_speeds = self::getPortSpeed();
-        if (
-            !isset($standard_speeds[$this->fields['speed']])
-            && !empty($this->fields['speed'])
-        ) {
-            $speed = self::transformPortSpeed($this->fields['speed'], true);
-        } else {
-            $speed = true;
-        }
-
-        $twig_params = [
-            'item' => $this,
-            'netport' => $netport,
-            'params' => $options,
-            'connection_label' => __('Connected to'),
-            'standard_speeds' => $standard_speeds,
-            'speed' => $speed,
-            'speed_label' => __('Fiber channel port speed'),
-            'wwn_label' => __('World Wide Name'),
-        ];
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {{ fields.textField('wwn', item.fields['wwn'], wwn_label) }}
-            {{ fields.dropdownArrayField('speed', item.fields['speed'], standard_speeds, speed_label, {
-                other: speed
-            }) }}
-            {% do call([item, 'showMacField'], [netport, params]) %}
-            {% set connection_field %}
-                {% do call([item, 'showConnection'], [netport, true]) %}
-            {% endset %}
-            {{ fields.htmlField('', connection_field, connection_label) }}
-            {{ fields.dropdownField(
-                'NetworkPortFiberchannelType',
-                'networkportfiberchanneltypes_id',
-                item.fields['networkportfiberchanneltypes_id'],
-                'NetworkPortFiberchannelType'|itemtype_name
-            ) }}
-TWIG, $twig_params);
     }
 
     public function rawSearchOptions()
@@ -246,33 +196,6 @@ TWIG, $twig_params);
             return $tmp;
         }
         return $tmp[$val] ?? self::transformPortSpeed($val, true);
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'speed':
-                return htmlescape(self::getPortSpeed($values[$field]));
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'speed':
-                $options['value'] = $values[$field];
-                return Dropdown::showFromArray($name, self::getPortSpeed(), $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
     /**

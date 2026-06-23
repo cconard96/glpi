@@ -69,7 +69,6 @@ class WifiNetwork extends CommonDropdown
         ];
     }
 
-
     /**
      * @return array<string,string>
      */
@@ -88,30 +87,18 @@ class WifiNetwork extends CommonDropdown
         ];
     }
 
-
     /**
      * @return array<string,string>
      */
     public static function getWifiNetworkModes()
     {
 
-        return [''               => Dropdown::EMPTY_VALUE,
+        return [
+            ''               => Dropdown::EMPTY_VALUE,
             'infrastructure' => __('Infrastructure (with access point)'),
             'ad-hoc'         => __('Ad-hoc (without access point)'),
         ];
     }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong  = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(NetworkPort::class, $ong, $options);
-
-        return $ong;
-    }
-
 
     public function getAdditionalFields()
     {
@@ -129,23 +116,6 @@ class WifiNetwork extends CommonDropdown
         ];
     }
 
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-
-        if ($field['type'] == 'wifi_mode') {
-            Dropdown::showFromArray(
-                $field['name'],
-                self::getWifiNetworkModes(),
-                [
-                    'value' => $this->fields[$field['name']],
-                    'width' => '100%',
-                ]
-            );
-        }
-    }
-
-
     public function rawSearchOptions()
     {
         $tab = parent::rawSearchOptions();
@@ -159,10 +129,5 @@ class WifiNetwork extends CommonDropdown
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-wifi";
     }
 }

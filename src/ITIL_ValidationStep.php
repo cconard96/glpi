@@ -32,8 +32,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 abstract class ITIL_ValidationStep extends CommonDBChild
 {
     public $dohistory              = false;
@@ -256,20 +254,5 @@ abstract class ITIL_ValidationStep extends CommonDBChild
     public function getFormFields(): array
     {
         return ['minimal_required_validation_percent'];
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-
-        TemplateRenderer::getInstance()->display(
-            'components/itilobject/validationstep.html.twig',
-            [
-                'item'   => $this,
-                'params' => $options,
-                'no_header' => true,
-            ]
-        );
-        return true;
     }
 }

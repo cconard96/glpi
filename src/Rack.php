@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 use Glpi\Features\DCBreadcrumb;
@@ -74,29 +73,6 @@ class Rack extends CommonDBTM implements AssignableItemInterface, DCBreadcrumbIn
     {
         //TRANS: Test of comment for translation (mark : //TRANS)
         return _n('Rack', 'Racks', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this
-         ->addStandardTab(Item_Rack::class, $ong, $options)
-         ->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Reservation::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
     }
 
     /**
@@ -142,28 +118,6 @@ class Rack extends CommonDBTM implements AssignableItemInterface, DCBreadcrumbIn
             ],
         ];
     }
-
-
-    /**
-     * Print the rack form
-     *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/rack.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -378,156 +332,6 @@ class Rack extends CommonDBTM implements AssignableItemInterface, DCBreadcrumbIn
         return $tab;
     }
 
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        switch (get_class($item)) {
-            case DCRoom::class:
-                $nb = 0;
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = countElementsInTable(
-                        self::getTable(),
-                        [
-                            'dcrooms_id'   => $item->getID(),
-                            'is_deleted'   => 0,
-                        ]
-                    );
-                }
-                return self::createTabEntry(
-                    self::getTypeName(Session::getPluralNumber()),
-                    $nb,
-                    $item::getType()
-                );
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof DCRoom) {
-            return self::showForRoom($item);
-        }
-        return false;
-    }
-
-    /**
-     * Print room's racks
-     *
-     * @param DCRoom $room DCRoom object
-     *
-     * @return bool
-     **/
-    public static function showForRoom(DCRoom $room): bool
-    {
-        global $DB;
-
-        $room_id = $room->getID();
-        $rand = mt_rand();
-
-        if (
-            !$room->getFromDB($room_id)
-            || !$room->can($room_id, READ)
-        ) {
-            return false;
-        }
-        $canedit = $room->canEdit($room_id);
-
-        $racks = $DB->request([
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                'dcrooms_id'   => $room->getID(),
-                'is_deleted'   => 0,
-            ],
-        ]);
-        $entries = [];
-
-        $racks = iterator_to_array($racks);
-        $rack = new self();
-        foreach ($racks as $row) {
-            $rack->getFromResultSet($row);
-            $entries[] = [
-                'itemtype' => self::class,
-                'id'       => $rack->getID(),
-                'name'     => $rack->getLink(),
-            ];
-        }
-
-        $rows     = (int) $room->fields['vis_rows'];
-        $cols     = (int) $room->fields['vis_cols'];
-        if ($cols === 0) {
-            $cols = 1; //prevent divizion by zero
-        }
-        $cell_w   = (int) $room->fields['vis_cell_width'];
-        $cell_h   = (int) $room->fields['vis_cell_height'];
-        $grid_w   = $cell_w * $cols;
-        $grid_h   = $cell_h * $rows;
-
-        //fill rows
-        $cells    = [];
-        $outbound = [];
-        foreach ($racks as &$item) {
-            $in = false;
-
-            $x = $y = 0;
-            $coord = explode(',', $item['position']);
-            if (count($coord) === 2) {
-                [$x, $y] = $coord;
-                $item['_x'] = (int) $x - 1;
-                $item['_y'] = (int) $y - 1;
-            } else {
-                $item['_x'] = null;
-                $item['_y'] = null;
-            }
-
-            if ($x <= $cols && $y <= $rows && $x > 0 && $y > 0) {
-                $in = true;
-                $cells[] = $item;
-            }
-
-            if ($in === false) {
-                $outbound[] = $item;
-            }
-        }
-        unset($item);
-
-        $blueprint_url = '';
-        if (!empty($room->fields['blueprint'])) {
-            $blueprint_url = Toolbox::getPictureUrl($room->fields['blueprint']);
-        }
-
-        TemplateRenderer::getInstance()->display('pages/management/dcroom_racks.html.twig', [
-            'room' => $room,
-            'datatable_params' => [
-                'is_tab' => true,
-                'nofilter' => true,
-                'columns' => [
-                    'name' => __('Name'),
-                ],
-                'formatters' => [
-                    'name' => 'raw_html',
-                ],
-                'entries' => $entries,
-                'total_number' => count($entries),
-                'filtered_number' => count($entries),
-                'showmassiveactions' => $canedit,
-                'massiveactionparams' => [
-                    'num_displayed' => count($entries),
-                    'container'     => 'mass' . static::class . $rand,
-                ],
-            ],
-            'cols' => $cols,
-            'rows' => $rows,
-            'cell_w' => $cell_w,
-            'cell_h' => $cell_h,
-            'grid_w' => $grid_w,
-            'grid_h' => $grid_h,
-            'cells' => $cells,
-            'outbound' => $outbound,
-            'blueprint_url' => $blueprint_url,
-        ]);
-
-        return true;
-    }
-
     public function prepareInputForAdd($input)
     {
         $input = $this->prepareInputForAddAssignableItem($input);
@@ -718,10 +522,5 @@ class Rack extends CommonDBTM implements AssignableItemInterface, DCBreadcrumbIn
                 PDU_Rack::class,
             ]
         );
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-server";
     }
 }

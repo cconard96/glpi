@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Exception\Http\NotFoundHttpException;
@@ -142,57 +141,6 @@ class Infocom extends CommonDBChild
         return [$this->fields['itemtype'], $this->fields['items_id']];
     }
 
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        // Can exists on template
-        if (
-            Session::haveRight(self::$rightname, READ)
-            && ($item instanceof CommonDBTM)
-        ) {
-            $nb = 0;
-            switch ($item->getType()) {
-                case 'Supplier':
-                    /** @var Supplier $item */
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = self::countForSupplier($item);
-                    }
-                    return self::createTabEntry(_n('Item', 'Items', Session::getPluralNumber()), $nb, $item::getType());
-
-                default:
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(
-                            'glpi_infocoms',
-                            ['itemtype' => $item->getType(),
-                                'items_id' => $item->getID(),
-                            ]
-                        );
-                    }
-                    return self::createTabEntry(__('Management'), $nb, $item::getType());
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-
-        switch (true) {
-            case $item instanceof Supplier:
-                $item->showInfocoms();
-                break;
-
-            default:
-                self::showForItem($item, $withtemplate);
-        }
-        return true;
-    }
-
-
     /**
      * @param Supplier $item
      *
@@ -209,51 +157,6 @@ class Infocom extends CommonDBChild
             ] + getEntitiesRestrictCriteria('glpi_infocoms', '', '')
         );
     }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'sink_type':
-                return htmlescape(self::getAmortTypeName($values[$field]));
-
-            case 'alert':
-                return htmlescape(self::getAlertName($values[$field]));
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param $field
-     * @param $name               (default '')
-     * @param $values             (default '')
-     * @param $options      array
-     **/
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case "sink_type":
-                return self::dropdownAmortType($name, $values[$field], false);
-
-            case "alert":
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return self::dropdownAlert($options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
 
     /**
      * Retrieve an item from the database for a device
@@ -947,131 +850,6 @@ class Infocom extends CommonDBChild
     }
 
     /**
-     * Calculate TCO and TCO by month for an item
-     *
-     * @param string|number $ticket_tco    Tco part of tickets
-     * @param number        $value
-     * @param string        $date_achat    (default '')
-     *
-     * @return string
-     **/
-    public static function showTco($ticket_tco, $value, $date_achat = "")
-    {
-        if ($ticket_tco == NOT_AVAILABLE) {
-            return '-';
-        }
-
-        // Affiche le TCO ou le TCO mensuel pour un mat??riel
-        $totalcost = $ticket_tco;
-
-        if ($date_achat) { // on veut donc le TCO mensuel
-            // just to avoid IDE warning
-            $date_Y = $date_m = $date_d = 0;
-
-            sscanf($date_achat, "%4s-%2s-%2s", $date_Y, $date_m, $date_d);
-
-            $timestamp2 = mktime(0, 0, 0, $date_m, $date_d, $date_Y);
-            $timestamp  = mktime(0, 0, 0, (int) date("m"), (int) date("d"), (int) date("Y"));
-
-            $diff = floor(($timestamp - $timestamp2) / (MONTH_TIMESTAMP)); // Mois d'utilisation
-
-            if ($diff) {
-                return Html::formatNumber((($totalcost + $value) / $diff)); // TCO mensuel
-            }
-            return "";
-        }
-        return Html::formatNumber(($totalcost + $value)); // TCO
-    }
-
-
-    /**
-     * Show infocom link to display modal
-     *
-     * @param class-string<CommonDBTM> $itemtype item type
-     * @param int $device_id item ID
-     * @param bool $display  display or not the link (default true)
-     *
-     * @return void|string
-     **/
-    public static function showDisplayLink($itemtype, $device_id, bool $display = true)
-    {
-        global $CFG_GLPI, $DB;
-
-        if (
-            !Session::haveRight(self::$rightname, READ)
-            || !($item = getItemForItemtype($itemtype))
-        ) {
-            return;
-        }
-
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => 'glpi_infocoms',
-            'WHERE'  => [
-                'itemtype'  => $itemtype,
-                'items_id'  => $device_id,
-            ],
-        ])->current();
-
-        $add    = "add";
-        $text   = __s('Add');
-        if ($result['cpt'] > 0) {
-            $add  = "";
-            $text = _sx('button', 'Show');
-        } elseif (!Infocom::canUpdate()) {
-            return;
-        }
-
-        $out = '';
-        if ($item->canView()) {
-            $out .= "<span class='infocom_link' style='cursor:pointer' data-itemtype='" . htmlescape($itemtype) . "' data-items_id='" . htmlescape($device_id) . "'>
-               <img src=\"" . htmlescape($CFG_GLPI["root_doc"] . "/pics/dollar$add.png") . "\" alt=\"$text\" title=\"$text\">
-               </span>";
-            $form_url = Infocom::getFormURL();
-            $html = <<<HTML
-                <div id="infocom_display_modal" class="modal fade" tabindex="-1" role="dialog">
-                    <div class="modal-dialog modal-xl">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                <h3></h3>
-                            </div>
-                            <div class="modal-body">
-                                <iframe id='iframeinfocom_display_modal' class="iframe hidden border-0 w-100" style="height: 600px"></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-HTML;
-            $js = "
-                $(() => {
-                    if ($('#infocom_display_modal').length === 0) {
-                        $('body').append(`" . jsescape($html) . "`);
-                        const modal_el = $('#infocom_display_modal');
-                        $(document).on('click', '.infocom_link', (e) => {
-                            modal_el.data('itemtype', e.currentTarget.getAttribute('data-itemtype'));
-                            modal_el.data('items_id', e.currentTarget.getAttribute('data-items_id'));
-                            modal_el.modal('show');
-                        });
-                        modal_el.on('shown.bs.modal', () => {
-                            $('#iframeinfocom_display_modal')
-                                .attr('src', '" . jsescape($form_url) . "?itemtype=' + modal_el.data('itemtype') + '&items_id=' + modal_el.data('items_id'))
-                                .removeClass('hidden');
-                        });
-                    }
-                });
-            ";
-            $out .= Html::scriptBlock($js);
-        }
-        if ($display) {
-            echo $out;
-        } else {
-            return $out;
-        }
-    }
-
-
-    /**
      * Calculate amortization values
      *
      * @param number        $value       Purchase value
@@ -1372,48 +1150,6 @@ HTML;
             $vnc = $tab["vcnetdeb"][array_search(date("Y"), $tab["annee"])];
         }
         return $vnc;
-    }
-
-
-    /**
-     * Show Infocom form for an item (not a standard showForm)
-     *
-     * @param CommonDBTM $item
-     * @param int $withtemplate template or basic item (default 0)
-     *
-     * @return void
-     */
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        // Show Infocom or blank form
-        if (!self::canView()) {
-            return;
-        }
-
-        $dev_ID   = $item->getField('id');
-        $ic       = new self();
-
-        if (in_array($item->getType(), self::getExcludedTypes())) {
-            echo "<div class='firstbloc center'>"
-                . __s('For this type of item, the financial and administrative information are only a model for the items which you should add.')
-                . "</div>";
-        }
-
-        $ic->getFromDBforDevice($item->getType(), $dev_ID);
-        $can_input = [
-            'itemtype'    => $item->getType(),
-            'items_id'    => $dev_ID,
-            'entities_id' => $item->getEntityID(),
-        ];
-        TemplateRenderer::getInstance()->display('components/infocom.html.twig', [
-            'item'              => $item,
-            'infocom'           => $ic,
-            'withtemplate'      => $withtemplate,
-            'can_create'        => $ic->can(-1, CREATE, $can_input),
-            'can_edit'          => ($ic->canEdit($ic->fields['id']) && ($withtemplate != 2)),
-            'can_global_update' => Session::haveRight(self::$rightname, UPDATE),
-            'can_global_purge'  => Session::haveRight(self::$rightname, PURGE),
-        ]);
     }
 
     /**
@@ -1724,7 +1460,6 @@ HTML;
         return $tab;
     }
 
-
     public function rawSearchOptions()
     {
         $tab = [];
@@ -1980,7 +1715,6 @@ HTML;
         return $tab;
     }
 
-
     /**
      * Get date using a begin date and a period in month
      *
@@ -2138,7 +1872,6 @@ HTML;
         return htmlescape($date);
     }
 
-
     public static function getMassiveActionsForItemtype(
         array &$actions,
         $itemtype,
@@ -2156,7 +1889,6 @@ HTML;
                                   . __s('Enable the financial and administrative information');
         }
     }
-
 
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
@@ -2196,7 +1928,6 @@ HTML;
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
 
-
     /**
      * @since 9.1.7
      * @see CommonDBChild::canUpdateItem()
@@ -2206,7 +1937,6 @@ HTML;
         return Session::haveRight(static::$rightname, UPDATE);
     }
 
-
     /**
      * @since 9.1.7
      * @see CommonDBChild::canPurgeItem()
@@ -2215,7 +1945,6 @@ HTML;
     {
         return Session::haveRight(static::$rightname, PURGE);
     }
-
 
     /**
      * @since 9.1.7
@@ -2251,7 +1980,6 @@ HTML;
         return $types_iterator;
     }
 
-
     /**
      * Get excluded itemtypes
      *
@@ -2262,11 +1990,5 @@ HTML;
     public static function getExcludedTypes()
     {
         return ['ConsumableItem', 'CartridgeItem'];
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-wallet";
     }
 }

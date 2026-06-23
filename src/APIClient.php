@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * @since 9.1
  */
@@ -46,7 +44,6 @@ class APIClient extends CommonDBTM
     public const DOLOG_HISTORICAL = 2;
 
     public static $rightname = 'config';
-    protected $displaylist = true;
 
     // From CommonDBTM
     public $dohistory                   = true;
@@ -70,24 +67,9 @@ class APIClient extends CommonDBTM
         return _n("API client", "API clients", $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ["config", Config::class, self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'setup';
-    }
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-           ->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function rawSearchOptions()
@@ -168,36 +150,6 @@ class APIClient extends CommonDBTM
         return $tab;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        switch ($field) {
-            case 'dolog_method':
-                $methods = self::getLogMethod();
-                return htmlescape($methods[$values[$field]]);
-
-            case 'ipv4_range_start':
-            case 'ipv4_range_end':
-                if (empty($values[$field])) {
-                    return '';
-                }
-                return htmlescape(long2ip((int) $values[$field]));
-        }
-
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public function showForm($ID, $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/setup/apiclient.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-            'log_methods' => self::getLogMethod(),
-        ]);
-        return true;
-    }
-
     public function prepareInputForAdd($input)
     {
         return $this->prepareInputForUpdate($input);
@@ -276,10 +228,5 @@ class APIClient extends CommonDBTM
             $key = Toolbox::getRandomString(40);
         } while (countElementsInTable(self::getTable(), ['app_token' => $key]) != 0);
         return $key;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-browser";
     }
 }

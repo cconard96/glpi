@@ -44,10 +44,4 @@ class SocketModel extends CommonDropdown
     {
         return _n('Socket model', 'Socket models', $nb);
     }
-
-
-    public static function getFieldLabel()
-    {
-        return _n('Model', 'Models', 1);
-    }
 }

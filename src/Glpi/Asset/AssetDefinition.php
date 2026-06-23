@@ -38,7 +38,6 @@ use AutoUpdateSystem;
 use CommonGLPI;
 use Computer;
 use DisplayPreference;
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\Capacity\CapacityInterface;
 use Glpi\Asset\CustomFieldType\DropdownType;
 use Glpi\Asset\CustomFieldType\RawType;
@@ -173,104 +172,6 @@ final class AssetDefinition extends AbstractDefinition
             }
         }
         return true;
-    }
-
-    /**
-     * Display capacities form.
-     *
-     * @return void
-     */
-    private function showCapacitiesForm(): void
-    {
-        $capacities = AssetDefinitionManager::getInstance()->getAvailableCapacities();
-        usort(
-            $capacities,
-            static fn(CapacityInterface $a, CapacityInterface $b) => strnatcasecmp($a->getLabel(), $b->getLabel())
-        );
-
-        TemplateRenderer::getInstance()->display(
-            'pages/admin/assetdefinition/capacities.html.twig',
-            [
-                'item' => $this,
-                'classname' => $this->getAssetClassName(),
-                'capacities' => $capacities,
-            ]
-        );
-    }
-
-    /*
-     * Display fields form.
-     *
-     * @return void
-     */
-    private function showFieldsForm(): void
-    {
-        $fields_display = $this->getDecodedFieldsField();
-
-        TemplateRenderer::getInstance()->display(
-            'pages/admin/assetdefinition/fields_display.html.twig',
-            [
-                'item'           => $this,
-                'all_fields'     => $this->getAllFields(),
-                'fields_display' => $fields_display,
-                'can_create_fields' => CustomFieldDefinition::canCreate(),
-                'custom_field_form_params' => [
-                    'id' => $this->fields['id'],
-                    'type' => CustomFieldDefinition::class,
-                    'parenttype' => CustomFieldDefinition::$itemtype,
-                    'items_id' => CustomFieldDefinition::$items_id,
-                    'subitem_container_id' => 'customfield_form_container',
-                    'as_modal' => true,
-                    'ajax_form_submit' => true,
-                ],
-            ]
-        );
-    }
-
-    /**
-     * Show field options for a core field.
-     * @param string $field_key The field key
-     * @param array $field_option_values Field option value overrides
-     * @return void
-     */
-    public function showFieldOptionsForCoreField(string $field_key, array $field_option_values = []): void
-    {
-        $all_fields = $this->getAllFields();
-        $field_display = $this->getDecodedFieldsField();
-        $field_match = array_filter($field_display, static fn($field) => $field['key'] === $field_key);
-        $field_options = [];
-        if ($field_match !== []) {
-            $field_options = reset($field_match)['field_options'] ?? [];
-        }
-        // Merge field options with overrides
-        $field_options = array_merge($field_options, $field_option_values);
-
-        // Fake custom field to represent the core field
-        $custom_field = new CustomFieldDefinition();
-        $custom_field->fields['name'] = $field_key;
-        $custom_field->fields['label'] = $all_fields[$field_key]['text'];
-        $custom_field->fields['type'] = $all_fields[$field_key]['type'];
-        $custom_field->fields['itemtype'] = Computer::class; // Doesn't matter what it is as long as it's not empty
-        $custom_field->fields['field_options'] = $field_options;
-
-        $options_allowlist = ['required', 'readonly', 'full_width', 'hidden'];
-
-        $twig_params = [
-            'options' => array_filter($custom_field->getFieldType()->getOptions(), static fn($option) => in_array($option->getKey(), $options_allowlist, true)),
-            'key' => $field_key,
-        ];
-
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            <form>
-                <input type="hidden" name="key" value="{{ key }}">
-                <div class="d-flex flex-wrap">
-                    {% for option in options %}
-                        {{ option.getFormInput()|raw }}
-                    {% endfor %}
-                </div>
-            </form>
-TWIG, $twig_params);
     }
 
     public function prepareInputForAdd($input)
@@ -734,7 +635,7 @@ TWIG, $twig_params);
                 'type' => DropdownType::class,
             ],
             $type_class::getForeignKeyField() => [
-                'text' => $type_class::getFieldLabel(),
+                'text' => $type_class::getTypeName(),
                 'type' => DropdownType::class,
             ],
             'users_id_tech'    => [
@@ -750,7 +651,7 @@ TWIG, $twig_params);
                 'type' => DropdownType::class,
             ],
             $model_class::getForeignKeyField() => [
-                'text' => $model_class::getFieldLabel(),
+                'text' => $model_class::getTypeName(),
                 'type' => DropdownType::class,
             ],
             'contact_num'      => [
@@ -918,29 +819,6 @@ TWIG, $twig_params);
         }
 
         return $this->custom_field_definitions;
-    }
-
-    protected function getExtraProfilesFields(array $profile_data): string
-    {
-        $enabled_profiles = [];
-        foreach ($profile_data as $data) {
-            $helpdesk_item_types = importArrayFromDB($data['helpdesk_item_type']);
-            if (in_array($this->getCustomObjectClassName(), $helpdesk_item_types, true)) {
-                $enabled_profiles[] = $data['id'];
-            }
-        }
-
-        $twig_params = [
-            'enabled_profiles' => $enabled_profiles,
-            'label' => sprintf(__('Profiles that can associate %s with tickets, problems or changes'), $this->getTranslatedName(Session::getPluralNumber())),
-        ];
-        // language=Twig
-        return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {{ fields.dropdownField('Profile', '_profiles_extra[helpdesk_item_type]', enabled_profiles, label, {
-                multiple: true
-            }) }}
-TWIG, $twig_params);
     }
 
     protected function syncProfilesRights(): void

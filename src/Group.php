@@ -33,11 +33,9 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QuerySubQuery;
 use Glpi\Features\Clonable;
-use Glpi\Search\Provider\SQLProvider;
 
 /**
  * Group class
@@ -82,11 +80,6 @@ class Group extends CommonTreeDropdown
         return false;
     }
 
-    public static function getMenuShorcut()
-    {
-        return 'g';
-    }
-
     public function post_getEmpty()
     {
         $this->fields['is_requester'] = 1;
@@ -119,116 +112,6 @@ class Group extends CommonTreeDropdown
         // Ticket rules use various _groups_id_*
         Rule::cleanForItemAction($this, '_groups_id%');
         Rule::cleanForItemCriteria($this, '_groups_id%');
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate && self::canView()) {
-            $nb = 0;
-            switch ($item::class) {
-                case self::class:
-                    $ong = [];
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(
-                            self::getTable(),
-                            ['groups_id' => $item->getID()]
-                        );
-                    }
-                    $ong[4] = self::createTabEntry(__('Child groups'), $nb, $item::class);
-
-                    if ($item->getField('is_itemgroup')) {
-                        $count = countElementsInTable(Group_Item::getTable(), ['groups_id' => $item->getID(), 'type' => Group_Item::GROUP_TYPE_NORMAL]);
-                        $ong[1] = self::createTabEntry(__('Used items'), $count, $item::class, 'ti ti-package');
-                    }
-                    if ($item->getField('is_assign')) {
-                        $count = countElementsInTable(Group_Item::getTable(), ['groups_id' => $item->getID(), 'type' => Group_Item::GROUP_TYPE_TECH]);
-                        $ong[2] = self::createTabEntry(__('Managed items'), $count, $item::class, 'ti ti-package');
-                    }
-                    if (
-                        $item->getField('is_usergroup')
-                        && self::canUpdate()
-                        && Session::haveRight("user", User::UPDATEAUTHENT)
-                        && AuthLDAP::useAuthLdap()
-                    ) {
-                        $ong[3] = self::createTabEntry(__('LDAP directory link'), 0, $item::class, 'ti ti-login');
-                    }
-                    $ong[5] = self::createTabEntry(__('Security'), 0, $item::class, 'ti ti-shield-lock');
-                    return $ong;
-            }
-        }
-
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        switch ($item::class) {
-            case self::class:
-                switch ($tabnum) {
-                    case 1:
-                        $item->showItems(false);
-                        return true;
-
-                    case 2:
-                        $item->showItems(true);
-                        return true;
-
-                    case 3:
-                        $item->showLDAPForm();
-                        return true;
-
-                    case 4:
-                        $item->showChildren();
-                        return true;
-
-                    case 5:
-                        $item->showSecurityForm($item->getID());
-                        return true;
-                }
-                break;
-        }
-        return false;
-    }
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Group::class, $ong, $options);
-        if (
-            isset($this->fields['is_usergroup'])
-            && $this->fields['is_usergroup']
-        ) {
-            $this->addStandardTab(Group_User::class, $ong, $options);
-        }
-        if (
-            isset($this->fields['is_notify'])
-            && $this->fields['is_notify']
-        ) {
-            $this->addStandardTab(NotificationTarget::class, $ong, $options);
-        }
-        if (
-            isset($this->fields['is_requester'])
-            && $this->fields['is_requester']
-        ) {
-            $this->addStandardTab(Ticket::class, $ong, $options);
-        }
-        $this->addStandardTab(Problem::class, $ong, $options);
-        $this->addStandardTab(Change::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        TemplateRenderer::getInstance()->display('pages/admin/group.html.twig', [
-            'item' => $this,
-        ]);
-        return true;
     }
 
     public static function getAdditionalMenuLinks()
@@ -491,44 +374,6 @@ class Group extends CommonTreeDropdown
     }
 
     /**
-     * Show the LDAP options form for this group
-     * @return void
-     */
-    public function showLDAPForm()
-    {
-        if (
-            !$this->fields['is_usergroup']
-            || !self::canUpdate()
-            || !Session::haveRight("user", User::UPDATEAUTHENT)
-            || !AuthLDAP::useAuthLdap()
-        ) {
-            return;
-        }
-
-        TemplateRenderer::getInstance()->display('pages/admin/group_ldap.html.twig', [
-            'item' => $this,
-            'params' => [
-                'candel' => false,
-            ],
-        ]);
-    }
-
-    /**
-     * @param int $ID
-     *
-     * @return void
-     **/
-    public function showSecurityForm($ID)
-    {
-        $canedit = self::canUpdate() && Session::haveRight("user", User::UPDATEAUTHENT);
-        TemplateRenderer::getInstance()->display('pages/2fa/2fa_config.html.twig', [
-            'canedit' => $canedit,
-            'item'   => $this,
-            'action' => Toolbox::getItemTypeFormURL(self::class),
-        ]);
-    }
-
-    /**
      * get list of assets in a group
      *
      * @since 0.83
@@ -683,141 +528,6 @@ class Group extends CommonTreeDropdown
             }
         }
         return $tot;
-    }
-
-    /**
-     * Show items for the group
-     *
-     * @param bool $tech False search groups_id, true, search groups_id_tech
-     *
-     * @return void
-     */
-    public function showItems($tech)
-    {
-        global $CFG_GLPI;
-
-        $rand = mt_rand();
-
-        $ID = $this->fields['id'];
-
-        $datas = [];
-        $start  = (isset($_GET['start']) ? (int) $_GET['start'] : 0);
-        $filters     = $_GET['filters'] ?? [];
-        $extra_criteria = [];
-        foreach ($filters as $f => $value) {
-            // This was the only filter before
-            //TODO More can be added later as time permits (requires SQL query changes and changes to datatables template)
-            if (!empty($value)) {
-                if ($f === 'type') {
-                    $extra_criteria['HAVING']['itemtype'] = ['LIKE', SQLProvider::makeTextSearchValue($value)];
-                }
-            }
-        }
-        $nb     = $this->getDataItems($tech, true, true, $start, $datas, $extra_criteria);
-
-        $show_massive_actions = false;
-
-        $tuser = new User();
-        $group = new Group();
-
-        // Some caches to avoid redundant DB requests
-        $itemtype_names = [];
-        $entity_names = [];
-        $group_links = [];
-        $user_links = [];
-
-        $entries = [];
-        foreach ($datas as $data) {
-            if (!($item = getItemForItemtype($data['itemtype']))) {
-                continue;
-            }
-            $item->getFromDB($data['items_id']);
-            if (!isset($itemtype_names[$data['itemtype']])) {
-                $itemtype_names[$data['itemtype']] = $item::getTypeName(1);
-            }
-            if (!isset($entity_names[$item->getEntityID()])) {
-                $entity_names[$item->getEntityID()] = Dropdown::getDropdownName(table: "glpi_entities", id: $item->getEntityID(), default: '');
-            }
-
-            $entry = [
-                'itemtype' => self::class,
-                'id'       => $ID,
-                'type'     => $itemtype_names[$data['itemtype']],
-                'name'     => $item->getLink(['comments' => true]),
-                'entity'   => $entity_names[$item->getEntityID()],
-            ];
-            if ($item->canViewItem() && self::canUpdate()) {
-                // Show massive actions if there is at least one viewable/updatable item.
-                $show_massive_actions = true;
-            } else {
-                // This row cannot have massive actions due to lack of rights.
-                $entry['skip_ma'] = true;
-            }
-
-            $assignees = [];
-            if ($grps = $item->getField($tech ? 'groups_id_tech' : 'groups_id')) {
-                foreach ($grps as $grp) {
-                    if (!isset($group_links[$grp]) && $group->getFromDB($grp)) {
-                        $group_links[$grp] = $group->getLink(['comments' => true]);
-                    }
-                    $assignees[] = $group_links[$grp] ?? '';
-                }
-            }
-            if ($usr = $item->getField($tech ? 'users_id_tech' : 'users_id')) {
-                if (!isset($user_links[$usr]) && $tuser->getFromDB($usr)) {
-                    $user_links[$usr] = $tuser->getLink(['comments' => true]);
-                }
-                $assignees[] = $user_links[$usr] ?? '';
-            }
-            $entry['assignees'] = implode('<br>', array_filter($assignees));
-
-            $entries[] = $entry;
-        }
-
-        $columns = [
-            'type' => [
-                'label' => _n('Type', 'Types', 1),
-            ],
-            'name' => [
-                'label' => __('Name'),
-                'no_filter' => true,
-            ],
-            'entity' => [
-                'label' => Entity::getTypeName(1),
-                'no_filter' => true,
-            ],
-            'assignees' => sprintf(__s('%1$s / %2$s'), self::getTypeName(1), User::getTypeName(1)),
-        ];
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'start' => $start,
-            'limit' => $_SESSION['glpilist_limit'],
-            'items_id' => $ID,
-            'filters' => $filters,
-            'columns' => $columns,
-            'formatters' => [
-                'name' => 'raw_html',
-                'assignees' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => $nb,
-            'filtered_number' => $nb,
-            'showmassiveactions' => self::canUpdate() && $show_massive_actions,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-                'check_itemtype'   => 'Group',
-                'check_items_id'   => $ID,
-                'extraparams'      => [
-                    'is_tech' => $tech ? 1 : 0,
-                    'massive_action_fields' => ['field'],
-                ],
-                'specific_actions' => [
-                    self::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'changegroup' => __('Move'),
-                ],
-            ],
-        ]);
     }
 
     public function cleanRelationData()

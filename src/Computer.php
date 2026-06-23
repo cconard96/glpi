@@ -113,11 +113,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         return _n('Computer', 'Computers', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
@@ -128,55 +123,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         return false;
     }
 
-
-    public static function getMenuShorcut()
-    {
-        return 'o';
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Item_OperatingSystem::class, $ong, $options)
-         ->addStandardTab(Item_Devices::class, $ong, $options)
-         ->addStandardTab(Item_Line::class, $ong, $options)
-         ->addStandardTab(Item_Disk::class, $ong, $options)
-         ->addStandardTab(Item_SoftwareVersion::class, $ong, $options)
-         ->addStandardTab(Item_Process::class, $ong, $options)
-         ->addStandardTab(Item_Environment::class, $ong, $options)
-         ->addStandardTab(Asset_PeripheralAsset::class, $ong, $options)
-         ->addStandardTab(NetworkPort::class, $ong, $options)
-         ->addStandardTab(Socket::class, $ong, $options)
-         ->addStandardTab(Item_RemoteManagement::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(ItemVirtualMachine::class, $ong, $options)
-         ->addStandardTab(ItemAntivirus::class, $ong, $options)
-         ->addStandardTab(KnowbaseItem_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Item_Project::class, $ong, $options)
-         ->addStandardTab(ManualLink::class, $ong, $options)
-         ->addStandardTab(Certificate_Item::class, $ong, $options)
-         ->addStandardTab(Lock::class, $ong, $options)
-         ->addStandardTab(Notepad::class, $ong, $options)
-         ->addStandardTab(Reservation::class, $ong, $options)
-         ->addStandardTab(Domain_Item::class, $ong, $options)
-         ->addStandardTab(Appliance_Item::class, $ong, $options)
-         ->addStandardTab(DatabaseInstance::class, $ong, $options)
-         ->addStandardTab(RuleMatchedLog::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-
     public function post_restoreItem()
     {
 
@@ -184,14 +130,12 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         $comp_softvers->updateDatasForItem('Computer', $this->fields['id']);
     }
 
-
     public function post_deleteItem()
     {
 
         $comp_softvers = new Item_SoftwareVersion();
         $comp_softvers->updateDatasForItem('Computer', $this->fields['id']);
     }
-
 
     public function post_updateItem($history = true)
     {
@@ -343,7 +287,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         }
     }
 
-
     public function prepareInputForAdd($input)
     {
         if (isset($input["id"]) && ($input["id"] > 0)) {
@@ -355,7 +298,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         $input = $this->prepareInputForAddAssignableItem($input);
         return $input;
     }
-
 
     public function cleanDBonPurge()
     {
@@ -369,7 +311,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
             ]
         );
     }
-
 
     public function getLinkedItems()
     {
@@ -393,7 +334,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         }
         return $tab;
     }
-
 
     public function getSpecificMassiveActions($checkitem = null)
     {
@@ -426,7 +366,6 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
 
         return $actions;
     }
-
 
     public function rawSearchOptions()
     {
@@ -688,10 +627,5 @@ class Computer extends CommonDBTM implements AssignableItemInterface, DCBreadcru
         $tab = array_merge($tab, Item_RemoteManagement::rawSearchOptionsToAdd(self::class));
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-device-laptop";
     }
 }

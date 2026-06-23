@@ -118,101 +118,6 @@ class DeviceNetworkCard extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        if (in_array($itemtype, NetworkPort::getNetworkPortInstantiations(), true)) {
-            $base->addHeader($column_name, __s('Interface'), $super, $father);
-        } else {
-            $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-            if ($column == $father) {
-                return $father;
-            }
-            Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-            $base->addHeader('devicenetworkcard_bandwidth', __s('Flow'), $super, $father);
-        }
-    }
-
-    /**
-     * @param HTMLTableRow|null $row
-     * @param CommonDBTM|null $item
-     * @param HTMLTableCell|null $father
-     * @param array $options
-     * @return void
-     */
-    public static function getHTMLTableCellsForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        if ($item === null) {
-            if ($father === null) {
-                return;
-            }
-            $item = $father->getItem();
-            if ($item === false) {
-                return;
-            }
-        }
-
-        if (in_array($item::class, NetworkPort::getNetworkPortInstantiations())) {
-            $link = new Item_DeviceNetworkCard();
-            if ($link->getFromDB($item->fields['items_devicenetworkcards_id'])) {
-                $device = $link->getOnePeer(1);
-                if ($device) {
-                    $row->addCell($row->getHeaderByName($column_name), $device->getLink(), $father);
-                }
-            }
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        $cell = null;
-        switch ($item::class) {
-            case Computer::class:
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                if ($this->fields["bandwidth"]) {
-                    $cell = $row->addCell(
-                        $row->getHeaderByName('devicenetworkcard_bandwidth'),
-                        htmlescape($this->fields["bandwidth"]),
-                        $father
-                    );
-                }
-                break;
-        }
-        return $cell;
-    }
-
     /**
      * @param class-string<CommonDBTM> $itemtype
      * @param array $main_joinparams
@@ -274,11 +179,5 @@ class DeviceNetworkCard extends CommonDevice
         ];
 
         return $tab;
-    }
-
-
-    public static function getIcon()
-    {
-        return NetworkPort::getIcon();
     }
 }

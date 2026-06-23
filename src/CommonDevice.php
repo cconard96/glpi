@@ -53,11 +53,6 @@ abstract class CommonDevice extends CommonDropdown
         return _n('Component', 'Components', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', self::class, static::class];
-    }
-
     /**
      * Get all the kind of devices available inside the system.
      *
@@ -153,77 +148,6 @@ abstract class CommonDevice extends CommonDropdown
             return 'Plugin' . $plug['plugin'] . 'Item_' . $plug['class'];
         }
         return "Item_$devicetype";
-    }
-
-    public static function getMenuContent()
-    {
-        $menu = [];
-        if (self::canView()) {
-            $menu['title'] = static::getTypeName(Session::getPluralNumber());
-            $menu['page']  = '/front/devices.php';
-            $menu['icon']  = self::getIcon();
-
-            $dps = Dropdown::getDeviceItemTypes();
-
-            foreach ($dps as $tab) {
-                /** @var class-string $key */
-                foreach ($tab as $key => $val) {
-                    if ($tmp = getItemForItemtype($key)) {
-                        $menu['options'][$key] = [
-                            'title' => $val,
-                            'page'  => $tmp::getSearchURL(false),
-                            'icon'  => $tmp::getIcon(),
-                            'links' => [
-                                'search' => $tmp::getSearchURL(false),
-                            ],
-                        ];
-                        if ($tmp::canCreate()) {
-                            $menu['options'][$key]['links']['add'] = $tmp::getFormURL(false);
-                        }
-
-                        if ($itemClass = getItemForItemtype(self::getItem_DeviceType($key))) {
-                            $itemTypeName = sprintf(
-                                _n('%s item', '%s items', Session::getPluralNumber()),
-                                $key::getTypeName(1)
-                            );
-
-                            $listLabel = '<i class="ti ti-list pointer" title="' . htmlescape($itemTypeName) . '"></i>'
-                            . '<span class="sr-only">' . htmlescape($itemTypeName) . '</span>';
-                            $menu['options'][$key]['links'][$listLabel] = $itemClass::getSearchURL(false);
-
-                            // item device self links
-                            $item_device_key = $itemClass::class;
-                            $item_device_search_url = $itemClass::getSearchURL(false);
-                            $menu['options'][$item_device_key] = [
-                                'title' => $itemTypeName,
-                                'page'  => $item_device_search_url,
-                                'icon'  => $itemClass::getIcon(),
-                                'links' => [
-                                    'search' => $item_device_search_url,
-                                ],
-                            ];
-                            if ($itemClass::canCreate()) {
-                                $menu['options'][$item_device_key]['links']['add'] = $itemClass::getFormURL(false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (count($menu)) {
-            return $menu;
-        }
-        return false;
-    }
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        switch ($field['type']) {
-            case 'registeredIDChooser':
-                RegisteredID::showAddChildButtonForItemForm($this, '_registeredID');
-                RegisteredID::showChildsForItemForm($this, '_registeredID');
-                break;
-        }
     }
 
     public function getAdditionalFields()
@@ -390,114 +314,6 @@ abstract class CommonDevice extends CommonDropdown
     }
 
     /**
-     * get the HTMLTable Header for the current device according to the type of the item that is requesting
-     * @param string $itemtype The type of the item
-     * @param HTMLTableBase $base The element on which adding the header
-     *                            (ie.: HTMLTableMain or HTMLTableGroup)
-     * @param HTMLTableSuperHeader|null $super The super header
-     *                            (in case of adding to HTMLTableGroup) (default NULL)
-     * @param HTMLTableHeader|null $father The father of the current headers
-     *                            (default NULL)
-     * @param array $options parameter such as restriction
-     *
-     * @return HTMLTableHeader|void
-     * @throws Exception
-     * @since 0.84
-     */
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-        if (isset($options['dont_display'][static::class])) {
-            return $father;
-        }
-
-        if (static::canView()) {
-            $content = "<a href='" . htmlescape(static::getSearchURL()) . "'>" . htmlescape(static::getTypeName(1)) . "</a>";
-        } else {
-            $content = htmlescape(static::getTypeName(1));
-        }
-
-        $linktype = static::getItem_DeviceType();
-        $affinity = $linktype::itemAffinity();
-
-        if (in_array($itemtype, $affinity, true) || in_array('*', $affinity, true)) {
-            $column = $base->addHeader('device', $content, $super, $father);
-            $column->setItemType(
-                static::class,
-                $options['itemtype_title'] ?? ''
-            );
-        } else {
-            $column = $father;
-        }
-
-        return $column;
-    }
-
-    /**
-     * @param HTMLTableRow|null $row object
-     * @param CommonDBTM|null $item object (default NULL)
-     * @param HTMLTableCell|null $father object (default NULL)
-     * @param array $options
-     * @return HTMLTableCell|null
-     * @throws Exception
-     * @warning note the difference between getHTMLTableCellForItem and getHTMLTableCellsForItem
-     * @since 0.84
-     */
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-
-        if (isset($options['dont_display'][static::class])) {
-            return $father;
-        }
-
-        $content = $this->getLink([
-            'icon' => self::getIcon(),
-        ]);
-
-        if ($options['canedit']) {
-            $field_name  = 'quantity_' . static::class . '_' . $this->getID();
-            $content .= "&nbsp;<span class='ti ti-plus cursor-pointer' title='" . __s('Add') . "'
-                      onClick=\"$('#" . htmlescape(jsescape($field_name)) . "').show();\"
-                      ><span class='sr-only'>" . __s('Add') . "</span></span>";
-            $content .= "<span id='" . htmlescape($field_name) . "' style='display:none'><br>";
-            $content .= __s('Add') . "&nbsp;";
-
-            $content  = [$content,
-                ['function'   => 'Dropdown::showNumber',
-                    'parameters' => [$field_name, ['value' => 0,
-                        'min'   => 0,
-                        'max'   => 10,
-                    ],
-                    ],
-                ],
-                "</span>",
-            ];
-        }
-
-        $linktype = static::getItem_DeviceType();
-        if (in_array($item::class, $linktype::itemAffinity()) || in_array('*', $linktype::itemAffinity())) {
-            $cell = $row->addCell(
-                $row->getHeaderByName('common', 'device'),
-                $content,
-                $father,
-                $this
-            );
-        } else {
-            $cell = $father;
-        }
-
-        return $cell;
-    }
-
-    /**
      * Import a device is not exists
      *
      * @param array $input Array of datas
@@ -578,19 +394,6 @@ abstract class CommonDevice extends CommonDropdown
         ];
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(static::getItem_DeviceType(), $ong, $options);
-        $this->addStandardTab(Item_Project::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     /**
      * @return void
      * @since 0.85
@@ -643,34 +446,5 @@ abstract class CommonDevice extends CommonDropdown
     {
         $this->post_workOnItem();
         parent::post_updateItem($history);
-    }
-
-    public static function getFormURL($full = true)
-    {
-        global $CFG_GLPI;
-
-        $dir = ($full ? $CFG_GLPI['root_doc'] : '');
-        $itemtype = static::class;
-        return "$dir/front/device.form.php?itemtype=$itemtype";
-    }
-
-    public static function getSearchURL($full = true)
-    {
-        global $CFG_GLPI;
-
-        $dir = ($full ? $CFG_GLPI['root_doc'] : '');
-        $itemtype = static::class;
-        return "$dir/front/device.php?itemtype=$itemtype";
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-components";
-    }
-
-    public static function displayFullPageForItem($id, ?array $menus = null, array $options = []): void
-    {
-        $options['itemtype'] = static::class;
-        parent::displayFullPageForItem($id, $menus, $options);
     }
 }

@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\Dropdown\DropdownDefinition;
 use Glpi\Features\AssetImage;
 
 use function Safe\preg_grep;
@@ -75,12 +73,6 @@ abstract class CommonDropdown extends CommonDBTM
         return _n('Dropdown', 'Dropdowns', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', self::class, static::class];
-    }
-
-
     /**
      * Is translation enabled for this itemtype
      *
@@ -92,67 +84,6 @@ abstract class CommonDropdown extends CommonDBTM
     {
         return $this->can_be_translated;
     }
-
-    public static function getMenuShorcut()
-    {
-        return 'n';
-    }
-
-    public static function getMenuContent()
-    {
-
-        $menu = [];
-        if (static::class === 'CommonDropdown') {
-            $dps = Dropdown::getStandardDropdownItemTypes();
-            if ($dps === []) {
-                return [];
-            }
-
-            $menu['title']             = static::getTypeName(Session::getPluralNumber());
-            $menu['shortcut']          = 'n';
-            $menu['page']              = '/front/dropdown.php';
-            $menu['icon']              = self::getIcon();
-            $menu['config']['default'] = '/front/dropdown.php';
-
-            $menu['links']   = [
-                DropdownDefinition::class => DropdownDefinition::getSearchURL(false),
-            ];
-            $menu['options'] = [
-                DropdownDefinition::class => [
-                    'icon'  => DropdownDefinition::getIcon(),
-                    'title' => DropdownDefinition::getTypeName(Session::getPluralNumber()),
-                    'page'  => DropdownDefinition::getSearchURL(false),
-                    'links' => [
-                        'search' => DropdownDefinition::getSearchURL(false),
-                        'add'    => DropdownDefinition::getFormURL(false),
-                    ],
-                ],
-            ];
-
-            foreach ($dps as $tab) {
-                foreach ($tab as $key => $val) {
-                    /** @var class-string<CommonDropdown> $key */
-                    if (class_exists($key)) {
-                        $menu['options'][$key]['title']           = $val;
-                        $menu['options'][$key]['page']            = $key::getSearchURL(false);
-                        $menu['options'][$key]['icon']            = $key::getIcon();
-                        $menu['options'][$key]['links']['search'] = $key::getSearchURL(false);
-                        //saved search list
-                        $menu['options'][$key]['links']['lists']  = "";
-                        $menu['options'][$key]['lists_itemtype']  = $key::getType();
-                        if ($key::canCreate()) {
-                            $menu['options'][$key]['links']['add'] = $key::getFormURL(false);
-                        }
-                    }
-                }
-            }
-
-            return $menu;
-        } else {
-            return parent::getMenuContent();
-        }
-    }
-
 
     /**
      * Return Additional Fields for this type
@@ -217,23 +148,6 @@ abstract class CommonDropdown extends CommonDBTM
         }
 
         return null;
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        if ($this->dohistory) {
-            $this->addStandardTab(Log::class, $ong, $options);
-        }
-
-        if ($this->maybeTranslated()) {
-            $this->addStandardTab(DropdownTranslation::class, $ong, $options);
-        }
-
-        return $ong;
     }
 
     /**
@@ -341,55 +255,6 @@ abstract class CommonDropdown extends CommonDBTM
         }
     }
 
-
-    public function showForm($ID, array $options = [])
-    {
-
-        if (!$this->isNewID($ID)) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $this->check(-1, CREATE);
-        }
-
-        // Specific code for templates classes, can't be run in lower classes
-        // because $this->check will override the fields property
-        if ($this instanceof AbstractITILChildTemplate) {
-            // Restore input if needed
-            $this->fields = $this->restoreInput($this->fields ?? []);
-            if ($this->isNewID($ID)) {
-                // Restore input lose the empty ID in cause of a new item so we need
-                // to set it back manually
-                $this->fields['id'] = $ID;
-            }
-        }
-
-        $fields = $this->getAdditionalFields();
-
-        echo TemplateRenderer::getInstance()->render('dropdown_form.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-            'additional_fields' => $fields,
-        ]);
-
-        return true;
-    }
-
-
-    /**
-     * Display specific field value.
-     *
-     * @param int $ID          ID of the item
-     * @param array $field     Field specs (see self::getAdditionalFields())
-     * @param array $options   Additional options
-     *
-     * @return void
-     *
-     * @since 10.0.0 $options param added
-     */
-    public function displaySpecificTypeField($ID, $field = [], array $options = []) {}
-
-
     public function pre_deleteItem()
     {
         if (isset($this->fields['is_protected']) && $this->fields['is_protected']) {
@@ -403,7 +268,6 @@ abstract class CommonDropdown extends CommonDBTM
 
         return true;
     }
-
 
     public function rawSearchOptions()
     {
@@ -605,89 +469,6 @@ abstract class CommonDropdown extends CommonDBTM
         return false;
     }
 
-
-    /**
-     * Show a dialog to Confirm delete action
-     * And propose a value to replace
-     *
-     * since 11.0.0 The `$target` parameter has been removed and its value is automatically computed.
-     *
-     * @return bool
-     */
-    public function showDeleteConfirmForm()
-    {
-
-        if ($this->haveChildren()) {
-            echo "<div class='center'><p class='red'>"
-               . __s("You can't delete that item, because it has sub-items") . "</p></div>";
-            return false;
-        }
-
-        $ID = (int) $this->fields['id'];
-
-        $target = htmlescape(static::getFormURL());
-
-        echo "<div class='center'><p class='red'>";
-        echo __s("Caution: you're about to remove a heading used for one or more items.");
-        echo "</p>";
-
-        if (!$this->must_be_replace) {
-            // Delete form (set to 0)
-            echo "<p>" . __s('If you confirm the deletion, all uses of this dropdown will be blanked.')
-              . "</p>";
-            echo "<form action='" . $target . "' method='post'>";
-            echo "<table class='tab_cadre'><tr>";
-            echo "<td><input type='hidden' name='id' value='$ID'>";
-            echo "<input type='hidden' name='itemtype' value='" . htmlescape($this->getType()) . "' />";
-            echo "<input type='hidden' name='forcepurge' value='1'>";
-            echo "<input class='btn btn-primary' type='submit' name='purge'
-                value=\"" . _sx('button', 'Confirm') . "\">";
-            echo "</td>";
-            echo "<td><input class='btn btn-primary' type='submit' name='annuler'
-                    value=\"" . _sx('button', 'Cancel') . "\">";
-            echo "</td></tr></table>\n";
-            Html::closeForm();
-            echo "<p>" . __s('You can also replace all uses of this dropdown by another.') . "</p>";
-        } else {
-            echo "<p>" . __s('You must replace all uses of this dropdown by another.') . "</p>";
-        }
-
-        // Replace form (set to new value)
-        echo "<form action='$target' method='post'>";
-        echo "<table class='tab_cadre'><tr><td>";
-
-        $replacement_options = [
-            'name' => '_replace_by',
-        ];
-        if (!$this instanceof Entity) {
-            $replacement_options['entity'] = $this->getEntityID();
-        }
-        if ($this instanceof CommonTreeDropdown) {
-            // TreeDropdown => default replacement is parent
-            $fk = $this->getForeignKeyField();
-            $replacement_options['value'] = $this->fields[$fk];
-            $replacement_options['used']  = getSonsOf($this->getTable(), $ID);
-        } else {
-            $replacement_options['used'] = [$ID];
-        }
-        Dropdown::show(
-            static::class,
-            $replacement_options
-        );
-        echo "<input type='hidden' name='id' value='$ID' />";
-        echo "<input type='hidden' name='itemtype' value='" . htmlescape($this->getType()) . "' />";
-        echo "</td><td>";
-        echo "<input class='btn btn-primary' type='submit' name='replace' value=\"" . _sx('button', 'Replace') . "\">";
-        echo "</td><td>";
-        echo "<input class='btn btn-primary' type='submit' name='annuler' value=\"" . _sx('button', 'Cancel') . "\">";
-        echo "</td></tr></table>\n";
-        Html::closeForm();
-        echo "</div>";
-
-        return true;
-    }
-
-
     /**
      * check if a dropdown already exists (before import)
      *
@@ -849,19 +630,6 @@ abstract class CommonDropdown extends CommonDBTM
         return $actions;
     }
 
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'merge':
-                echo "&nbsp;" . htmlescape($_SESSION['glpiactive_entity_shortname']);
-                echo "<br><br>" . Html::submit(_x('button', 'Merge'), ['name' => 'massiveaction']);
-                return true;
-        }
-
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
         CommonDBTM $item,
@@ -1020,11 +788,5 @@ abstract class CommonDropdown extends CommonDBTM
         $excluded = parent::getForbiddenSingleMassiveActions();
         $excluded[] = '*:merge';
         return $excluded;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-edit";
     }
 }

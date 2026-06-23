@@ -40,9 +40,4 @@ class Network extends CommonDropdown
     {
         return _n('Network', 'Networks', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-network";
-    }
 }

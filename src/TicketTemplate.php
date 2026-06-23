@@ -56,11 +56,6 @@ class TicketTemplate extends ITILTemplate
         return _n('Ticket template', 'Ticket templates', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['helpdesk', Ticket::class, self::class];
-    }
-
     public function getCloneRelations(): array
     {
         return [

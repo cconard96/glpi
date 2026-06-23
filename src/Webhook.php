@@ -95,11 +95,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return _n('Webhook', 'Webhooks', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'setup';
@@ -130,24 +125,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
     {
         $itemtype = $this->fields['itemtype'];
         return empty($itemtype) || (is_subclass_of($itemtype, CommonGLPI::class) && $itemtype::canView());
-    }
-
-    public function defineTabs($options = [])
-    {
-        $parent_tabs = parent::defineTabs();
-        $tabs = [
-            // Main tab retrieved from parents
-            array_keys($parent_tabs)[0] => array_shift($parent_tabs),
-            array_keys($parent_tabs)[0] => array_shift($parent_tabs),
-        ];
-
-        $this->addStandardTab(self::class, $tabs, $options);
-        // Add common tabs
-        $tabs = array_merge($tabs, $parent_tabs);
-        $this->addStandardTab(Log::class, $tabs, $options);
-
-        // Final order of tabs: main, filter, payload editor, queries, test, historical
-        return $tabs;
     }
 
     public function rawSearchOptions()
@@ -206,88 +183,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $tab;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'itemtype':
-                if (isset($values[$field]) && class_exists($values[$field])) {
-                    return htmlescape($values[$field]::getTypeName(0));
-                }
-                break;
-            case 'event':
-                if (!empty($values['itemtype'])) {
-                    $label = NotificationEvent::getEventName($values['itemtype'], $values[$field]);
-                    if ($label === NOT_AVAILABLE) {
-                        return htmlescape(self::getDefaultEventsListLabel($values[$field]));
-                    }
-                    return htmlescape($label);
-                }
-                break;
-            case 'http_method':
-                return htmlescape(self::getHttpMethod()[$values[$field]]);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'itemtype':
-                return Dropdown::showFromArray(
-                    $name,
-                    self::getItemtypesDropdownValues(),
-                    [
-                        'display'             => false,
-                        'display_emptychoice' => true,
-                        'value'               => $values[$field],
-                    ]
-                );
-            case 'event':
-                $recursive_search = static function ($list_itemtype) use (&$recursive_search) {
-                    /**
-                     * @var array<class-string<CommonDBTM>, string> $list_itemtype
-                     */
-                    $events = [];
-                    foreach ($list_itemtype as $itemtype => $itemtype_label) {
-                        if (is_array($itemtype_label)) {
-                            $events += $recursive_search($itemtype_label);
-                        } else {
-                            if (isset($itemtype) && class_exists($itemtype)) {
-                                $target = NotificationTarget::getInstanceByType($itemtype);
-                                if ($target) {
-                                    $events[$itemtype::getTypeName(0)] = $target->getAllEvents();
-                                } else {
-                                    //return standard CRUD
-                                    $events[$itemtype::getTypeName(0)] = self::getDefaultEventsList();
-                                }
-                            }
-                        }
-                    }
-                    return $events;
-                };
-
-                $events = $recursive_search(self::getItemtypesDropdownValues());
-                return Dropdown::showFromArray(
-                    $name,
-                    $events,
-                    [
-                        'display'             => false,
-                        'display_emptychoice' => true,
-                        'value'               => $values[$field],
-                    ]
-                );
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
     /**
      * Return a list of GLPI events that are valid for an itemtype.
      *
@@ -343,22 +238,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
             'patch'     => 'PATCH',
             'put'       => 'PUT',
         ];
-    }
-
-    /**
-    * Return status icon
-     *
-     * @param string $status
-    *
-    * @return string
-    */
-    public static function getStatusIcon($status): string
-    {
-        if ($status) {
-            return '<i class="ti ti-alert-triangle icon-pulse fs-2" style="color: #ff0000;"></i>';
-        } else {
-            return '<i class="ti ti-circle-check icon-pulse fs-2" style="color: #36d601;"></i>';
-        }
     }
 
     /**
@@ -758,140 +637,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
         return $path;
     }
 
-    public function showForm($id, array $options = [])
-    {
-        if (!empty($id)) {
-            $this->getFromDB($id);
-
-            //validate CRA if needed
-            if (GLPI_WEBHOOK_CRA_MANDATORY || (isset($this->fields['use_cra_challenge']) && $this->fields['use_cra_challenge'])) {
-                $response = self::validateCRAChallenge($this->fields['url'], 'validate_cra_challenge', $this->fields['secret']);
-                if (!$response['status']) {
-                    $this->fields['is_cra_challenge_valid'] = false;
-                    $this->update($this->fields);
-                }
-            }
-        } else {
-            $this->getEmpty();
-        }
-        $this->initForm($id, $options);
-
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook.html.twig', [
-            'item' => $this,
-            'response_schema' => self::getMonacoSuggestions($this->fields['itemtype']),
-        ]);
-
-        return true;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$item instanceof self) {
-            throw new RuntimeException("This tab is only available for Webhooks items");
-        }
-
-        $headers_count = count($item->fields['custom_headers']);
-        if ($headers_count > 0) {
-            // If there are custom headers, we will include the static ones in the count.
-            // Otherwise, we won't show a count at all.
-            $headers_count += 2;
-        }
-
-        $queries_count = 0;
-        $params = $item->getSentQueriesSearchParams();
-        $params['export_all'] = true;
-        $data = Search::getDatas(QueuedWebhook::class, $params);
-        if (isset($data['data']['totalcount'])) {
-            $queries_count = $data['data']['totalcount'];
-        }
-
-        $no_preview = [Event::class];
-        $has_preview = !in_array($item->fields['itemtype'], $no_preview, true);
-
-        $tabs = [
-            1 => self::createTabEntry(__('Security'), 0, $item::getType(), 'ti ti-shield-lock'),
-            2 => self::createTabEntry(__('Payload editor'), 0, $item::getType(), 'ti ti-code-dots'),
-            3 => self::createTabEntry(_n('Custom header', 'Custom headers', Session::getPluralNumber()), $headers_count, $item::getType(), 'ti ti-code-plus'),
-            4 => self::createTabEntry(_n('Query log', 'Queries log', Session::getPluralNumber()), $queries_count, $item::getType(), 'ti ti-mail-forward'),
-        ];
-        if ($has_preview) {
-            $tabs[5] = self::createTabEntry(__('Preview'), 0, $item::getType(), 'ti ti-eye-exclamation');
-        }
-        return $tabs;
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof self) {
-            return false;
-        }
-
-        if ($tabnum === 1) {
-            $item->showSecurityForm();
-            return true;
-        }
-
-        if ($tabnum === 2) {
-            $item->showPayloadEditor();
-            return true;
-        }
-
-        if ($tabnum === 3) {
-            $item->showCustomHeaders();
-            return true;
-        }
-
-        if ($tabnum === 4) {
-            $item->showSentQueries();
-            return true;
-        }
-
-        if ($tabnum === 5) {
-            $item->showPreviewForm();
-            return true;
-        }
-
-        return false;
-    }
-
-    private function showSecurityForm(): void
-    {
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_security.html.twig', [
-            'item' => $this,
-            'params' => [
-                'candel' => false,
-                'formfooter' => false,
-            ],
-        ]);
-    }
-
-    private function showCustomHeaders(): void
-    {
-        $schema = self::getAPISchemaBySupportedItemtype($this->fields['itemtype']);
-        $item_fields = Doc\Schema::flattenProperties($schema['properties'], 'item.');
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhook_headers.html.twig', [
-            'item' => $this,
-            'item_fields' => $item_fields,
-            'response_schema' => self::getMonacoSuggestions($this->fields['itemtype']),
-            'params' => [
-                'candel' => false,
-                'formfooter' => false,
-            ],
-        ]);
-    }
-
-    private function showPreviewForm(): void
-    {
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/webhooktest.html.twig', [
-            'item' => $this,
-            'params' => [
-                'canedit' => false,
-                'candel' => false,
-                'formfooter' => false,
-            ],
-        ]);
-    }
-
     /**
      * @param array $schema The API schema used to generate the payload
      * @return string The default payload as a twig template
@@ -1020,54 +765,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
             $response_schema[] = $suggestion;
         }
         return $response_schema;
-    }
-
-    private function showPayloadEditor(): void
-    {
-        $schema = self::getAPISchemaBySupportedItemtype($this->fields['itemtype']);
-        $response_schema = self::getMonacoSuggestions($this->fields['itemtype']);
-
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/payload_editor.html.twig', [
-            'item' => $this,
-            'params' => [
-                'canedit' => $this->canUpdateItem(),
-                'candel' => false,
-            ],
-            'response_schema' => $response_schema,
-            'default_payload' => $this->getDefaultPayloadAsTwigTemplate($schema),
-        ]);
-    }
-
-    private function getSentQueriesSearchParams(): array
-    {
-        return [
-            'criteria' => [
-                [
-                    'link' => 'AND',
-                    'field' => 22,
-                    'searchtype' => 'equals',
-                    'value' => $this->fields['id'],
-                ],
-            ],
-            // Sort by creation date descending by default
-            'sort' => [16],
-            'order' => ['DESC'],
-            'forcetoview' => [80, 2, 20, 21, 31, 7, 30, 16],
-            'is_deleted' => 0,
-            'as_map' => 0,
-            'browse' => 0,
-            'push_history' => 0,
-            'hide_controls' => 1,
-            'showmassiveactions' => 0,
-            'usesession' => 0, // Don't save the search criteria in session or use any criteria currently saved
-        ];
-    }
-
-    private function showSentQueries(): void
-    {
-        // Show embedded search engine for QueuedWebhook with the criteria for the current webhook ID
-        $params = $this->getSentQueriesSearchParams();
-        Search::showList(QueuedWebhook::class, $params);
     }
 
     /**
@@ -1386,34 +1083,6 @@ class Webhook extends CommonDBTM implements FilterableInterface
     public function post_getEmpty()
     {
         $this->fields['is_cra_challenge_valid'] = 0;
-    }
-
-    public static function getMenuContent()
-    {
-        $menu = [];
-        if (Webhook::canView()) {
-            $menu = [
-                'title'    => _n('Webhook', 'Webhooks', Session::getPluralNumber()),
-                'page'     => '/front/webhook.php',
-                'icon'     => static::getIcon(),
-            ];
-            $menu['links']['search'] = '/front/webhook.php';
-            $menu['links']['add'] = '/front/webhook.form.php';
-
-            $mp_icon     = htmlescape(QueuedWebhook::getIcon());
-            $mp_title    = htmlescape(QueuedWebhook::getTypeName());
-            $queuedwebhook = "<i class='$mp_icon pointer' title='$mp_title'></i><span class='d-none d-xxl-block'>$mp_title</span>";
-            $menu['links'][$queuedwebhook] = '/front/queuedwebhook.php';
-        }
-        if (count($menu)) {
-            return $menu;
-        }
-        return false;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-webhook";
     }
 
     public function getItemtypeToFilter(): string

@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\StateInterface;
 
 /**
@@ -50,17 +49,10 @@ class SoftwareVersion extends CommonDBChild implements StateInterface
     public static $itemtype = Software::class;
     public static $items_id  = 'softwares_id';
 
-    protected $displaylist = false;
-
 
     public static function getTypeName($nb = 0)
     {
         return _n('Version', 'Versions', $nb);
-    }
-
-    public static function getIcon()
-    {
-        return Software::getIcon();
     }
 
     public function cleanDBonPurge()
@@ -72,16 +64,6 @@ class SoftwareVersion extends CommonDBChild implements StateInterface
         );
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Item_SoftwareVersion::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     public function getPreAdditionalInfosForName()
     {
         $soft = new Software();
@@ -89,46 +71,6 @@ class SoftwareVersion extends CommonDBChild implements StateInterface
             return $soft->getName();
         }
         return '';
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->check($ID, READ);
-            $softwares_id = $this->fields['softwares_id'];
-        } else {
-            $softwares_id = $options['softwares_id'];
-            $this->check(-1, CREATE, $options);
-        }
-
-        // Only count softwareversions_id_buy (don't care of softwareversions_id_use if no installation)
-        if (
-            (SoftwareLicense::countForVersion($ID) > 0)
-            || (Item_SoftwareVersion::countForVersion($ID) > 0)
-        ) {
-            $options['candel'] = false;
-        }
-
-        $twig_params = [
-            'item' => $this,
-            'softwares_id' => $softwares_id,
-            'params' => $options,
-        ];
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% extends 'generic_show_form.html.twig' %}
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-
-            {% block form_fields %}
-                {% if item.isNewItem() %}
-                    <input type="hidden" name="softwares_id" value="{{ softwares_id }}">
-                {% endif %}
-                {{ fields.htmlField('', get_item_link('Software', softwares_id), 'Software'|itemtype_name()) }}
-                {{ parent() }}
-                {{ fields.dropdownField('OperatingSystem', 'operatingsystems_id', item.fields['operatingsystems_id'], 'OperatingSystem'|itemtype_name()) }}
-            {% endblock %}
-TWIG, $twig_params);
-        return true;
     }
 
     public function rawSearchOptions()
@@ -256,132 +198,5 @@ TWIG, $twig_params);
             $values[$ID] = $output;
         }
         return Dropdown::showFromArray($p['name'], $values, $p);
-    }
-
-    /**
-     * Show Versions of a software
-     *
-     * @param Software $soft Software object
-     *
-     * @return void
-     **/
-    public static function showForSoftware(Software $soft)
-    {
-        global $DB;
-
-        $softwares_id = $soft->getID();
-
-        if (!$soft->can($softwares_id, READ)) {
-            return;
-        }
-        $canedit = $soft->canEdit($softwares_id);
-
-        if ($canedit) {
-            $twig_params = [
-                'btn_msg' => _x('button', 'Add a version'),
-                'softwares_id' => $softwares_id,
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div class="text-center mb-3">
-                    <a class="btn btn-primary" href="{{ 'SoftwareVersion'|itemtype_form_path }}?softwares_id={{ softwares_id }}">{{ btn_msg }}</a>
-                </div>
-TWIG, $twig_params);
-        }
-
-        $sv_table = self::getTable();
-        $state_table = State::getTable();
-        $iterator = $DB->request([
-            'SELECT' => [
-                "$sv_table.*",
-                "$state_table.name AS sname",
-            ],
-            'FROM' => $sv_table,
-            'LEFT JOIN' => [
-                $state_table  => [
-                    'ON' => [
-                        $sv_table => 'states_id',
-                        $state_table => 'id',
-                    ],
-                ],
-            ],
-            'WHERE'     => [
-                'softwares_id' => $softwares_id,
-            ],
-            'ORDERBY'   => 'name',
-        ]);
-
-        $tot = 0;
-        $entries = [];
-        $sv = new self();
-        foreach ($iterator as $data) {
-            $sv->getFromResultSet($data);
-            $nb = Item_SoftwareVersion::countForVersion($data['id']);
-
-            $tot += $nb;
-            $entries[] = [
-                'itemtype' => self::class,
-                'id' => $sv->getID(),
-                'version' => $sv->getLink(),
-                'status' => $data['sname'],
-                'os' => Dropdown::getDropdownName('glpi_operatingsystems', $data['operatingsystems_id']),
-                'arch' => $data['arch'],
-                'installations' => $nb,
-                'comments' => nl2br(htmlescape($data['comment'])),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'version' => self::getTypeName(Session::getPluralNumber()),
-                'status' => __('Status'),
-                'os' => OperatingSystem::getTypeName(1),
-                'arch' => _n('Architecture', 'Architectures', 1),
-                'installations' => _n('Installation', 'Installations', Session::getPluralNumber()),
-                'comments' => _n('Comment', 'Comments', Session::getPluralNumber()),
-            ],
-            'formatters' => [
-                'version' => 'raw_html',
-                'comments' => 'raw_html',
-            ],
-            'footers' => [
-                ['', '', '', __('Total'), $tot, ''],
-            ],
-            'footer_class' => 'fw-bold',
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . mt_rand(),
-            ],
-        ]);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            $nb = 0;
-            switch ($item::class) {
-                case Software::class:
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(static::getTable(), ['softwares_id' => $item->getID()]);
-                    }
-                    return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === Software::class) {
-            self::showForSoftware($item);
-        }
-        return true;
     }
 }

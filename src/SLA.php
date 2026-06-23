@@ -61,22 +61,10 @@ class SLA extends LevelAgreement
         return __('SLA');
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', SLM::class, self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'setup';
     }
-
-    public static function getIcon()
-    {
-        return SLM::getIcon();
-    }
-
-    public function showFormWarning() {}
 
     public function getAddConfirmation(): array
     {

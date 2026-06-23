@@ -44,13 +44,6 @@ class PrinterModel extends CommonDropdown
         return _n('Printer model', 'Printer models', $nb);
     }
 
-
-    public static function getFieldLabel()
-    {
-        return _n('Model', 'Models', 1);
-    }
-
-
     public function cleanDBonPurge()
     {
 
@@ -60,10 +53,5 @@ class PrinterModel extends CommonDropdown
                 CartridgeItem_PrinterModel::class,
             ]
         );
-    }
-
-    public static function getIcon()
-    {
-        return Printer::getIcon();
     }
 }

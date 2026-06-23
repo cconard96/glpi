@@ -32,8 +32,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * SoftwareLicense_User Class
  *
@@ -98,33 +96,6 @@ class SoftwareLicense_User extends CommonDBRelation
         return SoftwareLicense::getTypeName($nb);
     }
 
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate && SoftwareLicense::canView() && $item::class === User::class) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(SoftwareLicense_User::getTable(), ['users_id' => $item->fields['id']]);
-            }
-            return self::createTabEntry(
-                SoftwareLicense_User::getTypeName(Session::getPluralNumber()),
-                $nb,
-                $item::class,
-                'ti ti-package'
-            );
-        }
-
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$withtemplate && SoftwareLicense::canView() && $item::class === User::class) {
-            self::showForUser($item, $withtemplate);
-        }
-
-        return true;
-    }
-
     public static function countForLicense(int $softwarelicenses_id): int
     {
         global $DB;
@@ -147,116 +118,5 @@ class SoftwareLicense_User extends CommonDBRelation
         ]);
 
         return $iterator->current()['cpt'];
-    }
-
-    private static function showForUser(CommonDBTM $item, int $withtemplate = 0): void
-    {
-        $ID = $item->fields['id'];
-
-        if (
-            !SoftwareLicense::canView()
-            || !$item->can($ID, READ)
-        ) {
-            return;
-        }
-
-        $canedit = $item->can($ID, UPDATE);
-        $rand = mt_rand();
-
-        $iterator = self::getListForItem($item);
-
-        $licenses = [];
-        $used     = [];
-        foreach ($iterator as $data) {
-            $licenses[$data['id']] = $data;
-            $used[$data['id']]     = $data['id'];
-        }
-        if ($canedit && ((int) $withtemplate !== 2)) {
-            $twig_params = [
-                'item' => $item,
-                'used' => $used,
-                'btn_label' => _x('button', 'Add'),
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                {% import 'components/form/fields_macros.html.twig' as fields %}
-                <div class="mb-3">
-                    <form method="post" action="{{ 'Item_SoftwareLicense'|itemtype_form_path }}">
-                        <input type="hidden" name="itemtype" value="{{ get_class(item) }}">
-                        <input type="hidden" name="items_id" value="{{ item.getID() }}">
-                        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
-                        <div class="d-flex">
-                            {{ fields.dropdownField('SoftwareLicense', 'softwarelicenses_id', 0, __('Add a licence'), {
-                                used: used,
-                            }) }}
-                            {% set btn %}
-                                <button type="submit" name="add" class="btn btn-primary"><i class="ti ti-link"></i><span>{{ btn_label }}</span></button>
-                            {% endset %}
-                            {{ fields.htmlField('', btn, null) }}
-                        </div>
-                    </form>
-                </div>
-TWIG, $twig_params);
-        }
-
-        $entries = [];
-        $entity_cache = [];
-        $type_cache = [];
-        foreach ($licenses as $data) {
-            $entry = [
-                'itemtype'  => self::class,
-                'id'        => $data['linkid'],
-                'row_class' => $data['is_deleted'] ? 'table-danger' : '',
-                'number'    => $data['number'],
-            ];
-            $license = new SoftwareLicense();
-            $license->getFromResultSet($data);
-            $entry['name'] = $license->getLink();
-            if (!isset($entity_cache[$license->fields["entities_id"]])) {
-                $entity_cache[$license->fields["entities_id"]] = Dropdown::getDropdownName(
-                    "glpi_entities",
-                    $license->fields["entities_id"]
-                );
-            }
-            $entry['entity'] = $entity_cache[$license->fields["entities_id"]];
-
-            $software = new Software();
-            $entry['software'] = $software->getFromDB($license->fields["softwares_id"])
-                ? $software->getLink()
-                : '-';
-
-            if (!isset($type_cache[$license->fields["softwarelicensetypes_id"]])) {
-                $type_cache[$license->fields["softwarelicensetypes_id"]] = Dropdown::getDropdownName(
-                    "glpi_softwarelicensetypes",
-                    $license->fields["softwarelicensetypes_id"]
-                );
-            }
-            $entry['type'] = $type_cache[$license->fields["softwarelicensetypes_id"]];
-            $entries[] = $entry;
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'entity' => Entity::getTypeName(1),
-                'software' => Software::getTypeName(1),
-                'type' => _n('Type', 'Types', 1),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-                'software' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit && (int) $withtemplate !== 2,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
     }
 }

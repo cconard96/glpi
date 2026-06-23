@@ -42,14 +42,4 @@ class CableType extends CommonDropdown
     {
         return _n('Cable type', 'Cable types', $nb);
     }
-
-    public static function getFieldLabel()
-    {
-        return self::getTypeName(1);
-    }
-
-    public static function getIcon()
-    {
-        return Cable::getIcon();
-    }
 }

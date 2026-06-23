@@ -75,10 +75,4 @@ class NetworkPortAlias extends NetworkPortInstantiation
     {
         return parent::prepareInputForUpdate($this->prepareInput($input));
     }
-
-    public function showInstantiationForm(NetworkPort $netport, $options, $recursiveItems)
-    {
-        $this->showMacField($netport, $options);
-        $this->showNetworkPortSelector($recursiveItems, static::class);
-    }
 }

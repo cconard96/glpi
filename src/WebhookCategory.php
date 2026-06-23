@@ -41,9 +41,4 @@ class WebhookCategory extends CommonTreeDropdown
     {
         return _n('Webhook category', 'Webhook categories', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-tags";
-    }
 }

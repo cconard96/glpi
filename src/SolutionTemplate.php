@@ -56,10 +56,8 @@ class SolutionTemplate extends AbstractITILChildTemplate
         return _n('Solution template', 'Solution templates', $nb);
     }
 
-
     public function getAdditionalFields()
     {
-
         return [
             [
                 'name'  => 'solutiontypes_id',
@@ -78,7 +76,6 @@ class SolutionTemplate extends AbstractITILChildTemplate
             ],
         ];
     }
-
 
     public function rawSearchOptions()
     {
@@ -102,11 +99,6 @@ class SolutionTemplate extends AbstractITILChildTemplate
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-stack-2-filled";
     }
 
     public function getCloneRelations(): array

@@ -34,38 +34,8 @@
 
 namespace Glpi\Asset\CustomFieldOption;
 
-use Glpi\Application\View\TemplateRenderer;
-
 class ProfileRestrictOption extends AbstractOption
 {
-    public function getFormInput(): string
-    {
-        $value = parent::getValue();
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-        $twig_params = [
-            'item' => $this->custom_field,
-            'key' => $this->getKey(),
-            'label' => $this->getName(),
-            'value' => array_filter($value),
-            'all_label' => __('All'),
-        ];
-        // language=Twig
-        return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {{ fields.dropdownField('Profile', 'field_options[' ~ key ~ ']', value, label, {
-                multiple: true,
-                to_add: {
-                    '-1': all_label
-                },
-                condition: {
-                    'interface': 'central'
-                }
-            }) }}
-        TWIG, $twig_params);
-    }
-
     public function getValue(): bool
     {
         $value = parent::getValue() ?? [];

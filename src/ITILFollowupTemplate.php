@@ -55,7 +55,6 @@ class ITILFollowupTemplate extends AbstractITILChildTemplate
         return _n('Followup template', 'Followup templates', $nb);
     }
 
-
     public function getAdditionalFields()
     {
         return [
@@ -84,7 +83,6 @@ class ITILFollowupTemplate extends AbstractITILChildTemplate
             ],
         ];
     }
-
 
     public function rawSearchOptions()
     {
@@ -124,11 +122,6 @@ class ITILFollowupTemplate extends AbstractITILChildTemplate
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-stack-2-filled";
     }
 
     public function getCloneRelations(): array

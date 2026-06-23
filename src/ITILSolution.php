@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\ContentTemplates\TemplateManager;
 
 /**
@@ -56,25 +55,6 @@ class ITILSolution extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return _n('Solution', 'Solutions', $nb);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if ($item->isNewItem()) {
-            return '';
-        }
-        if (
-            ($item instanceof CommonITILObject)
-            && $item->maySolve()
-        ) {
-            $nb    = 0;
-            $title = self::getTypeName(Session::getPluralNumber());
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = self::countFor($item->getType(), $item->getID());
-            }
-            return self::createTabEntry($title, $nb, $item::getType());
-        }
-        return '';
     }
 
     public static function canView(): bool
@@ -139,30 +119,6 @@ class ITILSolution extends CommonDBChild
                 $this->item->getFromDB($this->fields['items_id']);
             }
         }
-    }
-
-    /**
-     * Print the phone form
-     *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - item: CommonITILObject instance
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        if ($this->isNewItem()) {
-            $this->getEmpty();
-        }
-
-        TemplateRenderer::getInstance()->display('components/itilobject/timeline/form_solution.html.twig', [
-            'item'    => $options['parent'] ?? null,
-            'subitem' => $this,
-            'params'  => $options,
-        ]);
-
-        return true;
     }
 
     /**
@@ -375,61 +331,6 @@ class ITILSolution extends CommonDBChild
         parent::post_updateItem($history);
     }
 
-
-    /**
-     * {@inheritDoc}
-     * @see CommonDBTM::getSpecificValueToDisplay()
-     */
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'status':
-                $value = $values[$field];
-                $statuses = self::getStatuses();
-
-                return htmlescape($statuses[$value] ?? $value);
-            case 'itemtype':
-                if (in_array($values['itemtype'], [Ticket::class, Change::class, Problem::class])) {
-                    return htmlescape($values['itemtype']::getTypeName(1));
-                }
-                return htmlescape($values['itemtype']);
-        }
-
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    /**
-     * {@inheritDoc}
-     * @see CommonDBTM::getSpecificValueToSelect()
-     */
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'status':
-                $options['display'] = false;
-                $options['value'] = $values[$field];
-                return Dropdown::showFromArray($name, self::getStatuses(), $options);
-            case 'itemtype':
-                return Dropdown::showFromArray($field, [
-                    Ticket::class => Ticket::getTypeName(1),
-                    Change::class => Change::getTypeName(1),
-                    Problem::class => Problem::getTypeName(1),
-                ], $options);
-        }
-
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
     /**
      * Return list of statuses.
      * Key as status values, values as labels.
@@ -443,11 +344,6 @@ class ITILSolution extends CommonDBChild
             CommonITILValidation::REFUSED  => _x('solution', 'Refused'),
             CommonITILValidation::ACCEPTED => __('Accepted'),
         ];
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-check';
     }
 
     public function rawSearchOptions()

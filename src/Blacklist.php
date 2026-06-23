@@ -146,50 +146,6 @@ class Blacklist extends CommonDropdown
         return $input;
     }
 
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-
-        if ($field['name'] == 'type') {
-            self::dropdownType($field['name'], [
-                'value' => $this->fields['type'],
-                'width' => '100%',
-            ]);
-        }
-    }
-
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'type':
-                $types = self::getTypes();
-                return htmlescape($types[$values[$field]]);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'type':
-                $options['value']  = $values[$field];
-                return self::dropdownType($name, $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-
     /**
      * Dropdown of blacklist types
      *
@@ -563,11 +519,6 @@ class Blacklist extends CommonDropdown
                 unset($value->$key);
             }
         }
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-ban";
     }
 
     public function getCloneRelations(): array

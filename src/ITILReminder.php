@@ -52,9 +52,4 @@ class ITILReminder extends CommonDBChild
         $pending_reason->getFromDB($this->fields['pendingreasons_id']);
         return $pending_reason;
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-refresh-alert";
-    }
 }

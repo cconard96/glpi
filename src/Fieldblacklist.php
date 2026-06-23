@@ -48,7 +48,6 @@ class Fieldblacklist extends CommonDropdown
         return _n('Ignored value for the unicity', 'Ignored values for the unicity', $nb);
     }
 
-
     public static function canCreate(): bool
     {
         return static::canUpdate();
@@ -58,8 +57,6 @@ class Fieldblacklist extends CommonDropdown
     {
         return static::canUpdate();
     }
-
-
 
     public function getAdditionalFields()
     {
@@ -122,81 +119,6 @@ class Fieldblacklist extends CommonDropdown
         return $tab;
     }
 
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'field':
-                if (isset($values['itemtype']) && !empty($values['itemtype'])) {
-                    $target       = getItemForItemtype($values['itemtype']);
-                    $searchOption = $target->getSearchOptionByField('field', $values[$field]);
-                    return htmlescape($searchOption['name']);
-                }
-                break;
-
-            case 'value':
-                if (isset($values['itemtype']) && !empty($values['itemtype'])) {
-                    $target = getItemForItemtype($values['itemtype']);
-                    if (isset($values['field']) && !empty($values['field'])) {
-                        $searchOption = $target->getSearchOptionByField('field', $values['field']);
-                        return $target->getValueToDisplay($searchOption, $values[$field]);
-                    }
-                }
-                break;
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param $field
-     * @param $name               (default '')
-     * @param $values             (default '')
-     * @param $options      array
-     **/
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'field':
-                if (
-                    isset($values['itemtype'])
-                    && !empty($values['itemtype'])
-                ) {
-                    $options['value'] = $values[$field];
-                    $options['name']  = $name;
-                    return self::dropdownField($values['itemtype'], $options);
-                }
-                break;
-
-            case 'value':
-                if (
-                    isset($values['itemtype'])
-                    && !empty($values['itemtype'])
-                ) {
-                    if ($item = getItemForItemtype($values['itemtype'])) {
-                        if (isset($values['field']) && !empty($values['field'])) {
-                            $searchOption = $item->getSearchOptionByField('field', $values['field']);
-                            return $item->getValueToSelect($searchOption, $name, $values[$field], $options);
-                        }
-                    }
-                }
-                break;
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-
     public function prepareInputForAdd($input)
     {
 
@@ -211,110 +133,6 @@ class Fieldblacklist extends CommonDropdown
         $input = parent::prepareInputForUpdate($input);
         return $input;
     }
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-
-        switch ($field['type']) {
-            case 'blacklist_itemtype':
-                $this->showItemtype();
-                break;
-
-            case 'blacklist_field':
-                $this->selectCriterias();
-                break;
-
-            case 'blacklist_value':
-                $this->selectValues();
-                break;
-        }
-    }
-
-
-    /**
-     * Display a dropdown which contains all the available itemtypes
-     *
-     * @return void
-     **/
-    public function showItemtype()
-    {
-        global $CFG_GLPI;
-
-        if ($this->fields['id'] > 0) {
-            if ($item = getItemForItemtype($this->fields['itemtype'])) {
-                echo htmlescape($item->getTypeName(1));
-            }
-            echo "<input type='hidden' name='itemtype' value='" . htmlescape($this->fields['itemtype']) . "'>";
-        } else {
-            //Add criteria : display dropdown
-            $options = [];
-            foreach ($CFG_GLPI['unicity_types'] as $itemtype) {
-                if ($item = getItemForItemtype($itemtype)) {
-                    if ($item->can(-1, READ)) {
-                        $options[$itemtype] = $item->getTypeName(1);
-                    }
-                }
-            }
-            asort($options);
-            $rand = Dropdown::showFromArray(
-                'itemtype',
-                $options,
-                ['value'               => $this->fields['value'],
-                    'display_emptychoice' => true,
-                ]
-            );
-
-            $params = ['itemtype' => '__VALUE__',
-                'id'       => $this->fields['id'],
-            ];
-            Ajax::updateItemOnSelectEvent(
-                "dropdown_itemtype$rand",
-                "span_fields",
-                $CFG_GLPI["root_doc"] . "/ajax/dropdownFieldsBlacklist.php",
-                $params
-            );
-        }
-    }
-
-
-    /**
-     * @return void
-     */
-    public function selectCriterias()
-    {
-        global $CFG_GLPI;
-
-        echo "<span id='span_fields' name='span_fields'>";
-
-        if (!isset($this->fields['itemtype']) || !$this->fields['itemtype']) {
-            echo "</span>";
-            return;
-        }
-
-        if (!isset($this->fields['entities_id'])) {
-            $this->fields['entities_id'] = $_SESSION['glpiactive_entity'];
-        }
-
-        if (
-            $rand = self::dropdownField(
-                $this->fields['itemtype'],
-                ['value' => $this->fields['field']]
-            )
-        ) {
-            $params = ['itemtype' => $this->fields['itemtype'],
-                'id_field' => '__VALUE__',
-                'id'       => $this->fields['id'],
-            ];
-            Ajax::updateItemOnSelectEvent(
-                "dropdown_field$rand",
-                "span_values",
-                $CFG_GLPI["root_doc"] . "/ajax/dropdownValuesBlacklist.php",
-                $params
-            );
-        }
-        echo "</span>";
-    }
-
 
     /** Dropdown fields for a specific itemtype
      *
@@ -363,33 +181,6 @@ class Fieldblacklist extends CommonDropdown
         }
         return false;
     }
-
-
-    /**
-     * @param string $field  (default '')
-     *
-     * @return void
-     **/
-    public function selectValues($field = '')
-    {
-        if ($field == '') {
-            $field = $this->fields['field'];
-        }
-        echo "<span id='span_values' name='span_values'>";
-        if ($this->fields['itemtype'] != '') {
-            if ($item = getItemForItemtype($this->fields['itemtype'])) {
-                $searchOption = $item->getSearchOptionByField('field', $field);
-                $options      = [];
-                if (isset($this->fields['entity'])) {
-                    $options['entity']      = $this->fields['entity'];
-                    $options['entity_sons'] = $this->fields['is_recursive'];
-                }
-                echo $item->getValueToSelect($searchOption, 'value', $this->fields['value'], $options);
-            }
-        }
-        echo "</span>";
-    }
-
 
     /**
      * Check if a field & value are blacklisted or not

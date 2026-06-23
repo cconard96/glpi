@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 use Glpi\Features\StateInterface;
@@ -41,8 +40,6 @@ use Glpi\Features\StateInterface;
 /**
  * @since 9.2
  */
-
-
 class Line extends CommonDBTM implements AssignableItemInterface, StateInterface
 {
     use Glpi\Features\State;
@@ -60,11 +57,6 @@ class Line extends CommonDBTM implements AssignableItemInterface, StateInterface
         return _n('Phone line', 'Phone lines', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'financial';
@@ -79,45 +71,6 @@ class Line extends CommonDBTM implements AssignableItemInterface, StateInterface
     {
         return false;
     }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Item_Line::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-
-    /**
-     * Print the line form
-     *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/management/line.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -241,11 +194,6 @@ class Line extends CommonDBTM implements AssignableItemInterface, StateInterface
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-phone-calling";
     }
 
     public static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = false, ?CommonDBTM $checkitem = null)

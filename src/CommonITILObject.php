@@ -108,8 +108,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
     public const HELPDESK_MY_HARDWARE  = 0;
     public const HELPDESK_ALL_HARDWARE = 1;
 
-    protected static $showTitleInNavigationHeader = true;
-
     public const MATRIX_FIELD         = '';
     public const URGENCY_MASK_FIELD   = '';
     public const IMPACT_MASK_FIELD    = '';
@@ -613,89 +611,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
     }
 
     /**
-     * @param $ID
-     * @param $options   array
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        if (!static::canView()) {
-            return false;
-        }
-
-        $this->restoreInputAndDefaults($ID, $options);
-
-        $canupdate = !$ID || (Session::getCurrentInterface() == "central" && $this->canUpdateItem());
-
-        if ($ID && in_array($this->fields['status'], static::getClosedStatusArray())) {
-            $canupdate = false;
-            // No update for actors
-            $options['_noupdate'] = true;
-        }
-
-        if (!$this->isNewItem()) {
-            $options['formtitle'] = sprintf(
-                __('%1$s - ID %2$d'),
-                $this->getTypeName(1),
-                $ID
-            );
-            //set ID as already defined
-            $options['noid'] = true;
-        }
-
-        $type = null;
-        if (is_a($this, Ticket::class)) {
-            $type = ($ID ? $this->fields['type'] : $options['type']);
-        }
-        // Load template if available
-        $predefined_template = 0;
-        $template_class = static::getTemplateClass();
-        if (class_exists($template_class) && (int) $ID > 0 && isset($this->fields[$template_class::getForeignKeyField()])) {
-            $predefined_template = $this->fields[$template_class::getForeignKeyField()];
-        }
-        $tt = $this->getITILTemplateToUse(
-            $options['template_preview'] ?? $predefined_template,
-            $type,
-            ($ID ? $this->fields['itilcategories_id'] : $options['itilcategories_id']),
-            ($ID ? $this->fields['entities_id'] : $options['entities_id'])
-        );
-
-        $predefined_fields = $this->setPredefinedFields($tt, $options, static::getDefaultValues());
-        $this->initForm($this->fields['id'], $options);
-
-        $options['_canupdate'] = Session::haveRight(static::$rightname, UPDATE);
-        $item_commonitilobject = null;
-        if ($options['_canupdate']) {
-            //compute related item object (Ticket has his own showForm)
-            $item_link = static::getItemLinkClass();
-            $item_commonitilobject = getItemForItemtype($item_link);
-        }
-
-        $mention_options = UserMention::getMentionOptions($this);
-
-        TemplateRenderer::getInstance()->display('components/itilobject/layout.html.twig', [
-            'item'                    => $this,
-            'mention_options'         => $mention_options,
-            'timeline_itemtypes'      => $this->getTimelineItemtypes(),
-            'legacy_timeline_actions' => $this->getLegacyTimelineActionsHTML(),
-            'params'                  => $options,
-            'entities_id'             => $ID ? $this->fields['entities_id'] : $options['entities_id'],
-            'timeline'                => $this->getTimelineItems(),
-            'itiltemplate_key'        => static::getTemplateFormFieldName(),
-            'itiltemplate'            => $tt,
-            'item_commonitilobject'   => $item_commonitilobject,
-            'predefined_fields'       => Toolbox::prepareArrayForInput($predefined_fields),
-            'canupdate'               => $canupdate,
-            'canpriority'             => $canupdate,
-            'canassign'               => $canupdate,
-            'can_requester'           => $this->canRequesterUpdateItem(),
-            'has_pending_reason'      => PendingReason_Item::getForItem($this) !== false,
-            'survey'                  => $this->getSatisfactionSurvey(),
-        ]);
-
-        return true;
-    }
-
-    /**
      * Return an array of predefined fields from provided template
      * Append also data to $options param (passed by reference) :
      *  - if we transform a ticket (form change and problem) or a problem (for change) override with its field
@@ -871,7 +786,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $predefined_fields;
     }
 
-
     /**
      * Retrieve all possible entities for an itilobject posted data.
      * We try to retrieve requesters in the data:
@@ -913,7 +827,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
 
         return $entities;
     }
-
 
     /**
      * Retrieve an item from the database with datas associated (hardwares)
@@ -4131,61 +4044,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         };
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        return match ($field) {
-            'status' => htmlescape(static::getStatus($values[$field])),
-            'urgency' => htmlescape(static::getUrgencyName($values[$field])),
-            'impact' => htmlescape(static::getImpactName($values[$field])),
-            'priority' => htmlescape(static::getPriorityName($values[$field])),
-            'global_validation' => htmlescape(CommonITILValidation::getStatus($values[$field])),
-            default => parent::getSpecificValueToDisplay($field, $values, $options),
-        };
-    }
-
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'status':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return static::dropdownStatus($options);
-
-            case 'impact':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return static::dropdownImpact($options);
-
-            case 'urgency':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return static::dropdownUrgency($options);
-
-            case 'priority':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                $options['enable_filtering'] = false;
-                return static::dropdownPriority($options);
-
-            case 'global_validation':
-                $options['global'] = true;
-                $options['value']  = $values[$field];
-                return CommonITILValidation::dropdownStatus($name, $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
     public function getSpecificMassiveActions($checkitem = null)
     {
         $actions = [];
@@ -4208,64 +4066,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
 
         return $actions;
     }
-
-    /**
-     * @since 0.85
-     *
-     * @see CommonDBTM::showMassiveActionsSubForm()
-     **/
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        global $CFG_GLPI;
-
-        switch ($ma->getAction()) {
-            case 'add_task':
-                $itemtype_or_selector = $ma->getItemtype(true);
-
-                if (is_bool($itemtype_or_selector)) {
-                    // MassiveAction::getItemtype() will return a boolean if the itemtype selector needs to be displayed.
-                    return $itemtype_or_selector;
-                }
-
-                // MassiveAction::getItemtype() will return a classname if the selector does not need to be displayed.
-                $itemtype = $itemtype_or_selector;
-
-                $tasktype = $itemtype . 'Task';
-                if ($ttype = getItemForItemtype($tasktype)) {
-                    /** @var CommonITILTask $ttype */
-                    $ttype->showMassiveActionAddTaskForm();
-                    return true;
-                }
-                return false;
-
-            case 'add_actor':
-                $types            = [0                          => Dropdown::EMPTY_VALUE,
-                    CommonITILActor::REQUESTER => _n('Requester', 'Requesters', 1),
-                    CommonITILActor::OBSERVER  => _n('Observer', 'Observers', 1),
-                    CommonITILActor::ASSIGN    => __('Assigned to'),
-                ];
-                $rand             = Dropdown::showFromArray('actortype', $types);
-
-                $paramsmassaction = ['actortype' => '__VALUE__'];
-
-                Ajax::updateItemOnSelectEvent(
-                    "dropdown_actortype$rand",
-                    "show_massiveaction_field",
-                    $CFG_GLPI["root_doc"]
-                                             . "/ajax/dropdownMassiveActionAddActor.php",
-                    $paramsmassaction
-                );
-                echo "<span id='show_massiveaction_field'>&nbsp;</span>\n";
-                return true;
-            case 'update_notif':
-                Dropdown::showYesNo('use_notification');
-                echo "<br><br>";
-                echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
 
     /**
      * @since 0.85
@@ -5318,113 +5118,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $key;
     }
 
-
-    /**
-     * show actor add div
-     *
-     * @param CommonITILActor::REQUESTER|CommonITILActor::ASSIGN|CommonITILActor::OBSERVER $type    actor type
-     * @param int $rand_type      rand value of div to use
-     * @param int $entities_id    entity ID
-     * @param array $is_hidden        of hidden fields (if empty consider as not hidden)
-     * @param bool $withgroup      allow adding a group (true by default)
-     * @param bool $withsupplier   allow adding a supplier (only one possible in ASSIGN case)
-     *                               (false by default)
-     * @param bool $inobject       display in ITIL object ? (true by default)
-     *
-     * @return void|bool Nothing if displayed, false if not applicable
-     **/
-    public function showActorAddForm(
-        $type,
-        $rand_type,
-        $entities_id,
-        $is_hidden = [],
-        $withgroup = true,
-        $withsupplier = false,
-        $inobject = true
-    ) {
-        global $CFG_GLPI;
-
-        $types = ['user'  => User::getTypeName(1)];
-
-        if ($withgroup) {
-            $types['group'] = Group::getTypeName(1);
-        }
-
-        if (
-            $withsupplier
-            && ($type == CommonITILActor::ASSIGN)
-        ) {
-            $types['supplier'] = Supplier::getTypeName(1);
-        }
-
-        $typename = static::getActorFieldNameType((int) $type);
-        switch ($type) {
-            case CommonITILActor::REQUESTER:
-                if (isset($is_hidden['_users_id_requester']) && $is_hidden['_users_id_requester']) {
-                    unset($types['user']);
-                }
-                if (isset($is_hidden['_groups_id_requester']) && $is_hidden['_groups_id_requester']) {
-                    unset($types['group']);
-                }
-                break;
-
-            case CommonITILActor::OBSERVER:
-                if (isset($is_hidden['_users_id_observer']) && $is_hidden['_users_id_observer']) {
-                    unset($types['user']);
-                }
-                if (isset($is_hidden['_groups_id_observer']) && $is_hidden['_groups_id_observer']) {
-                    unset($types['group']);
-                }
-                break;
-
-            case CommonITILActor::ASSIGN:
-                if (isset($is_hidden['_users_id_assign']) && $is_hidden['_users_id_assign']) {
-                    unset($types['user']);
-                }
-                if (isset($is_hidden['_groups_id_assign']) && $is_hidden['_groups_id_assign']) {
-                    unset($types['group']);
-                }
-                if (
-                    isset($types['supplier'])
-                    && isset($is_hidden['_suppliers_id_assign']) && $is_hidden['_suppliers_id_assign']
-                ) {
-                    unset($types['supplier']);
-                }
-                break;
-
-            default:
-                return false;
-        }
-
-        echo "<div " . ($inobject ? "style='display:none'" : '') . " id='itilactor" . htmlescape($rand_type) . "' class='actor-dropdown'>";
-        $rand   = Dropdown::showFromArray(
-            "_itil_" . $typename . "[_type]",
-            $types,
-            ['display_emptychoice' => true]
-        );
-        $params = ['type'            => '__VALUE__',
-            'actortype'       => $typename,
-            'itemtype'        => $this->getType(),
-            'allow_email'     => (($type == CommonITILActor::OBSERVER)
-                                            || $type == CommonITILActor::REQUESTER),
-            'entity_restrict' => $entities_id,
-            'use_notif'       => Entity::getUsedConfig('is_notif_enable_default', $entities_id, '', 1),
-        ];
-
-        Ajax::updateItemOnSelectEvent(
-            "dropdown__itil_" . $typename . "[_type]$rand",
-            "showitilactor" . $typename . "_$rand",
-            $CFG_GLPI["root_doc"] . "/ajax/dropdownItilActors.php",
-            $params
-        );
-        echo "<span id='showitilactor" . htmlescape($typename) . "_$rand' class='actor-dropdown'>&nbsp;</span>";
-        if ($inobject) {
-            echo "<hr>";
-        }
-        echo "</div>";
-    }
-
-
     /**
      * @param int|float $actiontime
      * @return string
@@ -5677,104 +5370,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         }
         return 0;
     }
-
-
-    /**
-     * @return void
-     */
-    public function showStats()
-    {
-
-        if (
-            !$this->canView()
-            || !isset($this->fields['id'])
-        ) {
-            return;
-        }
-
-        $this->showStatsDates();
-        Plugin::doHook(Hooks::SHOW_ITEM_STATS, $this);
-        $this->showStatsTimes();
-    }
-
-    /**
-     * @return void
-     */
-    public function showStatsDates()
-    {
-        echo "<table class='tab_cadre_fixe'>";
-        echo "<tr><th colspan='2'>" . _sn('Date', 'Dates', Session::getPluralNumber()) . "</th></tr>";
-
-        echo "<tr class='tab_bg_2'><td>" . __s('Opening date') . "</td>";
-        echo "<td>" . htmlescape(Html::convDateTime($this->fields['date'])) . "</td></tr>";
-
-        echo "<tr class='tab_bg_2'><td>" . __s('Time to resolve') . "</td>";
-        echo "<td>" . htmlescape(Html::convDateTime($this->fields['time_to_resolve'])) . "</td></tr>";
-
-        if (!$this->isNotSolved()) {
-            echo "<tr class='tab_bg_2'><td>" . __s('Resolution date') . "</td>";
-            echo "<td>" . htmlescape(Html::convDateTime($this->fields['solvedate'])) . "</td></tr>";
-        }
-
-        if (in_array($this->fields['status'], static::getClosedStatusArray())) {
-            echo "<tr class='tab_bg_2'><td>" . __s('Closing date') . "</td>";
-            echo "<td>" . htmlescape(Html::convDateTime($this->fields['closedate'])) . "</td></tr>";
-        }
-        echo "</table>";
-    }
-
-    /**
-     * @return void
-     */
-    public function showStatsTimes()
-    {
-        echo "<div class='dates_timelines'>";
-        echo "<table class='tab_cadre_fixe'>";
-        echo "<tr><th colspan='2'>" . _sn('Time', 'Times', Session::getPluralNumber()) . "</th></tr>";
-
-        if (isset($this->fields['takeintoaccount_delay_stat'])) {
-            echo "<tr class='tab_bg_2'><td>" . __s('Take into account') . "</td><td>";
-            if ($this->fields['takeintoaccount_delay_stat'] > 0) {
-                echo htmlescape(Html::timestampToString($this->fields['takeintoaccount_delay_stat'], false, false));
-            } else {
-                echo '&nbsp;';
-            }
-            echo "</td></tr>";
-        }
-
-        if (!$this->isNotSolved()) {
-            echo "<tr class='tab_bg_2'><td>" . __s('Resolution') . "</td><td>";
-
-            if ($this->fields['solve_delay_stat'] > 0) {
-                echo htmlescape(Html::timestampToString($this->fields['solve_delay_stat'], false, false));
-            } else {
-                echo '&nbsp;';
-            }
-            echo "</td></tr>";
-        }
-
-        if (in_array($this->fields['status'], static::getClosedStatusArray())) {
-            echo "<tr class='tab_bg_2'><td>" . __s('Closure') . "</td><td>";
-            if ($this->fields['close_delay_stat'] > 0) {
-                echo htmlescape(Html::timestampToString($this->fields['close_delay_stat'], true, false));
-            } else {
-                echo '&nbsp;';
-            }
-            echo "</td></tr>";
-        }
-
-        echo "<tr class='tab_bg_2'><td>" . __s('Pending') . "</td><td>";
-        if ($this->fields['waiting_duration'] > 0) {
-            echo htmlescape(Html::timestampToString($this->fields['waiting_duration'], false, false));
-        } else {
-            echo '&nbsp;';
-        }
-        echo "</td></tr>";
-
-        echo "</table>";
-        echo "</div>";
-    }
-
 
     /** Get users_ids of itil object between 2 dates
      *
@@ -6600,417 +6195,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $tab;
     }
 
-
-    /**
-     * Display a line for an object
-     *
-     * @since 0.85 (before in each object with different parameters)
-     *
-     * @param int $id              ID of the object
-     * @param array $options           array of options
-     *      row_num                : row num used for display
-     *      type_for_massiveaction : itemtype for massive action
-     *      id_for_massaction      : default 0 means no massive action
-     * @return void
-     *
-     * @since 10.0.0 "followups" option has been dropped
-     */
-    public static function showShort($id, $options = [])
-    {
-        global $DB;
-
-        //Toolbox::deprecated('Use CommonITILObject::getDatatableEntries() instead');
-        $p = [
-            'row_num'                => 0,
-            'type_for_massiveaction' => 0,
-            'id_for_massiveaction'   => 0,
-            'followups'              => false,
-            'ticket_stats'           => false,
-        ];
-
-        if (count($options)) {
-            foreach ($options as $key => $val) {
-                $p[$key] = $val;
-            }
-        }
-
-        $rand = mt_rand();
-
-        /// TODO to be cleaned. Get datas and clean display links
-
-        // Prints a job in short form
-        // Should be called in a <table>-segment
-        // Print links or not in case of user view
-        // Make new job object and fill it from database, if success, print it
-        $item         = new static();
-
-        $candelete   = static::canDelete();
-        $canupdate   = Session::haveRight(static::$rightname, UPDATE);
-        $showprivate = Session::haveRight('followup', ITILFollowup::SEEPRIVATE);
-        $align       = "class='left'";
-        $align_desc  = "class='left'";
-
-        $output = new HTMLSearchOutput();
-        if ($item->getFromDB($id)) {
-            $item_num = 1;
-            $bgcolor  = htmlescape($_SESSION["glpipriority_" . $item->fields["priority"]]);
-            echo $output::showNewLine($p['row_num'] % 2 === 1, $item->isDeleted());
-
-            $check_col = '';
-            if (
-                ($candelete || $canupdate)
-                && $p['id_for_massiveaction']
-            ) {
-                $check_col = Html::getMassiveActionCheckBox($p['type_for_massiveaction'], $p['id_for_massiveaction']);
-            }
-            echo $output::showItem($check_col, $item_num, $p['row_num'], $align);
-
-            // First column ID
-            echo $output::showItem((string) $item->getID(), $item_num, $p['row_num'], $align);
-
-            // Second column TITLE
-            $second_column = "<span class='b'>" . htmlescape($item->getName()) . "</span>&nbsp;";
-            if ($item->canViewItem()) {
-                $second_column  = sprintf(
-                    __s('%1$s (%2$s)'),
-                    "<a id='" . htmlescape($item::class . $item->getID() . $rand) . "' href=\"" . htmlescape($item->getLinkURL()) . "\">$second_column</a>",
-                    sprintf(
-                        __s('%1$s - %2$s'),
-                        $item->numberOfFollowups($showprivate),
-                        $item->numberOfTasks($showprivate)
-                    )
-                );
-                $second_column = sprintf(
-                    __s('%1$s %2$s'),
-                    $second_column,
-                    Html::showToolTip(
-                        RichText::getEnhancedHtml($item->fields['content']),
-                        [
-                            'display' => false,
-                            'applyto' => $item->getType() . $item->fields["id"] . $rand,
-                        ]
-                    )
-                );
-            }
-            echo $output::showItem($second_column, $item_num, $p['row_num'], $align);
-
-            // third column
-            $third_col = static::getStatusIcon($item->fields["status"]);
-            echo $output::showItem($third_col, $item_num, $p['row_num'], $align);
-
-            // fourth column
-            if ($item->fields['status'] == static::CLOSED) {
-                $fourth_col = sprintf(
-                    __('Closed on %s'),
-                    Html::convDateTime($item->fields['closedate'])
-                );
-            } elseif ($item->fields['status'] == static::SOLVED) {
-                $fourth_col = sprintf(
-                    __('Solved on %s'),
-                    Html::convDateTime($item->fields['solvedate'])
-                );
-            } elseif ($item->fields['begin_waiting_date']) {
-                $fourth_col = sprintf(
-                    __('Put on hold on %s'),
-                    Html::convDateTime($item->fields['begin_waiting_date'])
-                );
-            } elseif ($item->fields['time_to_resolve']) {
-                $fourth_col = sprintf(
-                    __('%1$s: %2$s'),
-                    __('Time to resolve'),
-                    Html::convDateTime($item->fields['time_to_resolve'])
-                );
-            } else {
-                $fourth_col = sprintf(
-                    __('Opened on %s'),
-                    Html::convDateTime($item->fields['date'])
-                );
-            }
-            $fourth_col = htmlescape($fourth_col);
-
-            echo $output::showItem($fourth_col, $item_num, $p['row_num'], $align . " width=130");
-
-            // fifth column
-            $fifth_col = htmlescape(Html::convDateTime($item->fields["date_mod"]));
-            echo $output::showItem($fifth_col, $item_num, $p['row_num'], $align . " width=90");
-
-            // sixth column
-            if (count($_SESSION["glpiactiveentities"]) > 1) {
-                $sixth_col = htmlescape(Dropdown::getDropdownName('glpi_entities', $item->fields['entities_id']));
-                echo $output::showItem(
-                    $sixth_col,
-                    $item_num,
-                    $p['row_num'],
-                    $align . " width=100"
-                );
-            }
-
-            // seventh Column
-            echo $output::showItem(
-                "<span class='b'>" . htmlescape(static::getPriorityName($item->fields["priority"])) . "</span>",
-                $item_num,
-                $p['row_num'],
-                "$align bgcolor='$bgcolor'"
-            );
-
-            // eighth Column
-            $eighth_col = "";
-            foreach ($item->getUsers(CommonITILActor::REQUESTER) as $d) {
-                $user = new User();
-                if ($user->getFromDB($d["users_id"])) {
-                    $eighth_col .= sprintf(
-                        __s('%1$s %2$s'),
-                        "<span class='b'>" . htmlescape($user->getName()) . "</span>",
-                        Html::showToolTip(
-                            $user->getInfoCard(),
-                            [
-                                'link'    => $user->getLinkURL(),
-                                'display' => false,
-                            ]
-                        )
-                    );
-                    $eighth_col .= "<br>";
-                }
-            }
-
-            foreach ($item->getGroups(CommonITILActor::REQUESTER) as $d) {
-                $eighth_col .= htmlescape(Dropdown::getDropdownName("glpi_groups", $d["groups_id"]));
-                $eighth_col .= "<br>";
-            }
-
-            echo $output::showItem($eighth_col, $item_num, $p['row_num'], $align);
-
-            // ninth column
-            $ninth_col = "";
-            foreach ($item->getUsers(CommonITILActor::ASSIGN) as $d) {
-                $user = new User();
-                if (
-                    Session::getCurrentInterface() == 'helpdesk'
-                    && !empty($anon_name = User::getAnonymizedNameForUser(
-                        $d['users_id'],
-                        $item->getEntityID()
-                    ))
-                ) {
-                    $ninth_col .= htmlescape($anon_name);
-                } elseif ($user->getFromDB($d["users_id"])) {
-                    $ninth_col .= sprintf(
-                        __s('%1$s %2$s'),
-                        "<span class='b'>" . htmlescape($user->getName()) . "</span>",
-                        Html::showToolTip(
-                            $user->getInfoCard(),
-                            [
-                                'link'    => $user->getLinkURL(),
-                                'display' => false,
-                            ]
-                        )
-                    );
-                }
-                $ninth_col .= "<br>";
-            }
-
-            foreach ($item->getGroups(CommonITILActor::ASSIGN) as $d) {
-                if (
-                    Session::getCurrentInterface() == 'helpdesk'
-                    && !empty($anon_name = Group::getAnonymizedName($item->getEntityID()))
-                ) {
-                    $ninth_col .= htmlescape($anon_name);
-                } else {
-                    $ninth_col .= htmlescape(Dropdown::getDropdownName("glpi_groups", $d["groups_id"]));
-                }
-                $ninth_col .= "<br>";
-            }
-
-            foreach ($item->getSuppliers(CommonITILActor::ASSIGN) as $d) {
-                $ninth_col .= htmlescape(Dropdown::getDropdownName("glpi_suppliers", $d["suppliers_id"]));
-                $ninth_col .= "<br>";
-            }
-            echo $output::showItem($ninth_col, $item_num, $p['row_num'], $align);
-
-            if (!$p['ticket_stats']) {
-                // tenth Colum
-                // Ticket : simple link to item
-                $tenth_col  = "";
-                $is_deleted = false;
-                $item_ticket = new Item_Ticket();
-                $data = $item_ticket->find(['tickets_id' => $item->fields['id']]);
-
-                if ($item instanceof Ticket) {
-                    if (!empty($data)) {
-                        foreach ($data as $val) {
-                            if (!empty($val["itemtype"]) && ($val["items_id"] > 0)) {
-                                if ($object = getItemForItemtype($val["itemtype"])) {
-                                    if ($object->getFromDB($val["items_id"])) {
-                                        $is_deleted = $object->isDeleted();
-
-                                        $tenth_col .= htmlescape($object->getTypeName());
-                                        $tenth_col .= " - <span class='b'>";
-                                        if ($item->canView()) {
-                                            $tenth_col .= $object->getLink();
-                                        } else {
-                                            $tenth_col .= htmlescape($object->getNameID());
-                                        }
-                                        $tenth_col .= "</span><br>";
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        $tenth_col = __s('General');
-                    }
-
-                    echo $output::showItem($tenth_col, $item_num, $p['row_num'], ($is_deleted ? " class='center deleted' " : $align));
-                }
-
-                // Seventh column
-                echo $output::showItem(
-                    "<span class='b'>"
-                        . htmlescape(Dropdown::getDropdownName('glpi_itilcategories', $item->fields["itilcategories_id"]))
-                        . "</span>",
-                    $item_num,
-                    $p['row_num'],
-                    $align
-                );
-
-                $plan          = $item->getTaskClassInstance();
-                $items         = [];
-
-                $result = $DB->request(
-                    [
-                        'FROM'  => $plan->getTable(),
-                        'WHERE' => [
-                            $item->getForeignKeyField() => $item->fields['id'],
-                        ],
-                    ]
-                );
-
-                $planned_info = [];
-
-                foreach ($result as $plan) {
-                    if (isset($plan['begin']) && $plan['begin']) {
-                        $items[$plan['id']] = $plan['id'];
-
-                        $planned_info[] = htmlescape(sprintf(__('From %s'), Html::convDateTime($plan['begin'])));
-                        $planned_info[] = htmlescape(sprintf(__('To %s'), Html::convDateTime($plan['end'])));
-                        if ($plan['users_id_tech']) {
-                            $planned_info[] = htmlescape(sprintf(__('By %s'), getUserName($plan['users_id_tech'])));
-                        }
-                    }
-                }
-
-                $eleventh_column = '';
-                if (count($items)) {
-                    $eleventh_column = "<span class='pointer'
-                                 id='" . htmlescape($item::class . $item->fields["id"]) . "planning$rand'>"
-                                 . $eleventh_column . '</span>';
-                    $eleventh_column = sprintf(
-                        __s('%1$s %2$s'),
-                        $eleventh_column,
-                        Html::showToolTip(
-                            implode('<br>', $planned_info),
-                            [
-                                'display' => false,
-                                'applyto' => $item->getType() . $item->fields["id"] . "planning" . $rand,
-                            ]
-                        )
-                    );
-                }
-
-                echo $output::showItem(
-                    $eleventh_column,
-                    $item_num,
-                    $p['row_num'],
-                    $align_desc . " width='150'"
-                );
-            } else {
-                echo $output::showItem($second_column, $item_num, $p['row_num'], $align_desc . " width='200'");
-
-                $takeintoaccountdelay_column = "";
-                // Show only for tickets taken into account
-                if ($item->fields['takeintoaccount_delay_stat'] > 0) {
-                    $takeintoaccountdelay_column = htmlescape(Html::timestampToString($item->fields['takeintoaccount_delay_stat']));
-                }
-                echo $output::showItem($takeintoaccountdelay_column, $item_num, $p['row_num'], $align_desc . " width='150'");
-
-                $solvedelay_column = "";
-                // Show only for solved tickets
-                if ($item->fields['solve_delay_stat'] > 0) {
-                    $solvedelay_column = htmlescape(Html::timestampToString($item->fields['solve_delay_stat']));
-                }
-                echo $output::showItem($solvedelay_column, $item_num, $p['row_num'], $align_desc . " width='150'");
-
-                $waiting_duration_column = htmlescape(Html::timestampToString($item->fields['waiting_duration']));
-                echo $output::showItem($waiting_duration_column, $item_num, $p['row_num'], $align_desc . " width='150'");
-            }
-
-            // Finish Line
-            echo $output::showEndLine();
-        } else {
-            echo "<tr class='tab_bg_2'>";
-            echo "<td colspan='6' ><i>" . __s('No item in progress.') . "</i></td></tr>";
-        }
-    }
-
-    /**
-     * @param int $output_type Output type
-     * @param string $mass_id      id of the form to check all
-     * @param array $params
-     * @return void
-     */
-    public static function commonListHeader(
-        $output_type = Search::HTML_OUTPUT,
-        $mass_id = '',
-        array $params = []
-    ) {
-        if ($output_type !== Search::HTML_OUTPUT) {
-            Toolbox::deprecated('Only HTML output is allowed');
-        }
-        //Toolbox::deprecated('Use CommonITILObject::getCommonDatatableColumns() instead');
-        $ticket_stats = $params['ticket_stats'] ?? false;
-
-        // New Line for Header Items Line
-        $output = new HTMLSearchOutput();
-        echo $output::showNewLine();
-        // $show_sort if
-        $header_num                      = 1;
-
-        $items                           = [];
-
-        echo $output::showHeaderItem((empty($mass_id) ? '' : Html::getCheckAllAsCheckbox($mass_id)), $header_num);
-
-        $items[__('ID')]           = "id";
-        $items[__('Title')]        = "name";
-        $items[__('Status')]             = "status";
-        $items[_n('Date', 'Dates', 1)]               = "date";
-        $items[__('Last update')]        = "date_mod";
-
-        if (count($_SESSION["glpiactiveentities"]) > 1) {
-            $items[Entity::getTypeName(Session::getPluralNumber())] = "glpi_entities.completename";
-        }
-
-        $items[__('Priority')]           = "priority";
-        $items[_n('Requester', 'Requesters', 1)]          = "users_id";
-        $items[__('Assigned')]           = "users_id_assign";
-
-        if (!$ticket_stats) {
-            if (static::class == Ticket::class) {
-                $items[_n('Associated element', 'Associated elements', Session::getPluralNumber())] = "";
-            }
-            $items[_n('Category', 'Categories', 1)]           = "glpi_itilcategories.completename";
-            $items[__('Planification')]      = "glpi_tickettasks.begin";
-        } else {
-            $items[__('Take into account')] = "takeintoaccount_delay_stat";
-            $items[__('Resolution')]        = "solve_delay_stat";
-            $items[__('Pending')]           = "waiting_duration";
-        }
-
-        foreach (array_keys($items) as $key) {
-            echo $output::showHeaderItem(htmlescape($key), $header_num);
-        }
-
-        // End Line for column headers
-        echo $output::showEndLine();
-    }
-
     /**
      * @param array{ticket_stats?: bool} $params
      * @return array{columns: array, formatters: array} Array of columns and formatters to be used in datatables (templates/components/datatable.html.twig) that are common to all ITIL objects.
@@ -7354,7 +6538,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         );
     }
 
-
     /**
      * Summary of getTimelinePosition
      * Returns the position of the $sub_type for the $user_id in the timeline
@@ -7417,7 +6600,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
 
         return $pos;
     }
-
 
     public function getTimelineItemtypes(): array
     {
@@ -7531,27 +6713,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         }
 
         return $itemtypes;
-    }
-
-    /**
-     * Get an HTML string of all timeline actions/buttons provided by plugins via the {@link Hooks::TIMELINE_ACTIONS}  hook.
-     * @return string
-     * @since 10.0.0
-     */
-    public function getLegacyTimelineActionsHTML(): string
-    {
-        global $PLUGIN_HOOKS;
-
-        $legacy_actions = '';
-
-        ob_start();
-        Plugin::doHook(Hooks::TIMELINE_ACTIONS, [
-            'rand'   => mt_rand(),
-            'item'   => $this,
-        ]);
-        $legacy_actions .= ob_get_clean();
-
-        return $legacy_actions;
     }
 
     /**
@@ -8049,41 +7210,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
 
 
     /**
-     * @since 9.4.0
-     *
-     * @param CommonDBTM $item The item whose form should be shown
-     * @param int $id ID of the item
-     * @param mixed[] $params Array of extra parameters
-     *
-     * @return void
-     */
-    public static function showSubForm(CommonDBTM $item, $id, $params)
-    {
-
-        if ($item instanceof Document_Item) {
-            Document_Item::showAddFormForItem($params['parent'], 0);
-        } elseif ($item->getType() == $params['parent']->getType()) {
-            self::showEditDescriptionForm($params['parent']);
-        } elseif ($item->can(-1, CREATE, $params)) {
-            $item->showForm($id, $params);
-        }
-    }
-
-    /**
-     * @param CommonITILObject $item
-     * @return void
-     */
-    public static function showEditDescriptionForm(CommonITILObject $item)
-    {
-        $can_requester = $item->canRequesterUpdateItem();
-        TemplateRenderer::getInstance()->display('components/itilobject/timeline/simple_form.html.twig', [
-            'item'          => $item,
-            'canupdate'     => (Session::getCurrentInterface() == "central" && $item->canUpdateItem()),
-            'can_requester' => $can_requester,
-        ]);
-    }
-
-    /**
      * Summary of getITILActors
      * Get the list of actors for the current Change
      * will return an assoc array of users_id => array of roles.
@@ -8172,7 +7298,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $users_keys;
     }
 
-
     /**
      * Number of followups of the object
      *
@@ -8257,18 +7382,6 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
     {
         return array_key_exists('_do_not_compute_status', $input)
          && $input['_do_not_compute_status'];
-    }
-
-
-    public function addDefaultFormTab(array &$ong)
-    {
-
-        $timeline    = $this->getTimelineItems(['with_logs' => false]);
-        $nb_elements = count($timeline);
-        $label = static::getTypeName(1);
-
-        $ong[static::getType() . '$main'] = static::createTabEntry($label, $nb_elements, static::getType());
-        return $this;
     }
 
     public static function getAdditionalMenuOptions()

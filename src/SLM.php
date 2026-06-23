@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * SLM Class
  * @since 9.2
@@ -58,26 +56,9 @@ class SLM extends CommonDBTM
         return _n('Service level', 'Service levels', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'setup';
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(SLA::class, $ong, $options);
-        $this->addStandardTab(OLA::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function prepareInputForAdd($input)
@@ -158,34 +139,6 @@ class SLM extends CommonDBTM
         );
     }
 
-    /**
-     * Print the SLM form
-     * {@inheritdoc}
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        $twig_params = [
-            'item'        => $this,
-            'params'      => $options,
-            'empty_label' => __('24/7'),
-            'toadd_label' => __('Calendar of the ticket'),
-        ];
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% extends 'generic_show_form.html.twig' %}
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {% block more_fields %}
-                {{ fields.dropdownField('Calendar', 'calendars_id', item.fields['use_ticket_calendar'] ? -1 : item.fields['calendars_id'], 'Calendar'|itemtype_name(1), {
-                    emptylabel: empty_label,
-                    toadd: {
-                        (-1): toadd_label
-                    }
-                }) }}
-            {% endblock %}
-TWIG, $twig_params);
-        return true;
-    }
-
     public function rawSearchOptions()
     {
         $tab = [];
@@ -248,45 +201,6 @@ TWIG, $twig_params);
         ];
 
         return $tab;
-    }
-
-    public static function getMenuContent()
-    {
-        $menu = [];
-        if (static::canView()) {
-            $menu['title']           = self::getTypeName(2);
-            $menu['page']            = static::getSearchURL(false);
-            $menu['icon']            = static::getIcon();
-            $menu['links']['search'] = static::getSearchURL(false);
-            if (static::canCreate()) {
-                $menu['links']['add'] = SLM::getFormURL(false);
-            }
-
-            $menu['options'][SLA::class]['title']           = SLA::getTypeName(1);
-            $menu['options'][SLA::class]['page']            = SLA::getSearchURL(false);
-            $menu['options'][SLA::class]['links']['search'] = SLA::getSearchURL(false);
-
-            $menu['options'][OLA::class]['title']           = OLA::getTypeName(1);
-            $menu['options'][OLA::class]['page']            = OLA::getSearchURL(false);
-            $menu['options'][OLA::class]['links']['search'] = OLA::getSearchURL(false);
-
-            $menu['options'][SlaLevel::class]['title']           = SlaLevel::getTypeName(Session::getPluralNumber());
-            $menu['options'][SlaLevel::class]['page']            = SlaLevel::getSearchURL(false);
-            $menu['options'][SlaLevel::class]['links']['search'] = SlaLevel::getSearchURL(false);
-
-            $menu['options'][OlaLevel::class]['title']           = OlaLevel::getTypeName(Session::getPluralNumber());
-            $menu['options'][OlaLevel::class]['page']            = OlaLevel::getSearchURL(false);
-            $menu['options'][OlaLevel::class]['links']['search'] = OlaLevel::getSearchURL(false);
-        }
-        if (count($menu)) {
-            return $menu;
-        }
-        return false;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-checkup-list";
     }
 
     public function getRights($interface = 'central')

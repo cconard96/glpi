@@ -35,7 +35,6 @@
 namespace Glpi\Asset;
 
 use CommonDBChild;
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\CustomFieldType\DropdownType;
 use Glpi\Asset\CustomFieldType\RawType;
 use Glpi\Asset\CustomFieldType\TypeInterface;
@@ -127,31 +126,6 @@ final class CustomFieldDefinition extends CommonDBChild
         ], [
             'assets_assetdefinitions_id' => $this->fields['assets_assetdefinitions_id'],
         ]);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $options[self::$items_id] = $options['parent']->fields["id"];
-        if (!self::isNewID($ID)) {
-            $this->check($ID, UPDATE);
-        } else {
-            $this->check(-1, CREATE, $options);
-        }
-
-        $adm = AssetDefinitionManager::getInstance();
-        $field_types = $adm->getCustomFieldTypes();
-        $field_types = array_combine($field_types, array_map(static fn($t) => $t::getName(), $field_types));
-        TemplateRenderer::getInstance()->display('pages/assets/customfield.html.twig', [
-            'no_header' => true,
-            'item' => $this,
-            'assetdefinitions_id' => $options[self::$items_id],
-            'allowed_dropdown_itemtypes' => $adm->getAllowedDropdownItemtypes(),
-            'field_types' => $field_types,
-            'params' => [
-                'formfooter' => false,
-            ],
-        ]);
-        return true;
     }
 
     public function getEmpty()
@@ -403,35 +377,5 @@ final class CustomFieldDefinition extends CommonDBChild
         }
 
         return $is_valid;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        if ($field === 'translations') {
-            $translations = json_decode($values[$field], associative: true);
-            $twig_params = ['translations' => $translations];
-            // language=Twig
-            return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                {% if translations is not empty %}
-                    <ul>
-                        {% for language, translation in translations %}
-                            <li>
-                                {{ config('languages')[language][0] }}:
-                                {% include "pages/admin/customobjects/plurals.html.twig" with {
-                                    'plurals': {
-                                        'one': translation
-                                    },
-                                } only %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-TWIG, $twig_params);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 }

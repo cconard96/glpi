@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * ITILCategory class
  **/
@@ -151,51 +149,6 @@ class PendingReason extends CommonDropdown
     }
 
     /**
-     * Display specific "followup_frequency" field
-     *
-     * @param ?string $value
-     * @param string $name
-     * @param array $options
-     * @param bool $long_label If false give less details in the default label
-     *
-     * @return int|string
-     */
-    public static function displayFollowupFrequencyfield(
-        $value = null,
-        $name = "",
-        $options = [],
-        $long_label = true
-    ) {
-        $values = self::getFollowupFrequencyValues();
-
-        // Short label for forms with input labels
-        $label = __("Disabled");
-
-        if ($long_label) {
-            // Long default value label for forms with icons instead of labels
-            $label = __("Automatic follow-up disabled");
-        }
-
-        if ($value) {
-            if (!isset($values[$value])) {
-                $value = null;
-            }
-        }
-
-        $options['value']               = $value;
-        $options['emptylabel']          = $label;
-        $options['display_emptychoice'] = true;
-        $options['display']             = false;
-        $options['width']               = '95%';
-
-        if (empty($name)) {
-            $name = "followup_frequency";
-        }
-
-        return Dropdown::showFromArray($name, $values, $options);
-    }
-
-    /**
      * Get possibles followup frequency values for pending reasons
      * @return array timestamp before each bump => label
      */
@@ -261,28 +214,6 @@ class PendingReason extends CommonDropdown
         return Dropdown::showFromArray($name, $values, $options);
     }
 
-    private function displayIsDefaultPendingReasonField(bool $value): string
-    {
-        $defaultPendingReason = self::getDefault();
-
-        $out = Dropdown::showYesNo('is_default', $value, params: ['display' => false]);
-        $out .= TemplateRenderer::getInstance()->render('components/form/pending_reason_is_default.html.twig', [
-            'show_warning' => $defaultPendingReason && $defaultPendingReason->getID() != $this->getID(),
-            'tooltip' => $defaultPendingReason ? Html::showToolTip(
-                sprintf(
-                    __s('If you set this as the default pending reason, the previous default pending reason (%s) will no longer be the default value.'),
-                    '<a href="' . htmlescape(PendingReason::getFormURLWithID($defaultPendingReason->getID())) . '">' . htmlescape($defaultPendingReason->fields['name']) . '</a>'
-                ),
-                [
-                    'display' => false,
-                    'awesome-class' => 'ti ti-alert-triangle fs-2',
-                ]
-            ) : '',
-        ]);
-
-        return $out;
-    }
-
     /**
      * Get possibles values for 'followups_before_resolution' field of pending reasons
      * @return array number of bump before resolution => label
@@ -295,47 +226,6 @@ class PendingReason extends CommonDropdown
             2 => __("After two follow-ups"),
             3 => __("After three follow-ups"),
         ];
-    }
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-
-        if ($field['name'] == 'followup_frequency') {
-            echo self::displayFollowupFrequencyfield($this->fields['followup_frequency']);
-        } elseif ($field['name'] == 'followups_before_resolution') {
-            echo self::displayFollowupsNumberBeforeResolutionField($this->fields['followups_before_resolution']);
-        } elseif ($field['name'] == 'is_default') {
-            echo self::displayIsDefaultPendingReasonField((bool) $this->fields['is_default']);
-        }
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if ($field == 'followup_frequency') {
-            if ($values[$field] == 0) {
-                return __s("Disabled");
-            }
-            return htmlescape(self::getFollowupFrequencyValues()[$values[$field]]);
-        } elseif ($field == 'followups_before_resolution') {
-            if ($values[$field] == 0) {
-                return __s("Disabled");
-            }
-            return htmlescape(self::getFollowupsBeforeResolutionValues()[$values[$field]]);
-        }
-
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if ($field == 'followup_frequency') {
-            return self::displayFollowupFrequencyfield($values[$field], $name, $options, false);
-        } elseif ($field == 'followups_before_resolution') {
-            return self::displayFollowupsNumberBeforeResolutionField($values[$field], $name, $options, false);
-        }
-
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
     public function cleanDBonPurge()
@@ -359,16 +249,6 @@ class PendingReason extends CommonDropdown
         }
 
         return null;
-    }
-
-    /**
-     * @return bool
-     */
-    public static function isDefaultPending()
-    {
-        $default_pending = self::getDefault();
-
-        return $default_pending && $default_pending->fields['is_pending_per_default'];
     }
 
     /**

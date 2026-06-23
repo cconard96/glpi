@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use GuzzleHttp\Exception\GuzzleException;
@@ -315,11 +314,6 @@ class QueuedWebhook extends CommonDBChild
         return $queued_webhook->update($input) && $response !== null;
     }
 
-    public static function getIcon()
-    {
-        return "ti ti-notification";
-    }
-
     public function rawSearchOptions()
     {
         $tab = [];
@@ -458,94 +452,6 @@ class QueuedWebhook extends CommonDBChild
         ];
 
         return $tab;
-    }
-
-    /**
-     * @param int $value
-     * @param int|null $id
-     *
-     * @return string
-     */
-    public static function getStatusCodeBadge($value, ?int $id = null): string
-    {
-        $display_value = (int) $value;
-        $badge_class = 'badge bg-orange';
-        if (empty($display_value)) {
-            $display_value = __s('Not sent/no response');
-        } elseif ($display_value < 300) {
-            $badge_class = 'badge bg-green';
-        } else {
-            $badge_class = 'badge bg-red';
-        }
-        $badge = '<div class="' . $badge_class . '">' . $display_value . '</div>';
-
-        if ($id === null || (is_numeric($display_value) && (int) $display_value < 300)) {
-            return $badge;
-        }
-        // Add a button to resend the webhook via ajax
-        $btn_id = "resend-webhook-{$id}";
-        $badge .= "<button id='{$btn_id}' type='button' class='btn btn-outline-secondary btn-sm ms-1' data-id='{$id}'><i class='ti ti-send'></i>" . __s('Send') . "</button>";
-        $badge .= Html::scriptBlock(<<<JS
-            $("#{$btn_id}").click(function() {
-                var id = $(this).data('id');
-                $.ajax({
-                    url: '/ajax/webhook.php',
-                    type: 'POST',
-                    data: {
-                        'action': 'resend',
-                        'id': id
-                    },
-                    beforeSend: () => {
-                        $("#{$btn_id}").prop('disabled', true);
-                    },
-                    success: () => {
-                        glpi_toast_info(__('Retried to send webhook'));
-                    },
-                    error: () => {
-                        glpi_toast_error(__('Failed to send webhook'));
-                    },
-                    complete: () => {
-                        $("#{$btn_id}").prop('disabled', false);
-                        const search_class = $('table.search-results').closest('div.ajax-container.search-display-data').data('js_class');
-                        if (search_class !== undefined) {
-                            search_class.view.refreshResults();
-                        }
-                    }
-                });
-            });
-JS);
-        return $badge;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        // For last_status_code field, we want to display a badge element
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'last_status_code':
-                return self::getStatusCodeBadge($values[$field], $values['id'] ?? null);
-            case 'http_method':
-                return htmlescape(Webhook::getHttpMethod()[$values[$field]] ?? $values[$field]);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $webhook = new Webhook();
-        $webhook->getFromDB($this->fields['webhooks_id']);
-        TemplateRenderer::getInstance()->display('pages/setup/webhook/queuedwebhook.html.twig', [
-            'item' => $this,
-            'webhook' => $webhook,
-            'headers' => json_decode($this->fields['headers'], true),
-            'params' => [
-                'canedit' => true,
-                'candel' => $this->canDeleteItem(),
-            ],
-        ]);
-        return true;
     }
 
     /**

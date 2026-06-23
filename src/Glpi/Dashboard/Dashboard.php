@@ -362,22 +362,6 @@ class Dashboard extends CommonDBTM
         return true;
     }
 
-    public function showResetForm(): void
-    {
-        $this->load();
-        $default_dashboards = [];
-        foreach (self::getDefaults() as $dashboard) {
-            if ($dashboard['context'] !== $this->fields['context']) {
-                continue;
-            }
-            $default_dashboards[$dashboard['key']] = $dashboard['name'];
-        }
-        TemplateRenderer::getInstance()->display('components/dashboard/reset.html.twig', [
-            'dashboard' => $this,
-            'default_dashboards' => $default_dashboards,
-        ]);
-    }
-
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb([

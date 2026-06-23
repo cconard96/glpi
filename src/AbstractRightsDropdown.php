@@ -80,47 +80,6 @@ abstract class AbstractRightsDropdown
     /**
      * Get possible data for profiles
      *
-     * @param string $name  Field name
-     * @param array $values Selected values
-     *
-     * @return string
-     */
-    public static function show(string $name, array $values, array $params = []): string
-    {
-        // Flatten values
-        $dropdown_values = [];
-        foreach ($values as $fkey => $ids) {
-            foreach ($ids as $id) {
-                $dropdown_values[] = $fkey . "-" . $id;
-            }
-        }
-
-        // Build DOM id
-        $field_id = $name . "_" . mt_rand();
-
-        // Build url
-        $url = static::getAjaxUrl();
-
-        // Build params
-        $params = array_merge([
-            'name'        => $name . "[]",
-            'multiple'    => true,
-            'width'       => '100%',
-        ], $params);
-
-        if ($params['multiple']) {
-            $params['values'] = $dropdown_values;
-            $params['valuesnames'] = static::getValueNames($dropdown_values);
-        } elseif (count($dropdown_values) > 0) {
-            $params['value'] = $dropdown_values[0];
-            $params['valuename'] = static::getValueNames($dropdown_values)[0];
-        }
-        return Html::jsAjaxDropdown($params['name'], $field_id, $url, $params);
-    }
-
-    /**
-     * Get possible data for profiles
-     *
      * @param string $text Search string
      * @param array $options Additional options
      *

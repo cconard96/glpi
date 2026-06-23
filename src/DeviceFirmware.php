@@ -241,68 +241,6 @@ class DeviceFirmware extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-        global $CFG_GLPI;
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        if (in_array($itemtype, $CFG_GLPI['itemdevicefirmware_types'])) {
-            Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-            $base->addHeader('devicefirmware_type', _sn('Type', 'Types', 1), $super, $father);
-            $base->addHeader('version', _sn('Version', 'Versions', 1), $super, $father);
-            $base->addHeader('date', __s('Release date'), $super, $father);
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        global $CFG_GLPI;
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        if (in_array($item::class, $CFG_GLPI['itemdevicefirmware_types'], true)) {
-            Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-
-            if ($this->fields["devicefirmwaretypes_id"]) {
-                $row->addCell(
-                    $row->getHeaderByName('devicefirmware_type'),
-                    htmlescape(Dropdown::getDropdownName("glpi_devicefirmwaretypes", $this->fields["devicefirmwaretypes_id"])),
-                    $father
-                );
-            }
-            $row->addCell(
-                $row->getHeaderByName('version'),
-                htmlescape($this->fields["version"]),
-                $father
-            );
-
-            if ($this->fields["date"]) {
-                $row->addCell(
-                    $row->getHeaderByName('date'),
-                    htmlescape(Html::convDate($this->fields["date"])),
-                    $father
-                );
-            }
-        }
-        return null;
-    }
-
     public function getImportCriteria()
     {
         return [
@@ -311,10 +249,5 @@ class DeviceFirmware extends CommonDevice
             'manufacturers_id'         => 'equal',
             'version'                  => 'equal',
         ];
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-cpu";
     }
 }

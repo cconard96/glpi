@@ -144,58 +144,6 @@ class DeviceGraphicCard extends CommonDevice
         return $this->prepareInputForAddOrUpdate($input);
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($itemtype) {
-            case Computer::class:
-                Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                InterfaceType::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                $base->addHeader('devicegraphiccard_chipset', __s('Chipset'), $super, $father);
-                break;
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        $cell = null;
-        switch ($item::class) {
-            case Computer::class:
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                InterfaceType::getHTMLTableCellsForItem($row, $this, null, $options);
-
-                if (!empty($this->fields["chipset"])) {
-                    $cell = $row->addCell(
-                        $row->getHeaderByName('devicegraphiccard_chipset'),
-                        htmlescape($this->fields["chipset"]),
-                        $father
-                    );
-                }
-                break;
-        }
-        return $cell;
-    }
-
     public function getImportCriteria()
     {
         return [

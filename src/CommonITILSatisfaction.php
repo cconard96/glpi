@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 
@@ -61,11 +60,6 @@ abstract class CommonITILSatisfaction extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return __('Satisfaction');
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-star';
     }
 
     public static function getItemInstance(): CommonITILObject
@@ -128,50 +122,6 @@ abstract class CommonITILSatisfaction extends CommonDBTM
             return true;
         }
         return false;
-    }
-
-    /**
-     * form for satisfaction
-     *
-     * @param CommonITILObject $item The item this satisfaction is for
-     * @param bool $add_form_header
-     *
-     * @return void
-     */
-    public function showSatisactionForm($item, bool $add_form_header = true)
-    {
-        $options             = [];
-        $options['colspan']  = 1;
-        $options['candel'] = false;
-
-        // for external inquest => link
-        if ((int) $this->fields["type"] === self::TYPE_EXTERNAL) {
-            $url = Entity::generateLinkSatisfaction($item);
-            TemplateRenderer::getInstance()->display('/components/itilobject/itilsatisfaction.html.twig', [
-                'url' => $url,
-            ]);
-        } else { // for internal inquest => form
-            $config_suffix = $item instanceof Ticket ? '' : ('_' . strtolower($item->getType()));
-
-            if ($add_form_header) {
-                $this->showFormHeader($options);
-            }
-            // Set default satisfaction to 3 if not set
-            if (is_null($this->fields["satisfaction"])) {
-                $default_rate = Entity::getUsedConfig('inquest_config' . $config_suffix, $item->fields['entities_id'], 'inquest_default_rate' . $config_suffix);
-                $this->fields["satisfaction"] = $default_rate;
-            }
-            $max_rate = Entity::getUsedConfig('inquest_config' . $config_suffix, $item->fields['entities_id'], 'inquest_max_rate' . $config_suffix);
-            $duration = (int) Entity::getUsedConfig('inquest_config' . $config_suffix, $item->fields['entities_id'], 'inquest_duration' . $config_suffix);
-            $expired = $duration !== 0 && (time() - strtotime($this->fields['date_begin'])) > $duration * DAY_TIMESTAMP;
-            TemplateRenderer::getInstance()->display('/components/itilobject/itilsatisfaction.html.twig', [
-                'item'   => $this,
-                'parent_item' => $item,
-                'max_rate' => $max_rate,
-                'params' => $options,
-                'expired' => $expired,
-            ]);
-        }
     }
 
     public function prepareInputForUpdate($input)
@@ -248,50 +198,6 @@ abstract class CommonITILSatisfaction extends CommonDBTM
             }
         }
     }
-
-    /**
-     * display satisfaction value
-     *
-     * @param int|float $value Between 0 and 10
-     * @param int $entities_id
-     *
-     * @return string
-     */
-    public static function displaySatisfaction($value, $entities_id)
-    {
-        if (!is_numeric($value)) {
-            return "";
-        }
-
-        $max_rate = (int) Entity::getUsedConfig(
-            'inquest_config',
-            $entities_id,
-            'inquest_max_rate' . static::getConfigSufix()
-        );
-
-        if ($value < 0) {
-            $value = 0;
-        }
-        if ($value > $max_rate) {
-            $value = $max_rate;
-        }
-
-        $rand = mt_rand();
-        $out = "<div id='rateit_$rand' class='rateit'></div>";
-        $out .= Html::scriptBlock("
-            $(function () {
-                $('#rateit_$rand').rateit({
-                    max: $max_rate,
-                    resetable: false,
-                    value: $value,
-                    readonly: true,
-                });
-            });
-        ");
-
-        return $out;
-    }
-
 
     /**
      * Get name of inquest type

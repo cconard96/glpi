@@ -43,9 +43,4 @@ class NetworkInterface extends CommonDropdown
     {
         return _n('Network interface', 'Network interfaces', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "fas fa-ethernet";
-    }
 }

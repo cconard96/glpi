@@ -33,11 +33,9 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QuerySubQuery;
 use Glpi\DBAL\QueryUnion;
 use Glpi\Features\AssignableItem;
-use Glpi\Inventory\Inventory;
 use Glpi\Search\SearchOption;
 
 /**
@@ -56,11 +54,6 @@ class Lockedfield extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return _n('Locked field', 'Locked fields', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['admin', Inventory::class, self::class];
     }
 
     public static function getLogDefaultServiceName(): string
@@ -202,11 +195,6 @@ class Lockedfield extends CommonDBTM
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-lock";
     }
 
     /**
@@ -366,28 +354,6 @@ class Lockedfield extends CommonDBTM
         );
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'items_id':
-                if (isset($values['items_id']) && !$values['items_id']) {
-                    return '-';
-                }
-                if (isset($values['itemtype']) && is_a($values['itemtype'], CommonDBTM::class, true)) {
-                    $itemtype = $values['itemtype'];
-                    $item = new $itemtype();
-                    $item->getFromDB($values['items_id']);
-                    return $item->getLink(['comments' => $options['comments'] ?? false]);
-                }
-                break;
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
     public function getForbiddenStandardMassiveAction()
     {
         return ['update', 'clone'];
@@ -419,17 +385,6 @@ class Lockedfield extends CommonDBTM
         }
 
         return $input;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        unset($this->fields['is_global']);
-        TemplateRenderer::getInstance()->display('pages/admin/inventory/lockedfield.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
     }
 
     public function getFormFields(): array

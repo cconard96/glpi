@@ -33,9 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\DBAL\QueryExpression;
-
 /**
  * @since 10.0.0
  */
@@ -43,7 +40,6 @@ class ManualLink extends CommonDBChild
 {
     public $dohistory              = false;
     public $auto_message_on_action = false; // Link in message can't work'
-    protected $displaylist         = false;
     public static $logs_for_parent = true;
     public static $itemtype        = 'itemtype';
     public static $items_id        = 'items_id';
@@ -56,58 +52,6 @@ class ManualLink extends CommonDBChild
     public function getLogTypeID()
     {
         return [$this->fields['itemtype'], $this->fields['items_id']];
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        $count = 0;
-        if (
-            $_SESSION['glpishow_count_on_tabs']
-            && ($item instanceof CommonDBTM)
-            && !$item->isNewItem()
-        ) {
-            $count += countElementsInTable(
-                'glpi_manuallinks',
-                [
-                    'itemtype'  => $item->getType(),
-                    'items_id'  => $item->fields[$item->getIndexName()],
-                ]
-            );
-            if (Link::canView()) {
-                $count += countElementsInTable(
-                    ['glpi_links_itemtypes', 'glpi_links'],
-                    [
-                        'glpi_links_itemtypes.links_id'  => new QueryExpression(DBmysql::quoteName('glpi_links.id')),
-                        'glpi_links_itemtypes.itemtype'  => $item->getType(),
-                    ] + getEntitiesRestrictCriteria('glpi_links', '', '', false)
-                );
-            }
-        }
-        return self::createTabEntry(_n('Link', 'Links', Session::getPluralNumber()), $count, $item::getType());
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-
-        Link::showAllLinksForItem($item);
-        return true;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        TemplateRenderer::getInstance()->display('pages/setup/manuallink.html.twig', [
-            'item' => $this,
-            'parent_item' => [
-                'itemtype' => $options['itemtype'] ?? null,
-                'items_id' => $options['items_id'] ?? null,
-            ],
-        ]);
-
-        return true;
     }
 
     public function prepareInputForAdd($input)
@@ -199,54 +143,5 @@ class ManualLink extends CommonDBChild
         ];
 
         return $tab;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case '_virtual':
-                return self::getLinkHtml($values);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    /**
-     * Returns link HTML code.
-     *
-     * @param array $fields
-     *
-     * @return string
-     */
-    public static function getLinkHtml(array $fields): string
-    {
-
-        if (empty($fields['url'])) {
-            return '';
-        }
-
-        $html = '';
-
-        $target = $fields['open_window'] == 1 ? '_blank' : '_self';
-        $html .= '<a href="' . htmlescape($fields['url']) . '" target="' . $target . '">';
-        if (str_starts_with($fields['icon'] ?? '', 'fa-')) {
-            // Forces font family values to fallback on ".fab" family font if char is not available in ".fas" family.
-            $html .= '<i class="fs-2 fa ' . htmlescape($fields['icon']) . '"'
-            . ' style="font-family:\'Font Awesome 6 Free\', \'Font Awesome 6 Brands\';"></i>&nbsp;';
-        } elseif (str_starts_with($fields['icon'] ?? '', 'ti-')) {
-            $html .= '<i class="fs-2 ti ' . htmlescape($fields['icon']) . '"></i>&nbsp;';
-        }
-        $html .= htmlescape(!empty($fields['name']) ? $fields['name'] : $fields['url']);
-        $html .= '</a>';
-
-        return $html;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-link";
     }
 }

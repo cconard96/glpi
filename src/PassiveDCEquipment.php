@@ -61,32 +61,10 @@ class PassiveDCEquipment extends CommonDBTM implements AssignableItemInterface, 
         return _n('Passive device', 'Passive devices', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
     }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Socket::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -286,11 +264,6 @@ class PassiveDCEquipment extends CommonDBTM implements AssignableItemInterface, 
         }
 
         return $options;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-layout-navbar";
     }
 
     public function getCloneRelations(): array

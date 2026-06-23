@@ -39,9 +39,4 @@ class ApplianceEnvironment extends CommonDropdown
     {
         return _n('Appliance environment', 'Appliance environments', $nb);
     }
-
-    public static function getIcon()
-    {
-        return Appliance::getIcon();
-    }
 }

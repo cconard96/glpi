@@ -32,8 +32,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 class Item_RemoteManagement extends CommonDBChild
 {
     public static $itemtype        = 'itemtype';
@@ -52,36 +50,6 @@ class Item_RemoteManagement extends CommonDBChild
     {
         return __('Remote management');
     }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        $nb = 0;
-        if (
-            $_SESSION['glpishow_count_on_tabs']
-            && ($item instanceof CommonDBTM)
-        ) {
-            $nb = countElementsInTable(
-                self::getTable(),
-                [
-                    'items_id'     => $item->getID(),
-                    'itemtype'     => $item->getType(),
-                ]
-            );
-        }
-        return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showForItem($item, $withtemplate);
-        return true;
-    }
-
 
     /**
      * Get remote managements related to a given item
@@ -106,53 +74,6 @@ class Item_RemoteManagement extends CommonDBChild
         ]);
         return $iterator;
     }
-
-    /**
-     * Print the remote management
-     *
-     * @param CommonDBTM $item          Item object
-     * @param int    $withtemplate  Template or basic item (default 0)
-     *
-     * @return void
-     **/
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        $ID = $item->fields['id'];
-        $itemtype = $item->getType();
-
-        if (
-            !$item->getFromDB($ID)
-            || !$item->can($ID, READ)
-        ) {
-            return;
-        }
-        $canedit = $item->canEdit($ID);
-
-        $entries = [];
-        foreach (self::getFromItem($item) as $data) {
-            $mgmt = new self();
-            $mgmt->getFromResultSet($data);
-            $entries[] = [
-                'id'        => $mgmt->getID(),
-                'items_id'  => $mgmt->fields['items_id'],
-                'itemtype'  => self::getType(),
-                'remoteid'  => $mgmt->getRemoteLink(),
-                'type'      => $mgmt->fields['type'],
-                'comment'   => Dropdown::getYesNo($data['is_dynamic']),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/form/item_remotemanagement_list.html.twig', [
-            'canedit'  => $canedit && !(!empty($withtemplate) && $withtemplate == 2),
-            'form_url' => self::getFormURL() . "?itemtype=$itemtype&items_id=$ID&withtemplate=$withtemplate",
-            'entries'  => $entries,
-            'massiveactionparams' => [
-                'num_displayed' => min($_SESSION['glpilist_limit'], count($entries)),
-                'container'     => 'mass' . static::class . mt_rand(),
-            ],
-        ]);
-    }
-
 
     /**
      * Get remote management system link
@@ -265,70 +186,11 @@ class Item_RemoteManagement extends CommonDBChild
         return $tab;
     }
 
-
-    public function showForm($ID, array $options = [])
-    {
-        $itemtype = null;
-        if (isset($options['itemtype']) && !empty($options['itemtype'])) {
-            $itemtype = $options['itemtype'];
-        } elseif (isset($this->fields['itemtype']) && !empty($this->fields['itemtype'])) {
-            $itemtype = $this->fields['itemtype'];
-        } else {
-            throw new RuntimeException('Unable to retrieve itemtype');
-        }
-
-        if (!is_a($itemtype, CommonDBTM::class, true)) {
-            throw new RuntimeException(
-                sprintf(
-                    'Item type %s is not a valid item type',
-                    $itemtype
-                )
-            );
-        }
-
-        if (!Session::haveRight($itemtype::$rightname, READ)) {
-            return false;
-        }
-
-        $item = new $itemtype();
-        if ($ID > 0) {
-            $this->check($ID, READ);
-            $item->getFromDB($this->fields['items_id']);
-        } else {
-            $this->check(-1, CREATE, $options);
-            $item->getFromDB($options['items_id']);
-        }
-
-        $types = [
-            self::TEAMVIEWER => 'TeamViewer',
-            self::LITEMANAGER => 'LiteManager',
-            self::ANYDESK => 'AnyDesk',
-            self::MESHCENTRAL => 'MeshCentral',
-            self::SUPREMO => 'SupRemo',
-            self::RUSTDESK => 'RustDesk',
-        ];
-
-        $options['canedit'] = Session::haveRight($itemtype::$rightname, UPDATE);
-
-        TemplateRenderer::getInstance()->display('components/form/item_remotemanagement_form.html.twig', [
-            'parent_item'   => $item,
-            'item'          => $this,
-            'types'         => $types,
-        ]);
-        return true;
-    }
-
     public function getForbiddenStandardMassiveAction()
     {
 
         $forbidden   = parent::getForbiddenStandardMassiveAction();
         $forbidden[] = 'update';
         return $forbidden;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-screen-share";
     }
 }

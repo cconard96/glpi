@@ -44,9 +44,4 @@ class ProjectTaskType extends CommonDropdown
     {
         return _n('Project tasks type', 'Project tasks types', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-category";
-    }
 }

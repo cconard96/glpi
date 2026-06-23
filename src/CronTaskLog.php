@@ -52,11 +52,6 @@ class CronTaskLog extends CommonDBChild
     public const STATE_STOP  = 2;
     public const STATE_ERROR = 3;
 
-    public static function getIcon()
-    {
-        return "ti ti-news";
-    }
-
     /**
      * Clean old event for a task
      *
@@ -80,47 +75,5 @@ class CronTaskLog extends CommonDBChild
         );
 
         return $result ? $DB->affectedRows() : 0;
-    }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        if (!$withtemplate) {
-            $nb = 0;
-            if ($item instanceof CronTask) {
-                $ong    = [];
-                $ong[1] = self::createTabEntry(__('Statistics'), 0, $item::getType(), 'ti ti-report-analytics');
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb =  countElementsInTable(
-                        $this->getTable(),
-                        ['crontasks_id' => $item->getID(),
-                            'state'        => self::STATE_STOP,
-                        ]
-                    );
-                }
-                $ong[2] = self::createTabEntry(_n('Log', 'Logs', Session::getPluralNumber()), $nb, $item::getType());
-                return $ong;
-            }
-        }
-        return '';
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-
-        if ($item instanceof  CronTask) {
-            switch ($tabnum) {
-                case 1:
-                    $item->showStatistics();
-                    break;
-
-                case 2:
-                    $item->showHistory();
-                    break;
-            }
-        }
-        return true;
     }
 }

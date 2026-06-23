@@ -42,20 +42,6 @@ class DeviceCamera extends CommonDevice
         return _n('Camera', 'Cameras', $nb);
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Item_DeviceCamera_ImageResolution::class, $ong, $options)
-         ->addStandardTab(Item_DeviceCamera_ImageFormat::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Item_Project::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
     public function getAdditionalFields()
     {
         return array_merge(
@@ -163,70 +149,6 @@ class DeviceCamera extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-        $base->addHeader('devicecamera_model', _sn('Model', 'Models', 1), $super, $father);
-        $base->addHeader('flashunit', __s('Flashunit'), $super, $father);
-        $base->addHeader('lensfacing', __s('lensfacing'), $super, $father);
-        $base->addHeader('orientation', __s('orientation'), $super, $father);
-        $base->addHeader('focallength', __s('focal length'), $super, $father);
-        $base->addHeader('sensorsize', __s('sensorsize'), $super, $father);
-        $base->addHeader('support', __s('support'), $super, $father);
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-
-        if ($this->fields["devicecameramodels_id"]) {
-            $row->addCell(
-                $row->getHeaderByName('devicecamera_model'),
-                htmlescape(Dropdown::getDropdownName("glpi_devicecameramodels", $this->fields["devicecameramodels_id"])),
-                $father
-            );
-        }
-
-        if ($this->fields["lensfacing"]) {
-            $row->addCell(
-                $row->getHeaderByName('lensfacing'),
-                htmlescape($this->fields["lensfacing"]),
-                $father
-            );
-        }
-
-        if ($this->fields["flashunit"]) {
-            $row->addCell(
-                $row->getHeaderByName('flashunit'),
-                htmlescape($this->fields["flashunit"]),
-                $father
-            );
-        }
-        return null;
-    }
-
     public function getImportCriteria()
     {
         return [
@@ -234,10 +156,5 @@ class DeviceCamera extends CommonDevice
             'devicecameramodels_id' => 'equal',
             'manufacturers_id'      => 'equal',
         ];
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-camera";
     }
 }

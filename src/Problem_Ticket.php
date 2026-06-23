@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 class Problem_Ticket extends CommonITILObject_CommonITILObject
 {
     // From CommonDBRelation
@@ -47,67 +45,6 @@ class Problem_Ticket extends CommonITILObject_CommonITILObject
     public static function getTypeName($nb = 0)
     {
         return _n('Link Ticket/Problem', 'Links Ticket/Problem', $nb);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (static::canView()) {
-            $nb = 0;
-            switch ($item::class) {
-                case Ticket::class:
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $problems = self::getTicketProblemsData($item->getID());
-                        $nb = count($problems);
-                    }
-                    return self::createTabEntry(Problem::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-
-                case Problem::class:
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $tickets = self::getProblemTicketsData($item->getID());
-                        $nb = count($tickets);
-                    }
-                    return self::createTabEntry(Ticket::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        switch ($item::class) {
-            case Ticket::class:
-                self::showForTicket($item);
-                break;
-
-            case Problem::class:
-                self::showForProblem($item);
-                break;
-        }
-        return true;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        switch ($ma->getAction()) {
-            case 'add_task':
-                (new TicketTask())->showMassiveActionAddTaskForm();
-                return true;
-
-            case "solveticket":
-                $problem = new Problem();
-                $input = $ma->getInput();
-                if (isset($input['problems_id']) && $problem->getFromDB($input['problems_id'])) {
-                    $problem::showMassiveSolutionForm($problem);
-                    echo "<br>";
-                    echo Html::submit(_x('button', 'Post'), [
-                        'name'  => 'massiveaction',
-                        'class' => 'btn btn-primary',
-                    ]);
-                    return true;
-                }
-                return false;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(
@@ -186,154 +123,6 @@ class Problem_Ticket extends CommonITILObject_CommonITILObject
     }
 
     /**
-     * Show tickets for a problem
-     *
-     * @param Problem $problem
-     * @return void
-     **/
-    public static function showForProblem(Problem $problem)
-    {
-        $ID = $problem->getField('id');
-
-        if (!static::canView() || !$problem->can($ID, READ)) {
-            return;
-        }
-
-        $canedit = $problem->canEdit($ID);
-
-        $rand = mt_rand();
-
-        $tickets = self::getProblemTicketsData($ID);
-        $used    = [];
-        foreach ($tickets as $ticket) {
-            $used[$ticket['id']] = $ticket['id'];
-        }
-
-        $link_types = array_map(static fn($link_type) => $link_type['name'], CommonITILObject_CommonITILObject::getITILLinkTypes());
-
-        if ($canedit) {
-            echo TemplateRenderer::getInstance()->render('components/form/link_existing_or_new.html.twig', [
-                'rand' => $rand,
-                'link_itemtype' => self::class,
-                'source_itemtype' => Problem::class,
-                'source_items_id' => $ID,
-                'link_types' => $link_types,
-                'target_itemtype' => Ticket::class,
-                'dropdown_options' => [
-                    'entity'      => $problem->getEntityID(),
-                    'entity_sons' => $problem->isRecursive(),
-                    'used'        => $used,
-                    'displaywith' => ['id'],
-                ],
-                'create_link' => false,
-                'form_label' => __('Add a ticket'),
-                'button_label' => __('Create a ticket from this problem'),
-            ]);
-        }
-
-        [$columns, $formatters] = array_values(Ticket::getCommonDatatableColumns());
-        $entries = Ticket::getDatatableEntries(array_map(static function ($t) {
-            $t['itemtype'] = Ticket::class;
-            $t['item_id'] = $t['id'];
-            return $t;
-        }, $tickets));
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => $columns,
-            'formatters' => $formatters,
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-                'specific_actions' => [
-                    'purge' => _sx('button', 'Delete permanently'),
-                    self::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'solveticket' => __s('Solve tickets'),
-                    self::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'add_task' => __s('Add a new task'),
-                ],
-                'extraparams'      => ['problems_id' => $problem->getID()],
-            ],
-        ]);
-    }
-
-    /**
-     * Show problems for a ticket
-     *
-     * @param Ticket $ticket object
-     * @return void
-     **/
-    public static function showForTicket(Ticket $ticket)
-    {
-
-        $ID = $ticket->getField('id');
-
-        if (!static::canView() || !$ticket->can($ID, READ)) {
-            return;
-        }
-
-        $canedit = $ticket->can($ID, UPDATE);
-
-        $rand = mt_rand();
-
-        $problems = self::getTicketProblemsData($ID);
-        $used     = [];
-        foreach ($problems as $problem) {
-            $used[$problem['id']] = $problem['id'];
-        }
-
-        $link_types = array_map(static fn($link_type) => $link_type['name'], CommonITILObject_CommonITILObject::getITILLinkTypes());
-
-        if ($canedit) {
-            echo TemplateRenderer::getInstance()->render('components/form/link_existing_or_new.html.twig', [
-                'rand' => $rand,
-                'link_itemtype' => self::class,
-                'source_itemtype' => Ticket::class,
-                'source_items_id' => $ID,
-                'link_types' => $link_types,
-                'target_itemtype' => Problem::class,
-                'dropdown_options' => [
-                    'entity'      => $ticket->getEntityID(),
-                    'entity_sons' => $ticket->isRecursive(),
-                    'condition'   => Problem::getOpenCriteria(),
-                    'used'        => $used,
-                    'displaywith' => ['id'],
-                ],
-                'create_link' => Session::haveRight(Problem::$rightname, CREATE),
-                'form_label' => __('Add a problem'),
-                'button_label' => __('Create a problem from this ticket'),
-            ]);
-        }
-
-        [$columns, $formatters] = array_values(Problem::getCommonDatatableColumns());
-        $entries = Problem::getDatatableEntries(array_map(static function ($p) {
-            $p['itemtype'] = Problem::class;
-            $p['item_id'] = $p['id'];
-            return $p;
-        }, $problems));
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => $columns,
-            'formatters' => $formatters,
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-    }
-
-    /**
      * Returns problems data for given ticket.
      * Returned data is usable by `Problem::showShort()` method.
      *
@@ -357,31 +146,5 @@ class Problem_Ticket extends CommonITILObject_CommonITILObject
         }
 
         return $problems;
-    }
-
-    /**
-     * Returns tickets data for given problem.
-     * Returned data is usable by `Ticket::showShort()` method.
-     *
-     * @param int $problems_id
-     *
-     * @return array
-     */
-    private static function getProblemTicketsData($problems_id): array
-    {
-        $problem = new Problem();
-        $problem->fields['id'] = $problems_id;
-        $iterator = self::getListForItem($problem);
-
-        $tickets = [];
-        foreach ($iterator as $data) {
-            $ticket = new Ticket();
-            $ticket->getFromDB($data['id']);
-            if ($ticket->canViewItem()) {
-                $tickets[$data['id']] = $data;
-            }
-        }
-
-        return $tickets;
     }
 }

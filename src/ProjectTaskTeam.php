@@ -68,15 +68,9 @@ class ProjectTaskTeam extends CommonDBRelation
         return 'id';
     }
 
-
     public static function getTypeName($nb = 0)
     {
         return _n('Task team', 'Task teams', $nb);
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-users';
     }
 
     public function getForbiddenStandardMassiveAction()
@@ -85,37 +79,6 @@ class ProjectTaskTeam extends CommonDBRelation
         $forbidden   = parent::getForbiddenStandardMassiveAction();
         $forbidden[] = 'update';
         return $forbidden;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        global $CFG_GLPI;
-
-        switch ($ma->getAction()) {
-            case 'affect_to_team':
-            case 'unaffect_to_team':
-                $rand = Dropdown::showItemTypes('itemtype', static::$available_types);
-                echo '<br>';
-                $params = [
-                    'idtable'             => '__VALUE__',
-                    'display_emptychoice' => true,
-                    'name'                => 'items_id',
-                    'entity_restrict'     => Session::getActiveEntity(),
-                    'rand'                => $rand,
-                ];
-                Ajax::updateItemOnSelectEvent(
-                    "dropdown_itemtype$rand",
-                    "results_itemtype$rand",
-                    $CFG_GLPI['root_doc'] . '/ajax/dropdownAllItems.php',
-                    $params
-                );
-                echo "<span id='results_itemtype$rand'></span>";
-                echo '<br>';
-
-                echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     /**
@@ -181,36 +144,6 @@ class ProjectTaskTeam extends CommonDBRelation
         }
     }
 
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        if (!$withtemplate && static::canView()) {
-            $nb = 0;
-            switch (get_class($item)) {
-                case ProjectTask::class:
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = $item->getTeamCount();
-                    }
-                    return self::createTabEntry(self::getTypeName(1), $nb, $item::getType());
-            }
-        }
-        return '';
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-
-        switch (get_class($item)) {
-            case ProjectTask::class:
-                $item->showTeam($item);
-                break;
-        }
-
-        return true;
-    }
-
     public function post_addItem()
     {
         if (!isset($this->input['_disablenotif'])) {
@@ -223,7 +156,6 @@ class ProjectTaskTeam extends CommonDBRelation
             NotificationEvent::raiseEvent("update", $task);
         }
     }
-
 
     /**
      * Get team for a project task

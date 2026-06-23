@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 use function Safe\getimagesize;
 
 /**
@@ -58,20 +56,13 @@ class Notepad extends CommonDBChild
         return _n('Note', 'Notes', $nb);
     }
 
-    public static function getIcon()
-    {
-        return 'ti ti-notes';
-    }
-
     public function getLogTypeID()
     {
         return [$this->fields['itemtype'], $this->fields['items_id']];
     }
 
-
     public function canCreateItem(): bool
     {
-
         if (
             isset($this->fields['itemtype'])
             && ($item = getItemForItemtype($this->fields['itemtype']))
@@ -80,11 +71,9 @@ class Notepad extends CommonDBChild
         }
         return false;
     }
-
 
     public function canUpdateItem(): bool
     {
-
         if (
             isset($this->fields['itemtype'])
             && ($item = getItemForItemtype($this->fields['itemtype']))
@@ -94,49 +83,21 @@ class Notepad extends CommonDBChild
         return false;
     }
 
-
     public function prepareInputForAdd($input)
     {
-
         $input['users_id']             = Session::getLoginUserID();
         $input['users_id_lastupdater'] = Session::getLoginUserID();
         return $input;
     }
 
-
     public function prepareInputForUpdate($input)
     {
-
         $input['users_id_lastupdater'] = Session::getLoginUserID();
         if (!isset($input['visible_from_ticket'])) {
             $input['visible_from_ticket'] = 0;
         }
         return $input;
     }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        if (Session::haveRight($item::$rightname, READNOTE) && $item instanceof CommonDBTM) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = self::countForItem($item);
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-
-        static::showForItem($item, $withtemplate);
-        return true;
-    }
-
 
     /**
      * @param $item    CommonDBTM object
@@ -312,36 +273,6 @@ class Notepad extends CommonDBChild
         ];
 
         return $tab;
-    }
-
-    /**
-     * Show notepads for an item
-     *
-     * @param CommonDBTM $item         CommonDBTM object
-     * @param int        $withtemplate template or basic item (default 0)
-     *
-     * @return bool
-     */
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        if (!Session::haveRight($item::$rightname, READNOTE)) {
-            return false;
-        }
-        $notes     = static::getAllForItem($item);
-        $rand      = mt_rand();
-        $canedit   = Session::haveRight($item::$rightname, UPDATENOTE);
-
-        if (!(!empty($withtemplate) && ($withtemplate == 2))) {
-            TemplateRenderer::getInstance()->display('components/notepad/form.html.twig', [
-                'rand'      => $rand,
-                'url'       => Toolbox::getItemTypeFormURL('Notepad'),
-                'itemtype'  => $item->getType(),
-                'items_id'  => $item->getID(),
-                'notes'     => $notes,
-                'canedit'   => $canedit,
-            ]);
-        }
-        return true;
     }
 
     public function post_updateItem($history = 1)

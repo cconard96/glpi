@@ -40,7 +40,6 @@ class ChangeTask extends CommonITILTask
         return _n('Change task', 'Change tasks', $nb);
     }
 
-
     /**
      * Populate the planning with planned ticket tasks
      *
@@ -56,7 +55,6 @@ class ChangeTask extends CommonITILTask
     {
         return parent::genericPopulatePlanning(self::class, $options);
     }
-
 
     /**
      * Display a Planning Item

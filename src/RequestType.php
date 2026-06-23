@@ -41,10 +41,8 @@ class RequestType extends CommonDropdown
         return _n('Request source', 'Request sources', $nb);
     }
 
-
     public function getAdditionalFields()
     {
-
         return [['name'  => 'is_active',
             'label' => __('Active'),
             'type'  => 'bool',
@@ -75,7 +73,6 @@ class RequestType extends CommonDropdown
             ],
         ];
     }
-
 
     public function rawSearchOptions()
     {
@@ -144,7 +141,6 @@ class RequestType extends CommonDropdown
         return $tab;
     }
 
-
     public function post_addItem()
     {
         global $DB;
@@ -177,7 +173,6 @@ class RequestType extends CommonDropdown
             );
         }
     }
-
 
     /**
      * @see CommonDBTM::post_updateItem()
@@ -230,7 +225,6 @@ class RequestType extends CommonDropdown
         }
     }
 
-
     /**
      * Get the default request type for a given source (mail, helpdesk)
      *
@@ -253,16 +247,13 @@ class RequestType extends CommonDropdown
         return 0;
     }
 
-
     public function cleanDBonPurge()
     {
         Rule::cleanForItemCriteria($this);
     }
 
-
     public function cleanRelationData()
     {
-
         parent::cleanRelationData();
 
         if ($this->isUsedAsDefaultRequestType()) {
@@ -277,17 +268,14 @@ class RequestType extends CommonDropdown
         }
     }
 
-
     public function isUsed()
     {
-
         if (parent::isUsed()) {
             return true;
         }
 
         return $this->isUsedAsDefaultRequestType();
     }
-
 
     /**
      * Check if type is used as default for new tickets.

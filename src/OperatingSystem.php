@@ -43,9 +43,4 @@ class OperatingSystem extends CommonDropdown
     {
         return _n('Operating system', 'Operating systems', $nb);
     }
-
-    public static function getIcon()
-    {
-        return 'ti ti-device-desktop-cog';
-    }
 }

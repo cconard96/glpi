@@ -33,9 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\ContentTemplates\TemplateManager;
-use Glpi\DBAL\QueryExpression;
 use Glpi\Features\AssignableItem;
 use Glpi\Toolbox\URL;
 
@@ -87,49 +85,6 @@ class Link extends CommonDBTM
             }
             self::$tags[] = $tag;
         }
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (self::canView()) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $entity_criteria = getEntitiesRestrictCriteria(
-                    Link::getTable(),
-                    '',
-                    self::getEntityRestrictForItem($item),
-                    $item instanceof CommonDBTM ? $item->maybeRecursive() : false
-                );
-
-                $nb = countElementsInTable(
-                    ['glpi_links_itemtypes','glpi_links'],
-                    [
-                        'glpi_links_itemtypes.links_id'  => new QueryExpression(DBmysql::quoteName('glpi_links.id')),
-                        'glpi_links_itemtypes.itemtype'  => $item->getType(),
-                    ] + $entity_criteria
-                );
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showAllLinksForItem($item, self::class);
-        return true;
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function cleanDBonPurge()
@@ -211,16 +166,6 @@ class Link extends CommonDBTM
             }
         }
         return $completions;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        TemplateRenderer::getInstance()->display('pages/setup/externallink.html.twig', [
-            'item' => $this,
-            'tag_options' => $this->getTagCompletions(),
-            'params' => $options,
-        ]);
-        return true;
     }
 
     public function rawSearchOptions()
@@ -537,197 +482,6 @@ class Link extends CommonDBTM
     }
 
     /**
-     * Show all external and manual links for an item
-     * @param CommonDBTM $item
-     * @param 'ManualLink'|'Link'|null $restrict_type Restrict to a specific type of link
-     * @return void
-     */
-    public static function showAllLinksForItem(CommonDBTM $item, ?string $restrict_type = null)
-    {
-        if ($item->isNewID($item->getID())) {
-            return;
-        }
-
-        if ($item->can($item->getID(), UPDATE)) {
-            $buttons_params = [
-                'item' => $item,
-                'add_msg' => _x('button', 'Add'),
-                'configure_msg' => sprintf(__('Configure %s links'), $item::getTypeName(1)),
-                'show_add' => ManualLink::canCreate() && ($restrict_type === null || $restrict_type === ManualLink::class),
-                'show_configure' => self::canUpdate() && ($restrict_type === null || $restrict_type === self::class),
-            ];
-
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div class="firstbloc">
-                    {% if show_add %}
-                        <a class="btn btn-primary ms-1" href="{{ 'ManualLink'|itemtype_form_path ~ '?itemtype=' ~ item.getType() ~ '&items_id=' ~ item.fields[item.getIndexName()] }}">
-                            <i class="ti ti-link"></i>
-                            <span>{{ add_msg }}</span>
-                        </a>
-                    {% endif %}
-                    {% if show_configure %}
-                        <a class="btn btn-primary ms-1" href="{{ 'Link'|itemtype_search_path }}">
-                            <i class="ti ti-settings"></i>
-                            <span>{{ configure_msg }}</span>
-                        </a>
-                    {% endif %}
-                </div>
-TWIG, $buttons_params);
-        }
-
-        $entries = [];
-
-        if (($restrict_type === null || $restrict_type === ManualLink::class) && ManualLink::canView()) {
-            $manuallink = new ManualLink();
-
-            $manual_links = ManualLink::getForItem($item);
-            foreach ($manual_links as $row) {
-                $manuallink->getFromResultSet($row);
-
-                $entry = [
-                    'itemtype' => ManualLink::class,
-                    'id' => $row['id'],
-                    'name' => $row['name'],
-                    'link' => ManualLink::getLinkHtml($row),
-                    'comment' => $row['comment'],
-                    'type' => _n('Item', 'Items', 1),
-                ];
-                $actions = '';
-
-                if ($manuallink->canUpdateItem()) {
-                    $actions .= '<a href="' . htmlescape(ManualLink::getFormURLWithID($row[$item->getIndexName()])) . '" title="' . _sx('button', 'Update') . '">';
-                    $actions .= '<i class="ti ti-edit"></i>';
-                    $actions .= '<span class="sr-only">' . _sx('button', 'Update') . '</span>';
-                    $actions .= '</a>';
-                }
-                $entry['actions'] = $actions;
-                $entries[] = $entry;
-            }
-        }
-
-        if (($restrict_type === null || $restrict_type === self::class) && self::canView()) {
-            $ext_links = self::getLinksDataForItem($item);
-            foreach ($ext_links as $data) {
-                $links = self::getAllLinksFor($item, $data);
-
-                foreach ($links as $link) {
-                    $entries[] = [
-                        'itemtype' => self::class,
-                        'id' => $data['id'],
-                        'name' => $link,
-                        'link' => $link,
-                        'type' => $item::getTypeName(Session::getPluralNumber()),
-                        'comment' => '',
-                    ];
-                }
-            }
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'superheader' => '',
-            'columns' => [
-                'type' => __('Linked to'),
-                'link' => _n('Link', 'Links', 1),
-                'comment' => _n('Comment', 'Comments', 1),
-                'actions' => _n('Action', 'Actions', Session::getPluralNumber()),
-            ],
-            'formatters' => [
-                'link' => 'raw_html',
-                'actions' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => false,
-        ]);
-    }
-
-    /**
-     * Show Links for an item
-     *
-     * @since 0.85
-     *
-     * @param CommonDBTM $item The item
-     * @param array{id: int, name: string, link: string, data: string, open_window: ?bool} $params
-     *
-     * @return array
-     */
-    public static function getAllLinksFor($item, $params)
-    {
-        global $CFG_GLPI;
-
-        $computedlinks = [];
-        if (
-            !isset($params['name'])
-            || !isset($params['link'])
-            || !isset($params['data'])
-            || !isset($params['id'])
-        ) {
-            return $computedlinks;
-        }
-
-        if (!isset($params['open_window'])) {
-            $params['open_window'] = true;
-        }
-
-        if (empty($params['name'])) {
-            $params['name'] = $params['link'];
-        }
-
-        $names = $item->generateLinkContents($params['name'], $item, false);
-        $file  = trim($params['data']);
-
-        if (empty($file)) {
-            // Generate links
-            $links = $item->generateLinkContents($params['link'], $item, true);
-            $i     = 1;
-            foreach ($links as $key => $val) {
-                $name    = ($names[$key] ?? reset($names));
-                $newlink = '<a href="' . htmlescape($val) . '"';
-                if ($params['open_window']) {
-                    $newlink .= " target='_blank'";
-                }
-                $newlink          .= ">";
-                $linkname          = htmlescape(sprintf(__('%1$s #%2$s'), $name, $i));
-                $newlink          .= htmlescape(sprintf(__('%1$s: %2$s'), $linkname, $val));
-                $newlink          .= "</a>";
-                $computedlinks[]   = $newlink;
-                $i++;
-            }
-        } else {
-            // Generate files
-            $files = $item->generateLinkContents($params['link'], $item, false);
-            $links = $item->generateLinkContents($params['data'], $item, false);
-            $i     = 1;
-            foreach ($links as $key => $val) {
-                $name = ($names[$key] ?? reset($names));
-                if (isset($files[$key])) {
-                    // a different name for each file, ex name = foo-[IP].txt
-                    $file = $files[$key];
-                } else {
-                    // same name for all files, ex name = foo.txt
-                    $file = reset($files);
-                }
-                $url             = $CFG_GLPI["root_doc"] . "/front/link.send.php?lID=" . $params['id']
-                                 . "&itemtype=" . $item::class
-                                 . "&id=" . $item->getID() . "&rank=$key";
-                $newlink         = '<a href="' . htmlescape($url) . '" target="_blank">';
-                $newlink        .= "<i class='fs-2 ti ti-link me-2'></i>";
-                $linkname        = htmlescape(sprintf(__('%1$s #%2$s'), $name, $i));
-                $newlink        .= htmlescape(sprintf(__('%1$s: %2$s'), $linkname, $val));
-                $newlink        .= "</a>";
-                $computedlinks[] = $newlink;
-                $i++;
-            }
-        }
-
-        return $computedlinks;
-    }
-
-    /**
      * @param class-string<CommonDBTM> $itemtype
      *
      * @return array
@@ -813,11 +567,6 @@ TWIG, $buttons_params);
             ] + getEntitiesRestrictCriteria('glpi_links', 'entities_id', $restrict, true),
             'ORDERBY'      => 'name',
         ]);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-link";
     }
 
     public function prepareInputForAdd($input)

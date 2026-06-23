@@ -48,7 +48,6 @@ use Glpi\Event;
 use Glpi\Http\JSONResponse;
 use Glpi\Http\Request;
 use Glpi\Http\Response;
-use Glpi\UI\ThemeManager;
 use Group;
 use Planning;
 use Profile;
@@ -1059,11 +1058,6 @@ EOT,
                         - 3: Done
 EOT,
                     'x-field' => 'planned_task_state',
-                ],
-                'palette' => [
-                    'type' => Doc\Schema::TYPE_STRING,
-                    'description' => 'Color palette/theme',
-                    'enum' => array_map(static fn($theme) => $theme->getKey(), ThemeManager::getInstance()->getAllThemes()),
                 ],
                 'page_layout' => [
                     'type' => Doc\Schema::TYPE_STRING,

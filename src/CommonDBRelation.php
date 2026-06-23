@@ -1188,102 +1188,6 @@ abstract class CommonDBRelation extends CommonDBConnexity
         }
     }
 
-
-    /**
-     * @since 0.84
-     *
-     * @param string               $itemtype
-     * @param HTMLTableBase        $base      HTMLTableBase object
-     * @param HTMLTableSuperHeader $super     HTMLTableSuperHeader object (default NULL)
-     * @param HTMLTableHeader      $father    HTMLTableHeader object (default NULL)
-     * @param array                $options
-     * @return void
-     **/
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        if (isset($options[static::class . '_side'])) {
-            $side = $options[static::class . '_side'];
-        } else {
-            $side = 0;
-        }
-        $oppositetype = '';
-        if (
-            ($side == 1)
-            || ($itemtype == static::$itemtype_1)
-        ) {
-            $oppositetype = static::$itemtype_2;
-        }
-        if (
-            ($side == 2)
-            || ($itemtype == static::$itemtype_2)
-        ) {
-            $oppositetype = static::$itemtype_1;
-        }
-        if (
-            class_exists($oppositetype)
-            && method_exists($oppositetype, 'getHTMLTableHeader')
-        ) {
-            $oppositetype::getHTMLTableHeader(static::class, $base, $super, $father, $options);
-        }
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param HTMLTableRow  $row      HTMLTableRow object (default NULL)
-     * @param CommonDBTM    $item     CommonDBTM object (default NULL)
-     * @param HTMLTableCell $father   HTMLTableCell object (default NULL)
-     * @param array         $options
-     * @return void
-     **/
-    public static function getHTMLTableCellsForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        global $DB;
-
-        if (empty($item)) {
-            if (empty($father)) {
-                return;
-            }
-            $item = $father->getItem();
-        }
-
-        $criteria = self::getSQLCriteriaToSearchForItem($item->getType(), $item->getID());
-        if ($criteria !== null) {
-            $relation = new static();
-            $iterator = $DB->request($criteria);
-            foreach ($iterator as $line) {
-                if ($line['is_1'] != $line['is_2']) {
-                    if ($line['is_1'] == 0) {
-                        $options['items_id'] = $line['items_id_1'];
-                        $oppositetype        = $line['itemtype_1'];
-                    } else {
-                        $options['items_id'] = $line['items_id_2'];
-                        $oppositetype        = $line['itemtype_2'];
-                    }
-                    if (
-                        class_exists($oppositetype)
-                        && method_exists($oppositetype, 'getHTMLTableCellsForItem')
-                        && $relation->getFromDB($line[static::getIndexName()])
-                    ) {
-                        $oppositetype::getHTMLTableCellsForItem($row, $relation, $father, $options);
-                    }
-                }
-            }
-        }
-    }
-
-
     /**
      * Affect a CommonDBRelation to a given item. By default, unaffect it
      *
@@ -1406,87 +1310,6 @@ abstract class CommonDBRelation extends CommonDBConnexity
         return 0;
     }
 
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        $specificities = static::getRelationMassiveActionsSpecificities();
-        $action        = $ma->getAction();
-
-        // First, get normalized action : add or remove
-        if (in_array($action, $specificities['normalized']['add'])) {
-            $normalized_action = 'add';
-        } elseif (in_array($action, $specificities['normalized']['remove'])) {
-            $normalized_action = 'remove';
-        } else {
-            // If we cannot get normalized action, then, it's not for this method!
-            return parent::showMassiveActionsSubForm($ma);
-        }
-
-        // Get the peer number. For Document_Item, it depends on the action's name
-        $peer_number = static::getRelationMassiveActionsPeerForSubForm($ma);
-        switch ($peer_number) {
-            case 1:
-                $peertype = static::$itemtype_1;
-                $peers_id = static::$items_id_1;
-                break;
-            case 2:
-                $peertype = static::$itemtype_2;
-                $peers_id = static::$items_id_2;
-                break;
-            default:
-                throw new LogicException();
-        }
-        if (
-            ($normalized_action == 'remove')
-            && ($specificities['only_remove_all_at_once'])
-        ) {
-            // If we just want to remove all the items, then just set hidden fields
-            echo Html::hidden('peer_' . $peertype, ['value' => '']);
-            echo Html::hidden('peer_' . $peers_id, ['value' => -1]);
-        } else {
-            // Else, it depends if the peer is an itemtype or not
-            $options = $specificities['select_items_options_' . $peer_number];
-            // Do we allow to remove all the items at once ? Then, rename the default value !
-            if (
-                ($normalized_action == 'remove')
-                && $specificities['can_remove_all_at_once']
-            ) {
-                $options['emptylabel'] = __('Remove all at once');
-            }
-            if (preg_match('/^itemtype/', $peertype)) {
-                if (count($specificities['itemtypes']) > 0) {
-                    $options['itemtype_name'] = 'peer_' . $peertype;
-                    $options['items_id_name'] = 'peer_' . $peers_id;
-                    $options['itemtypes']     = $specificities['itemtypes'];
-                    // At least, if not forced by user, 'checkright' == true
-                    if (!isset($options['checkright'])) {
-                        $options['checkright']    = true;
-                    }
-                    Dropdown::showSelectItemFromItemtypes($options);
-                }
-            } else {
-                $options['name'] = 'peer_' . $peers_id;
-                if (isset($_POST['entity_restrict'])) {
-                    $options['entity'] = Session::getMatchingActiveEntities($_POST['entity_restrict']);
-                }
-                if ($normalized_action == 'remove') {
-                    $options['nochecklimit'] = true;
-                }
-                $dropdown_method = $specificities['dropdown_method_' . $peer_number];
-                $peertype::$dropdown_method($options);
-            }
-        }
-        // Allow any relation to display its own fields (NetworkPort_Vlan for tagged ...)
-        static::showRelationMassiveActionsSubForm($ma, $peer_number);
-        echo "<br><br>" . Html::submit(
-            $specificities['button_labels'][$action],
-            ['name' => 'massiveaction']
-        );
-        return true;
-    }
-
-
     /**
      * @since 0.85
      *
@@ -1508,7 +1331,6 @@ abstract class CommonDBRelation extends CommonDBConnexity
     ) {
         return [];
     }
-
 
     /**
      * @warning this is not valid if $itemtype_1 == $itemtype_2 !

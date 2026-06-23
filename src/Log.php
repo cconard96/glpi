@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryParam;
 use Glpi\RichText\RichText;
 use Glpi\Search\SearchOption;
@@ -92,43 +91,6 @@ class Log extends CommonDBTM
         return __('Historical');
     }
 
-    public static function getIcon()
-    {
-        return 'ti ti-history';
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!self::canView()) {
-            return '';
-        }
-
-        $nb = 0;
-        if (
-            $_SESSION['glpishow_count_on_tabs']
-            && ($item instanceof CommonDBTM)
-        ) {
-            $nb = countElementsInTable(
-                'glpi_logs',
-                ['itemtype' => $item->getType(),
-                    'items_id' => $item->getID(),
-                ]
-            );
-        }
-        return self::createTabEntry(self::getTypeName(1), $nb, $item::getType());
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showForItem($item);
-        return true;
-    }
-
-
     /**
      * Construct  history for an item
      *
@@ -140,7 +102,6 @@ class Log extends CommonDBTM
      */
     public static function constructHistory(CommonDBTM $item, $oldvalues, $values)
     {
-
         if (!count($oldvalues)) {
             return false;
         }
@@ -215,7 +176,6 @@ class Log extends CommonDBTM
         }
         return $result;
     }
-
 
     /**
      * Log history
@@ -320,65 +280,6 @@ class Log extends CommonDBTM
             return $_SESSION['glpi_maxhistory'] = $DB->insertId();
         }
         return false;
-    }
-
-
-    /**
-     * Show History of an item
-     *
-     * @param CommonDBTM $item         CommonDBTM object
-     * @param int        $withtemplate withtemplate param (default 0)
-     *
-     * @return void
-     */
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        global $CFG_GLPI;
-
-        if (!self::canView()) {
-            return;
-        }
-
-        $itemtype = $item->getType();
-        $items_id = $item->getField('id');
-
-        $start       = intval(($_GET["start"] ?? 0));
-        $filters     = $_GET['filters'] ?? [];
-        $is_filtered = count($filters) > 0;
-        $sql_filters = self::convertFiltersValuesToSqlCriteria($filters);
-
-        // Total Number of events
-        $total_number    = countElementsInTable("glpi_logs", ['items_id' => $items_id, 'itemtype' => $itemtype ]);
-        $filtered_number = countElementsInTable("glpi_logs", ['items_id' => $items_id, 'itemtype' => $itemtype ] + $sql_filters);
-
-        TemplateRenderer::getInstance()->display('components/logs.html.twig', [
-            'total_number'      => $total_number,
-            'filtered_number'   => $filtered_number,
-            'logs'              => $filtered_number > 0
-            ? self::getHistoryData($item, $start, $_SESSION['glpilist_limit'], $sql_filters)
-            : [],
-            'start'             => $start,
-            'href'              => $item::getFormURLWithID($items_id),
-            'additional_params' => $is_filtered ? http_build_query(['filters' => $filters]) : "",
-            'is_tab'            => true,
-            'items_id'          => $items_id,
-            'filters'           => $filters,
-            'user_names'        => $is_filtered
-            ? Log::getDistinctUserNamesValuesInItemLog($item)
-            : [],
-            'affected_fields'   => $is_filtered
-            ? Log::getDistinctAffectedFieldValuesInItemLog($item)
-            : [],
-            'linked_actions'    => $is_filtered
-            ? Log::getDistinctLinkedActionValuesInItemLog($item)
-            : [],
-            'csv_url'           => $CFG_GLPI['root_doc'] . "/front/log/export.php?" . http_build_query([
-                'filter'   => $filters,
-                'itemtype' => $item::getType(),
-                'id'       => $item->getId(),
-            ]),
-        ]);
-        ;
     }
 
     /**

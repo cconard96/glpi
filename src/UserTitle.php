@@ -40,9 +40,4 @@ class UserTitle extends CommonDropdown
     {
         return _n('User title', 'Users titles', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-user-star";
-    }
 }

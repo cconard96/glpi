@@ -44,24 +44,10 @@ class Manufacturer extends CommonDropdown
 
     public $can_be_translated = false;
 
-
     public static function getTypeName($nb = 0)
     {
         return _n('Manufacturer', 'Manufacturers', $nb);
     }
-
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-
-        switch ($field['type']) {
-            case 'registeredIDChooser':
-                RegisteredID::showAddChildButtonForItemForm($this, '_registeredID');
-                RegisteredID::showChildsForItemForm($this, '_registeredID');
-                break;
-        }
-    }
-
 
     public function getAdditionalFields()
     {
@@ -74,7 +60,6 @@ class Manufacturer extends CommonDropdown
             ],
         ];
     }
-
 
     /**
      * @return void
@@ -118,7 +103,6 @@ class Manufacturer extends CommonDropdown
         }
     }
 
-
     public function post_addItem()
     {
 
@@ -126,14 +110,12 @@ class Manufacturer extends CommonDropdown
         parent::post_addItem();
     }
 
-
     public function post_updateItem($history = true)
     {
 
         $this->post_workOnItem();
         parent::post_updateItem($history);
     }
-
 
     /**
      * @param null|string $old_name  Old name
@@ -162,64 +144,6 @@ class Manufacturer extends CommonDropdown
     {
         // Rules use manufacturer intread of manufacturers_id
         Rule::cleanForItemAction($this, 'manufacturer');
-    }
-
-
-    /**
-     * @param class-string<CommonDBTM> $itemtype
-     * @param HTMLTableBase $base
-     * @param ?HTMLTableSuperHeader $super
-     * @param ?HTMLTableHeader $father
-     * @param array $options
-     *
-     * @return void
-     */
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        $base->addHeader($column_name, htmlescape(Manufacturer::getTypeName(1)), $super, $father);
-    }
-
-
-    /**
-     * @param ?HTMLTableRow $row
-     * @param ?CommonDBTM $item
-     * @param ?HTMLTableCell $father
-     * @param array $options
-     *
-     * @return void
-     */
-    public static function getHTMLTableCellsForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        if (!empty($item->fields["manufacturers_id"])) {
-            $row->addCell(
-                $row->getHeaderByName($column_name),
-                htmlescape(Dropdown::getDropdownName("glpi_manufacturers", $item->fields["manufacturers_id"])),
-                $father
-            );
-        }
     }
 
     public function getCloneRelations(): array

@@ -111,7 +111,6 @@ class ProfileRight extends CommonDBChild
         return $rights;
     }
 
-
     /**
      * @return void
      */
@@ -145,7 +144,6 @@ class ProfileRight extends CommonDBChild
         }
         return $rights;
     }
-
 
     /**
      * @param $rights   array
@@ -181,7 +179,6 @@ class ProfileRight extends CommonDBChild
         }
         return $ok;
     }
-
 
     /**
      * @param $rights   array
@@ -262,7 +259,6 @@ class ProfileRight extends CommonDBChild
         }
     }
 
-
     /**
      * Update the rights of a profile
      *
@@ -315,7 +311,6 @@ class ProfileRight extends CommonDBChild
         self::fillProfileRights($profiles_id);
     }
 
-
     /**
      * @param bool $history
      *
@@ -346,40 +341,6 @@ class ProfileRight extends CommonDBChild
             'last_rights_update' => Session::getCurrentTime(),
         ]);
     }
-
-    /**
-     * @since 085
-     *
-     * @param $field
-     * @param $values
-     * @param $options   array
-     **/
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        $itemtype = $options['searchopt']['rightclass'];
-        if (!($item = getItemForItemtype($itemtype))) {
-            return __s('None');
-        }
-        $rights   = '';
-        $prem     = true;
-        foreach ($item->getRights() as $val => $name) {
-            if (is_numeric($values['rights']) && ((int) $values['rights'] & $val)) {
-                if ($prem) {
-                    $prem = false;
-                } else {
-                    $rights .= ", ";
-                }
-                if (is_array($name)) {
-                    $rights .= $name['long'];
-                } else {
-                    $rights .= $name;
-                }
-            }
-        }
-        return htmlescape($rights ?: __('None'));
-    }
-
 
     /**
      * @since 0.85

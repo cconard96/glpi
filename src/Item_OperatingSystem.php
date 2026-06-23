@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 class Item_OperatingSystem extends CommonDBRelation
 {
     public static $itemtype_1 = OperatingSystem::class;
@@ -49,32 +47,6 @@ class Item_OperatingSystem extends CommonDBRelation
     public static function getTypeName($nb = 0)
     {
         return _n('Item operating system', 'Item operating systems', $nb);
-    }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return '';
-        }
-
-        $nb = 0;
-        switch ($item->getType()) {
-            default:
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = self::countForItem($item);
-                }
-                return self::createTabEntry(OperatingSystem::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showForItem($item, $withtemplate);
-        return true;
     }
 
     /**
@@ -141,156 +113,6 @@ class Item_OperatingSystem extends CommonDBRelation
         return $iterator;
     }
 
-    /**
-     * Print the item's operating system form
-     *
-     * @param CommonDBTM $item Item instance
-     * @param int $withtemplate
-     *
-     * @since 9.2
-     *
-     * @return void
-     **/
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        global $DB;
-
-        //default options
-        $params = ['rand' => mt_rand()];
-
-        $columns = [
-            __('Name'),
-            _n('Version', 'Versions', 1),
-            _n('Architecture', 'Architectures', 1),
-            OperatingSystemServicePack::getTypeName(1),
-        ];
-
-        if (isset($_GET["order"]) && ($_GET["order"] == "ASC")) {
-            $order = "ASC";
-        } else {
-            $order = "DESC";
-        }
-
-        if (
-            (isset($_GET["sort"]) && !empty($_GET["sort"]))
-            && isset($columns[$_GET["sort"]])
-        ) {
-            $sort = $_GET["sort"];
-        } else {
-            $sort = "glpi_items_operatingsystems.id";
-        }
-
-        if (empty($withtemplate)) {
-            $withtemplate = 0;
-        }
-
-        $iterator = self::getFromItem($item, $sort, $order);
-        $number = count($iterator);
-        $i      = 0;
-
-        $os = [];
-        foreach ($iterator as $data) {
-            $os[$data['assocID']] = $data;
-        }
-
-        $canedit = $item->canEdit($item->getID());
-
-        if ($number <= 1) {
-            $id = -1;
-            $instance = new self();
-            if ($number > 0) {
-                $id = array_keys($os)[0];
-            } else {
-                //set itemtype and items_id
-                $instance->fields['itemtype']       = $item->getType();
-                $instance->fields['items_id']       = $item->getID();
-                $instance->fields['install_date']   = $item->fields['install_date'] ?? '';
-                $instance->fields['entities_id']    = $item->fields['entities_id'];
-            }
-            $instance->showForm($id, [
-                'canedit' => $canedit,
-                'candel'  => $canedit,
-            ]);
-            return;
-        }
-
-        echo "<div class='spaced'>";
-        if (
-            $canedit
-            && ($withtemplate < 2)
-        ) {
-            Html::openMassiveActionsForm('mass' . self::class . $params['rand']);
-            $massiveactionparams = ['num_displayed'  => min($_SESSION['glpilist_limit'], $number),
-                'container'      => 'mass' . self::class . $params['rand'],
-            ];
-            Html::showMassiveActions($massiveactionparams);
-        }
-
-        echo "<table class='tab_cadre_fixehov'>";
-
-        $header_begin  = "<tr>";
-        $header_top    = '';
-        $header_bottom = '';
-        $header_end    = '';
-        if (
-            $canedit
-            && ($withtemplate < 2)
-        ) {
-            $header_top    .= "<th width='11'>" . Html::getCheckAllAsCheckbox('mass' . self::class . $params['rand']);
-            $header_top    .= "</th>";
-            $header_bottom .= "<th width='11'>" . Html::getCheckAllAsCheckbox('mass' . self::class . $params['rand']);
-            $header_bottom .= "</th>";
-        }
-
-        foreach ($columns as $key => $val) {
-            $val = htmlescape($val);
-            $header_end .= "<th" . ($sort == $key ? " class='order_$order'" : '') . ">"
-                        . "<a href='javascript:reloadTab(\"sort=$key&amp;order="
-                          . (($order == "ASC") ? "DESC" : "ASC") . "&amp;start=0\");'>$val</a></th>";
-        }
-
-        $header_end .= "</tr>";
-        echo $header_begin . $header_top . $header_end;
-
-        foreach ($os as $data) {
-            $linkname = $data['name'];
-            if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
-                $linkname = sprintf(__('%1$s (%2$s)'), $linkname, $data["assocID"]);
-            }
-            $link = Toolbox::getItemTypeFormURL(self::getType());
-            $name = "<a href=\"" . htmlescape($link) . "?id=" . (int) $data["assocID"] . "\">" . htmlescape($linkname) . "</a>";
-
-            echo "<tr class='tab_bg_1'>";
-            if (
-                $canedit
-                && ($withtemplate < 2)
-            ) {
-                echo "<td width='10'>";
-                Html::showMassiveActionCheckBox(self::class, $data["assocID"]);
-                echo "</td>";
-            }
-            $version = htmlescape($data['version']);
-            $architecture = htmlescape($data['architecture']);
-            $servicepack = htmlescape($data['servicepack']);
-            echo "<td class='center'>{$name}</td>";
-            echo "<td class='center'>{$version}</td>";
-            echo "<td class='center'>{$architecture}</td>";
-            echo "<td class='center'>{$servicepack}</td>";
-
-            echo "</tr>";
-            $i++;
-        }
-        echo $header_begin . $header_bottom . $header_end;
-
-        echo "</table>";
-        if ($canedit && ($withtemplate < 2)) {
-            $massiveactionparams['ontop'] = false;
-            Html::showMassiveActions($massiveactionparams);
-            Html::closeForm();
-        }
-        echo "</div>";
-    }
-
     public function getConnexityItem(
         $itemtype,
         $items_id,
@@ -300,17 +122,6 @@ class Item_OperatingSystem extends CommonDBRelation
     ) {
         //overrided to set $getFromDBOrEmpty to true
         return parent::getConnexityItem($itemtype, $items_id, $getFromDB, $getEmpty, $getFromDBOrEmpty);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $this->fields);
-        TemplateRenderer::getInstance()->display('pages/assets/operatingsystem.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-
-        return true;
     }
 
     protected function computeFriendlyName()
@@ -559,56 +370,6 @@ class Item_OperatingSystem extends CommonDBRelation
         $specificities['itemtypes'] = $CFG_GLPI['operatingsystem_types'];
         return $specificities;
     }
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'update':
-                static::showFormMassiveUpdate($ma);
-                return true;
-        }
-
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
-    /**
-     * @param MassiveAction $ma
-     *
-     * @return void
-     */
-    public static function showFormMassiveUpdate($ma)
-    {
-        global $CFG_GLPI;
-
-        $rand = mt_rand();
-        Dropdown::showFromArray(
-            'os_field',
-            [
-                'OperatingSystem'             => __('Name'),
-                'OperatingSystemVersion'      => _n('Version', 'Versions', 1),
-                'OperatingSystemArchitecture' => _n('Architecture', 'Architectures', 1),
-                'OperatingSystemKernel'       => OperatingSystemKernel::getTypeName(1),
-                'OperatingSystemKernelVersion' => OperatingSystemKernelVersion::getTypeName(1),
-                'OperatingSystemEdition'      => _n('Edition', 'Editions', 1),
-            ],
-            [
-                'display_emptychoice'   => true,
-                'rand'                  => $rand,
-            ]
-        );
-
-        Ajax::updateItemOnSelectEvent(
-            "dropdown_os_field$rand",
-            "results_os_field$rand",
-            $CFG_GLPI["root_doc"]
-            . "/ajax/dropdownMassiveActionOs.php",
-            [
-                'itemtype'  => '__VALUE__',
-                'rand'      => $rand,
-            ]
-        );
-        echo "<span id='results_os_field$rand'></span> \n";
-    }
 
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
@@ -663,11 +424,5 @@ class Item_OperatingSystem extends CommonDBRelation
         $input['entities_id'] = $item->fields['entities_id'];
         $input['is_recursive'] = $item->fields['is_recursive'];
         return $input;
-    }
-
-
-    public static function getIcon()
-    {
-        return OperatingSystem::getIcon();
     }
 }

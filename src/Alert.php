@@ -131,43 +131,6 @@ class Alert extends CommonDBTM
         return Dropdown::showFromArray($p['name'], $times, $p);
     }
 
-
-    /**
-     * Builds a Yes/No dropdown
-     *
-     * @param array $options Display options
-     *
-     * @return void|string (see $options['display'])
-     */
-    public static function dropdownYesNo($options = [])
-    {
-
-        $p = [
-            'name'           => 'alert',
-            'value'          => 0,
-            'display'        => true,
-            'inherit_parent' => false,
-        ];
-
-        if (count($options)) {
-            foreach ($options as $key => $val) {
-                $p[$key] = $val;
-            }
-        }
-
-        $times = [];
-
-        if ($p['inherit_parent']) {
-            $times[Entity::CONFIG_PARENT] = __('Inheritance of the parent entity');
-        }
-
-        $times[0] = __('No');
-        $times[1] = __('Yes');
-
-        return Dropdown::showFromArray($p['name'], $times, $p);
-    }
-
-
     /**
      * ?
      *
@@ -210,7 +173,6 @@ class Alert extends CommonDBTM
         return Dropdown::showNumber($name, $p);
     }
 
-
     /**
      * Does alert exists
      *
@@ -234,7 +196,6 @@ class Alert extends CommonDBTM
         }
         return false;
     }
-
 
     /**
      * Get date of alert
@@ -260,36 +221,5 @@ class Alert extends CommonDBTM
             return $row['date'];
         }
         return false;
-    }
-
-
-    /**
-     * Display last alert
-     *
-     * @param string  $itemtype The item type
-     * @param int $items_id The item's ID
-     *
-     * @return void
-     */
-    public static function displayLastAlert($itemtype, $items_id)
-    {
-        global $DB;
-
-        if ($items_id) {
-            $iter = $DB->request([
-                'FROM'   => self::getTable(),
-                'FIELDS' => 'date',
-                'WHERE'  => [
-                    'itemtype' => $itemtype,
-                    'items_id' => $items_id,
-                ],
-                'ORDER'  => 'date DESC',
-                'LIMIT'  => 1,
-            ]);
-            if ($row = $iter->current()) {
-                //TRANS: %s is the date
-                echo htmlescape(sprintf(__('Alert sent on %s'), Html::convDateTime($row['date'])));
-            }
-        }
     }
 }

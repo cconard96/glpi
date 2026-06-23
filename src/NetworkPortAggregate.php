@@ -65,18 +65,4 @@ class NetworkPortAggregate extends NetworkPortInstantiation
         }
         return parent::prepareInputForAdd($input);
     }
-
-    public function showInstantiationForm(NetworkPort $netport, $options, $recursiveItems)
-    {
-        if (
-            isset($this->fields['networkports_id_list'])
-            && is_string($this->fields['networkports_id_list'])
-        ) {
-            $this->fields['networkports_id_list']
-                        = importArrayFromDB($this->fields['networkports_id_list']);
-        }
-
-        $this->showMacField($netport, $options);
-        $this->showNetworkPortSelector($recursiveItems, static::class);
-    }
 }

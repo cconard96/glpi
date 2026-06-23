@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 class Item_Cluster extends CommonDBRelation
 {
     public static $itemtype_1 = Cluster::class;
@@ -50,27 +48,6 @@ class Item_Cluster extends CommonDBRelation
         return _n('Cluster item', 'Cluster items', $nb);
     }
 
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return '';
-        }
-        $nb = 0;
-        if ($_SESSION['glpishow_count_on_tabs']) {
-            $nb = self::countForMainItem($item);
-        }
-        return self::createTabEntry(_n('Item', 'Items', $nb), $nb, $item::getType(), 'ti ti-package');
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof Cluster) {
-            return false;
-        }
-        return self::showItems($item);
-    }
-
     public function getForbiddenStandardMassiveAction()
     {
         $forbidden   = parent::getForbiddenStandardMassiveAction();
@@ -79,116 +56,6 @@ class Item_Cluster extends CommonDBRelation
         $forbidden[] = 'CommonDBConnexity:unaffect';
 
         return $forbidden;
-    }
-
-    /**
-     * Print enclosure items
-     *
-     * @return bool
-     **/
-    public static function showItems(Cluster $cluster): bool
-    {
-        global $DB;
-
-        $ID = $cluster->fields['id'];
-        $rand = mt_rand();
-
-        if (
-            !$cluster->getFromDB($ID)
-            || !$cluster->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $cluster->canEdit($ID);
-
-        $items = $DB->request([
-            'SELECT' => ['id', 'itemtype', 'items_id'],
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                'clusters_id' => $ID,
-            ],
-        ]);
-
-        if ($cluster->canAddItem('itemtype')) {
-            (new self())->showForm(-1, [
-                'clusters_id' => $ID,
-                'params' => [
-                    'formfooter' => false,
-                ],
-                'no_header'  => true,
-            ]);
-        }
-
-        $entries = [];
-        foreach ($items as $row) {
-            $item = getItemForItemtype($row['itemtype']);
-            $item->getFromDB($row['items_id']);
-            $entries[] = [
-                'itemtype' => static::class,
-                'id'       => $row['id'],
-                'item'     => $item->getLink(),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'item' => _n('Item', 'Items', 1),
-            ],
-            'formatters' => [
-                'item' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => min($_SESSION['glpilist_limit'], count($entries)),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-
-        return true;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        global $DB;
-
-        echo "<div class='center'>";
-
-        $this->initForm($ID, $options);
-
-        // get all used items
-        $used = [];
-        $iterator = $DB->request([
-            'SELECT' => ['itemtype', 'items_id'],
-            'FROM'   => static::getTable(),
-        ]);
-        foreach ($iterator as $row) {
-            $used [$row['itemtype']][] = $row['items_id'];
-        }
-
-        $twig_params = [
-            'item' => $this,
-            'used' => $used,
-            'item_label' => _n('Item', 'Items', 1),
-        ] + $options;
-
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% extends 'generic_show_form.html.twig' %}
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {% block form_fields %}
-                {{ fields.dropdownItemsFromItemtypes('itemtype', item_label, {
-                    itemtypes: config('cluster_types'),
-                    used: used,
-                }) }}
-                <input type="hidden" name="clusters_id" value="{{ item.fields['clusters_id'] }}"/>
-            {% endblock %}
-TWIG, $twig_params);
-        return true;
     }
 
     public function prepareInputForAdd($input)
@@ -244,11 +111,5 @@ TWIG, $twig_params);
         }
 
         return $input;
-    }
-
-
-    public static function getIcon()
-    {
-        return Cluster::getIcon();
     }
 }

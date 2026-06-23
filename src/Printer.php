@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\Asset_PeripheralAsset;
 use Glpi\DBAL\QueryFunction;
 use Glpi\DBAL\QuerySubQuery;
@@ -96,11 +95,6 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
         return _n('Printer', 'Printers', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
@@ -115,45 +109,6 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
     {
         return false;
     }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Item_OperatingSystem::class, $ong, $options);
-        $this->addStandardTab(Item_SoftwareVersion::class, $ong, $options);
-        $this->addStandardTab(Cartridge::class, $ong, $options);
-        $this->addStandardTab(PrinterLog::class, $ong, $options);
-        $this->addStandardTab(Item_Devices::class, $ong, $options);
-        $this->addStandardTab(Item_Line::class, $ong, $options);
-        $this->addStandardTab(Item_Disk::class, $ong, $options);
-        $this->addStandardTab(Asset_PeripheralAsset::class, $ong, $options);
-        $this->addStandardTab(NetworkPort::class, $ong, $options);
-        $this->addStandardTab(Socket::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(KnowbaseItem_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Ticket::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        $this->addStandardTab(Change_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Project::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Lock::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Reservation::class, $ong, $options);
-        $this->addStandardTab(Certificate_Item::class, $ong, $options);
-        $this->addStandardTab(Domain_Item::class, $ong, $options);
-        $this->addStandardTab(Appliance_Item::class, $ong, $options);
-        $this->addStandardTab(RuleMatchedLog::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
 
     /**
      * Can I change recusvive flag to false
@@ -241,7 +196,6 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
         return true;
     }
 
-
     public function prepareInputForAdd($input)
     {
         if (isset($input["id"]) && ($input["id"] > 0)) {
@@ -265,7 +219,6 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
         return $input;
     }
 
-
     public function prepareInputForUpdate($input)
     {
         if (isset($input['init_pages_counter'])) {
@@ -278,7 +231,6 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
         $input = $this->prepareInputForUpdateAssignableItem($input);
         return $input;
     }
-
 
     public function cleanDBonPurge()
     {
@@ -301,28 +253,6 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
             ]
         );
     }
-
-
-    /**
-     * Print the printer form
-     *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/printer.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
 
     /**
      * Return the linked items (`Asset_PeripheralAsset` relations)
@@ -857,10 +787,5 @@ class Printer extends CommonDBTM implements AssignableItemInterface, StateInterf
     public function removeFromTrash($ID)
     {
         return $this->restore(["id" => $ID]);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-printer";
     }
 }

@@ -85,14 +85,4 @@ class RequestTypeFilter extends AbstractFilter
 
         return $criteria;
     }
-
-    public static function getHtml($value): string
-    {
-        return self::displayList(
-            self::getName(),
-            is_string($value) ? $value : "",
-            'requesttype',
-            RequestType::class
-        );
-    }
 }

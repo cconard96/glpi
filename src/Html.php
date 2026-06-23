@@ -54,12 +54,10 @@ use Glpi\Plugin\Hooks;
 use Glpi\System\Log\LogViewer;
 use Glpi\Toolbox\FrontEnd;
 use Glpi\Toolbox\URL;
-use Glpi\UI\ThemeManager;
 use Safe\DateTime;
 use Safe\Exceptions\FilesystemException;
 use ScssPhp\ScssPhp\Compiler;
 use Symfony\Component\HttpFoundation\Request;
-
 use function Safe\file_get_contents;
 use function Safe\filesize;
 use function Safe\json_encode;
@@ -77,12 +75,6 @@ use function Safe\strtotime;
  **/
 class Html
 {
-    /**
-     * Memory required to compile the main GLPI scss file (`css/glpi.scss`).
-     * It currently requires 120 MB, but may increase a bit when the dependencies are updated.
-     */
-    public const MAIN_SCSS_COMPILATION_REQUIRED_MEMORY = 192 * 1024 * 1024;
-
     /**
      * Recursivly execute html_entity_decode on an array
      *
@@ -1053,13 +1045,11 @@ TWIG,
         // Send extra expires header
         self::header_nocache();
 
-        $theme = ThemeManager::getInstance()->getCurrentTheme();
         $lang = $_SESSION['glpilanguage'] ?? Session::getPreferredLanguage();
 
         $tpl_vars = [
             'lang'               => $CFG_GLPI["languages"][$lang][3],
             'title'              => $title,
-            'theme'              => $theme,
             'is_anonymous_page'  => false,
             'css_files'          => [],
             'js_files'           => [],
@@ -1212,10 +1202,6 @@ TWIG,
         }
         $tpl_vars['css_files'][] = ['path' => 'css/glpi.scss'];
         $tpl_vars['css_files'][] = ['path' => 'css/core_palettes.scss'];
-
-        foreach (ThemeManager::getInstance()->getCustomThemesPaths() as $theme_path) {
-            $tpl_vars['css_files'][] = ['path' => $theme_path];
-        }
 
 
         $tpl_vars['js_files'][] = ['path' => 'lib/base.js'];
@@ -2274,23 +2260,6 @@ TWIG,
 
         return $out;
     }
-
-
-    /**
-     * @brief display a checkbox that $_POST 0 or 1 depending on if it is checked or not.
-     * @see Html::getCheckbox()
-     *
-     * @since 0.85
-     *
-     * @param array $options
-     *
-     * @return void
-     **/
-    public static function showCheckbox(array $options = [])
-    {
-        echo self::getCheckbox($options);
-    }
-
 
     /**
      * Get the massive action checkbox
@@ -3523,14 +3492,10 @@ JS;
         $language_url = $CFG_GLPI['root_doc'] . '/lib/tinymce-i18n/langs6/' . $language . '.js';
 
         // Apply all GLPI styles to editor content
-        $theme = ThemeManager::getInstance()->getCurrentTheme();
         $content_css_paths = [
             'css/glpi.scss',
             'css/core_palettes.scss',
         ];
-        if ($theme->isCustomTheme()) {
-            $content_css_paths[] = $theme->getPath();
-        }
         $content_css = preg_replace('/^.*href="([^"]+)".*$/', '$1', self::css('lib/tinymce/skins/ui/oxide/content.css', ['force_no_version' => true]));
         $content_css .= ',' . preg_replace('/^.*href="([^"]+)".*$/', '$1', self::css('lib/base.css', ['force_no_version' => true]));
         $tabler_path = ($_SESSION['glpiisrtl'] ?? false) ? 'lib/tabler.rtl.css' : 'lib/tabler.css';

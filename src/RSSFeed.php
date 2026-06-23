@@ -34,9 +34,6 @@
  */
 
 use Glpi\Application\Environment;
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\RichText\RichText;
-use Glpi\Toolbox\URL;
 use Safe\Exceptions\UrlException;
 use SimplePie\SimplePie;
 
@@ -62,11 +59,6 @@ class RSSFeed extends CommonDBVisible implements ExtraVisibilityCriteria
             return _n('RSS feed', 'RSS feed', $nb);
         }
         return _n('Personal RSS feed', 'Personal RSS feed', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['tools', self::class];
     }
 
     public static function canCreate(): bool
@@ -272,31 +264,6 @@ class RSSFeed extends CommonDBVisible implements ExtraVisibilityCriteria
         return $criteria;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'refresh_rate':
-                return htmlescape(Html::timestampToString($values[$field], false));
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'refresh_rate':
-                return Planning::dropdownState($name, $values[$field], false);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
 
     public function rawSearchOptions()
     {
@@ -419,56 +386,6 @@ class RSSFeed extends CommonDBVisible implements ExtraVisibilityCriteria
         return $tab;
     }
 
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (self::canView()) {
-            $nb = 0;
-            switch ($item::class) {
-                case RSSFeed::class:
-                    $showtab = [1 => self::createTabEntry(__('Content'))];
-                    if (Session::haveRight('rssfeed_public', UPDATE)) {
-                        if ($_SESSION['glpishow_count_on_tabs']) {
-                            $nb = $item->countVisibilities();
-                        }
-                        $showtab[2] = self::createTabEntry(_n(
-                            'Target',
-                            'Targets',
-                            Session::getPluralNumber()
-                        ), $nb, $item::getType(), 'ti ti-target-arrow');
-                    }
-                    return $showtab;
-            }
-        }
-        return '';
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(self::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof self) {
-            return false;
-        }
-        switch ($tabnum) {
-            case 1:
-                return $item->showFeedContent();
-
-            case 2:
-                return $item->showVisibility();
-
-            default:
-                return false;
-        }
-    }
-
     public function prepareInputForAdd($input)
     {
         if (!$this->checkUrlInput($input['url'])) {
@@ -562,33 +479,6 @@ class RSSFeed extends CommonDBVisible implements ExtraVisibilityCriteria
         $this->fields["max_items"]    = 20;
     }
 
-    public function showForm($ID, array $options = [])
-    {
-        // Test _rss cache directory. If permission trouble : unable to edit
-        if (Toolbox::testWriteAccessToDirectory(GLPI_RSS_DIR) > 0) {
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div class="alert alert-danger">
-                    <i class="alert-icon ti ti-alert-triangle"></i>
-                    <div class="alert-title">{{ msg }}</div>
-                </div>
-TWIG, ['msg' => __('Check permissions to the directory: %s', GLPI_RSS_DIR)]);
-            return false;
-        }
-
-        if (!self::isNewID($ID)) {
-            // Force getting feed :
-            $feed = self::getRSSFeed($this->fields['url'], $this->fields['refresh_rate']);
-            $this->setError(!$feed || $feed->error());
-        }
-
-        TemplateRenderer::getInstance()->display('pages/tools/rss_form.html.twig', [
-            'item' => $this,
-            'params' => $options,
-            'user' => getUserName($this->fields["users_id"]),
-        ]);
-        return true;
-    }
-
     /**
      * Set error field
      *
@@ -616,42 +506,6 @@ TWIG, ['msg' => __('Check permissions to the directory: %s', GLPI_RSS_DIR)]);
                 'have_error' => 0,
             ]);
         }
-    }
-
-    /**
-     * Show the feed content
-     **/
-    public function showFeedContent(): bool
-    {
-        if (!$this->canViewItem()) {
-            return false;
-        }
-        $rss_feed = [
-            'items'  => [],
-        ];
-        if ($feed = self::getRSSFeed($this->fields['url'], $this->fields['refresh_rate'])) {
-            $this->setError(false);
-            $rss_feed['title'] = $feed->get_title();
-            foreach ($feed->get_items(0, $this->fields['max_items']) as $item) {
-                $rss_feed['items'][] = [
-                    'title'     => $item->get_title(),
-                    'link'      => URL::sanitizeURL($item->get_permalink()),
-                    'timestamp' => Html::convDateTime($item->get_date('Y-m-d H:i:s')),
-                    'content'   => RichText::getSafeHtml($item->get_content()),
-                ];
-            }
-        } else {
-            $rss_feed['error'] = !Toolbox::isUrlSafe($this->fields['url'])
-                ? sprintf(__('URL "%s" is not allowed by your administrator.'), $this->fields['url'])
-                : __('Error retrieving RSS feed');
-            $this->setError(true);
-        }
-
-        TemplateRenderer::getInstance()->display('components/rss_feed.html.twig', [
-            'rss_feed'  => $rss_feed,
-        ]);
-
-        return true;
     }
 
     /**
@@ -747,118 +601,6 @@ TWIG, ['msg' => __('Check permissions to the directory: %s', GLPI_RSS_DIR)]);
         return $row['total_rows'];
     }
 
-    /**
-     * Show list for central view
-     *
-     * @param bool $personal display rssfeeds created by me?
-     * @param bool $display  if false, return html
-     *
-     * @return false|void|string
-     **/
-    public static function showListForCentral(bool $personal = true, bool $display = true)
-    {
-        global $CFG_GLPI, $DB;
-
-        if ($personal) {
-            // Personal notes only for central view
-            if (Session::getCurrentInterface() === 'helpdesk') {
-                return false;
-            }
-
-            $titre = "<a href='" . htmlescape(RSSFeed::getSearchURL()) . "'>"
-                    . _sn('Personal RSS feed', 'Personal RSS feeds', Session::getPluralNumber()) . "</a>";
-        } else {
-            // Show public rssfeeds / not mines : need to have access to public rssfeeds
-            if (!self::canView()) {
-                return false;
-            }
-
-            if (Session::getCurrentInterface() === 'central') {
-                $titre = "<a href='" . htmlescape(RSSFeed::getSearchURL()) . "'>"
-                       . _sn('Public RSS feed', 'Public RSS feeds', Session::getPluralNumber()) . "</a>";
-            } else {
-                $titre = _sn('Public RSS feed', 'Public RSS feeds', Session::getPluralNumber());
-            }
-        }
-
-        $criteria = self::getListCriteria($personal);
-
-        $iterator = $DB->request($criteria);
-        $nb = count($iterator);
-        $items   = [];
-        $rssfeed = new self();
-        foreach ($iterator as $data) {
-            if ($rssfeed->getFromDB($data['id'])) {
-                // Force fetching feeds
-                if ($feed = self::getRSSFeed($data['url'], $data['refresh_rate'])) {
-                    // Store feeds in array of feeds
-                    $items = array_merge($items, $feed->get_items(0, $data['max_items']));
-                    $rssfeed->setError(false);
-                } else {
-                    $rssfeed->setError(true);
-                }
-            }
-        }
-
-        $output = "";
-        $output .= "<table class='table table-striped table-hover card-table'>";
-        $output .= "<thead>";
-        $output .= "<tr class='noHover'><th colspan='2'><div class='relative'><span>" . $titre . "</span>";
-
-        if (
-            ($personal && self::canCreate())
-            || (!$personal && Session::haveRight('rssfeed_public', CREATE))
-        ) {
-            $output .= "<span class='float-end'>";
-            $output .= "<a href='" . htmlescape(RSSFeed::getFormURL()) . "'>";
-            $output .= "<img src='" . htmlescape($CFG_GLPI["root_doc"]) . "/pics/plus.png' alt='" . __s('Add') . "' title=\""
-                . __s('Add') . "\"></a></span>";
-        }
-
-        $output .= "</div></th></tr>";
-        $output .= "</thead>";
-
-        if ($nb) {
-            /** @var array $items This manual typing is needed because of a 3rd party library that has incorrect phpdoc */
-            usort($items, fn($a, $b) => (int) SimplePie::sort_items($a, $b)); // Note: cast to int is needed because of incorrect phpdoc return type in SimplePie. The lib already fixed it 2 years ago but it has but not been released.
-            foreach ($items as $item) {
-                $output .= "<tr class='tab_bg_1'><td>";
-                $output .= htmlescape(Html::convDateTime($item->get_date('Y-m-d H:i:s')));
-                $output .= "</td><td>";
-                $feed_link = URL::sanitizeURL($item->feed->get_permalink());
-                if (empty($feed_link)) {
-                    $output .= htmlescape($item->feed->get_title());
-                } else {
-                    $output .= '<a target="_blank" href="' . htmlescape($feed_link) . '">' . htmlescape($item->feed->get_title()) . '</a>';
-                }
-
-                $item_link = URL::sanitizeURL($item->get_permalink());
-                $rand = mt_rand();
-                $output .= "<div id='rssitem$rand'>";
-                if (!empty($item_link)) {
-                    $output .= '<a target="_blank" href="' . htmlescape($item_link) . '">';
-                }
-                $output .= htmlescape($item->get_title());
-                if (!empty($item_link)) {
-                    $output .= "</a>";
-                }
-                $output .= "</div>";
-                $output .= Html::showToolTip(RichText::getEnhancedHtml($item->get_content()), [
-                    'applyto' => "rssitem$rand",
-                    'display' => false,
-                ]);
-                $output .= "</td></tr>";
-            }
-        }
-        $output .= "</table>";
-
-        if ($display) {
-            echo $output;
-        } else {
-            return $output;
-        }
-    }
-
     public function getRights($interface = 'central')
     {
         if ($interface === 'helpdesk') {
@@ -868,10 +610,5 @@ TWIG, ['msg' => __('Check permissions to the directory: %s', GLPI_RSS_DIR)]);
             $values[self::PERSONAL] = __('Manage personal');
         }
         return $values;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-rss";
     }
 }

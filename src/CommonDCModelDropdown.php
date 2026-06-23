@@ -46,12 +46,6 @@ abstract class CommonDCModelDropdown extends CommonDropdown
 
     public $additional_fields_for_dictionnary = ['manufacturer'];
 
-
-    public static function getFieldLabel()
-    {
-        return _n('Model', 'Models', 1);
-    }
-
     /**
      * Return Additional Fields for this type
      *
@@ -195,25 +189,6 @@ abstract class CommonDCModelDropdown extends CommonDropdown
         }
 
         return $options;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'picture_front':
-            case 'picture_rear':
-                if (isset($values['name']) && (string) $values['name'] !== '' && isset($options['html']) && $options['html']) {
-                    return Html::image(Toolbox::getPictureUrl($values[$field]), [
-                        'alt'   => $options['searchopt']['name'],
-                        'style' => 'max-height: 60px;',
-                    ]);
-                }
-        }
-
-        return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 
     /**
@@ -422,30 +397,6 @@ abstract class CommonDCModelDropdown extends CommonDropdown
         Toolbox::deletePicture($this->fields['picture_rear']);
     }
 
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        switch ($field['type']) {
-            case 'depth':
-                Dropdown::showFromArray(
-                    $field['name'],
-                    [
-                        '1'      => __('1'),
-                        '0.5'    => __('1/2'),
-                        '0.33'   => __('1/3'),
-                        '0.25'   => __('1/4'),
-                    ],
-                    [
-                        'value'   => $this->fields[$field['name']],
-                        'width'   => '100%',
-                    ]
-                );
-                break;
-            default:
-                throw new RuntimeException("Unknown {$field['type']}");
-        }
-    }
-
-
     /**
      * @return array
      */
@@ -481,13 +432,6 @@ abstract class CommonDCModelDropdown extends CommonDropdown
         ];
 
         return $soptions;
-    }
-
-    public static function getIcon()
-    {
-        $model_class  = static::class;
-        $device_class = str_replace('Model', '', $model_class);
-        return $device_class::getIcon();
     }
 
     public function getCloneRelations(): array

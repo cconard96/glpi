@@ -42,9 +42,4 @@ class RackModel extends CommonDropdown
     {
         return _n('Rack model', 'Rack models', $nb);
     }
-
-    public static function getIcon()
-    {
-        return Rack::getIcon();
-    }
 }

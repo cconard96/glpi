@@ -43,11 +43,6 @@ class ImageFormat extends CommonDropdown
         return _n('Image format', 'Image formats', $nb);
     }
 
-    public static function getIcon()
-    {
-        return "ti ti-photo-cog";
-    }
-
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb([

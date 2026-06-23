@@ -84,54 +84,9 @@ abstract class CommonITILRecurrent extends CommonDropdown
      */
     abstract public static function getPredefinedFieldsClass();
 
-    public static function displayTabContentForItem(
-        CommonGLPI $item,
-        $tabnum = 1,
-        $withtemplate = 0
-    ) {
-        // Tabs on CommonITILRecurrent items
-        if ($item instanceof self) {
-            switch ($tabnum) {
-                // First tab : display next creation date
-                case 1:
-                    $item->showInfos();
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        // Only display tab if user can read ITILTemplates
-        if (!Session::haveRight('itiltemplate', READ)) {
-            return '';
-        }
-
-        // Tabs on CommonITILRecurrent items
-        if ($item instanceof self) {
-            $ong = [];
-            $ong[1] = self::createTabEntry(_n('Information', 'Information', Session::getPluralNumber()), icon: 'ti ti-info-circle');
-            return $ong;
-        }
-
-        return '';
-    }
-
     public function getCloneRelations(): array
     {
         return [];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(static::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function prepareInputForAdd($input)
@@ -221,53 +176,6 @@ abstract class CommonITILRecurrent extends CommonDropdown
         ];
     }
 
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        switch ($field['name']) {
-            case 'periodicity':
-                $this->displayPeriodicityInput();
-                break;
-        }
-    }
-
-    public static function getSpecificValueToDisplay(
-        $field,
-        $values,
-        array $options = []
-    ) {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'periodicity':
-                if (preg_match('/([0-9]+)MONTH/', $values[$field], $matches)) {
-                    return htmlescape(sprintf(_n('%d month', '%d months', (int) $matches[1]), (int) $matches[1]));
-                }
-                if (preg_match('/([0-9]+)YEAR/', $values[$field], $matches)) {
-                    return htmlescape(sprintf(_n('%d year', '%d years', (int) $matches[1]), (int) $matches[1]));
-                }
-                return htmlescape(Html::timestampToString($values[$field], false));
-        }
-
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    /**
-     * Display periodicity field
-     * The displayed dropdown offer the following options:
-     *    1 to 23 hours
-     *    1 to 30 days
-     *    1 to 11 months
-     *    1 to 10 years
-     */
-    public function displayPeriodicityInput(): void
-    {
-        Dropdown::showFromArray('periodicity', static::getPeriodicityPossibleValues(), [
-            'value' => $this->fields['periodicity'],
-        ]);
-    }
-
     /**
      * Get all possible periodicity values:
      *    1 to 23 hours
@@ -302,19 +210,6 @@ abstract class CommonITILRecurrent extends CommonDropdown
         }
 
         return $possible_values;
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        if ($field === 'periodicity') {
-            $options['value'] = $values[$field];
-            return (string) Dropdown::showFromArray($name, static::getPeriodicityPossibleValues(), $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
     public function rawSearchOptions()
@@ -380,24 +275,6 @@ abstract class CommonITILRecurrent extends CommonDropdown
         ];
 
         return $tab;
-    }
-
-    /**
-     * Show next creation date
-     */
-    public function showInfos(): void
-    {
-        if (!is_null($this->fields['next_creation_date'])) {
-            echo "<div class='center'>";
-            //TRANS: %s is the date of next creation
-            echo htmlescape(
-                sprintf(
-                    __('Next creation on %s'),
-                    Html::convDateTime($this->fields['next_creation_date'])
-                )
-            );
-            echo "</div>";
-        }
     }
 
     /**

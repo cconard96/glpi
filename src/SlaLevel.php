@@ -50,11 +50,6 @@ class SlaLevel extends LevelAgreementLevel
         return CommonDBTM::getTable(self::class);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', SLA::class, self::class];
-    }
-
     public function cleanDBonPurge()
     {
         parent::cleanDBonPurge();
@@ -62,12 +57,6 @@ class SlaLevel extends LevelAgreementLevel
         // SlaLevel_Ticket does not extends CommonDBConnexity
         $slt = new SlaLevel_Ticket();
         $slt->deleteByCriteria([$this->rules_id_field => $this->fields['id']]);
-    }
-
-    #[Override]
-    public function showForParent(LevelAgreement $la)
-    {
-        $this->showForLA($la);
     }
 
     public function getForbiddenStandardMassiveAction()

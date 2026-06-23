@@ -34,7 +34,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 use Glpi\Features\Inventoriable;
@@ -67,41 +66,6 @@ class Unmanaged extends CommonDBTM implements AssignableItemInterface, StateInte
     {
         return 'inventory';
     }
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addStandardTab(NetworkPort::class, $ong, $options)
-         ->addStandardTab(Domain_Item::class, $ong, $options)
-         ->addStandardTab(Lock::class, $ong, $options)
-         ->addStandardTab(RuleMatchedLog::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
-
-    /**
-     * Print the unmanaged form
-     *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/unmanaged.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -280,11 +244,6 @@ class Unmanaged extends CommonDBTM implements AssignableItemInterface, StateInte
         return $tab;
     }
 
-    public static function getIcon()
-    {
-        return "ti ti-question-mark";
-    }
-
     public function getSpecificMassiveActions($checkitem = null)
     {
         $actions = parent::getSpecificMassiveActions($checkitem);
@@ -304,20 +263,6 @@ class Unmanaged extends CommonDBTM implements AssignableItemInterface, StateInte
         if (self::canUpdate()) {
             $actions['Unmanaged' . MassiveAction::CLASS_ACTION_SEPARATOR . 'convert']    = __s('Convert');
         }
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        global $CFG_GLPI;
-        switch ($ma->getAction()) {
-            case 'convert':
-                echo __s('Select an itemtype: ') . ' ';
-                Dropdown::showItemType($CFG_GLPI['inventory_types'], [
-                    'display_emptychoice' => false,
-                ]);
-                break;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(

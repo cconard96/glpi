@@ -33,11 +33,9 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 use Glpi\Features\Clonable;
-use Glpi\Features\DCBreadcrumbInterface;
 use Glpi\Features\StateInterface;
 use Glpi\Socket;
 use Glpi\SocketModel;
@@ -61,32 +59,9 @@ class Cable extends CommonDBTM implements AssignableItemInterface, StateInterfac
         return _n('Cable', 'Cables', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogServiceName(): string
     {
         return 'management';
-    }
-
-    public static function getFieldLabel()
-    {
-        return self::getTypeName(1);
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function post_getEmpty()
@@ -116,23 +91,6 @@ class Cable extends CommonDBTM implements AssignableItemInterface, StateInterfac
         }
         if (count($links)) {
             return $links;
-        }
-        return false;
-    }
-
-    public static function getAdditionalMenuOptions()
-    {
-        if (static::canView()) {
-            return [
-                Socket::class => [
-                    'title' => Socket::getTypeName(Session::getPluralNumber()),
-                    'page'  => Socket::getSearchURL(false),
-                    'links' => [
-                        'add'    => '/front/socket.form.php',
-                        'search' => '/front/socket.php',
-                    ],
-                ],
-            ];
         }
         return false;
     }
@@ -410,78 +368,4 @@ class Cable extends CommonDBTM implements AssignableItemInterface, StateInterfac
         return $tab;
     }
 
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'items_id_endpoint_a':
-                if (isset($values['itemtype_endpoint_a']) && !empty($values['itemtype_endpoint_a'])) {
-                    $options['name']  = $name;
-                    $options['value'] = $values[$field];
-                    return Dropdown::show($values['itemtype_endpoint_a'], $options);
-                }
-                break;
-            case 'items_id_endpoint_b':
-                if (isset($values['itemtype_endpoint_b']) && !empty($values['itemtype_endpoint_b'])) {
-                    $options['name']  = $name;
-                    $options['value'] = $values[$field];
-                    return Dropdown::show($values['itemtype_endpoint_b'], $options);
-                }
-                break;
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'items_id_endpoint_a':
-            case 'items_id_endpoint_b':
-                $itemtype = $values[str_replace('items_id', 'itemtype', $field)] ?? null;
-                if ($itemtype !== null && class_exists($itemtype) && is_a($itemtype, CommonDBTM::class, true)) {
-                    if ($values[$field] > 0) {
-                        $item = new $itemtype();
-                        $item->getFromDB($values[$field]);
-                        return "<a href='" . htmlescape($item->getLinkURL()) . "'>" . htmlescape($item->fields['name']) . "</a>";
-                    }
-                } else {
-                    return ' ';
-                }
-                break;
-            case '_virtual_datacenter_position':
-                $itemtype = $values['itemtype_endpoint_b'] ?? $values['itemtype_endpoint_a'];
-                $items_id = $values['items_id_endpoint_b'] ?? $values['items_id_endpoint_a'];
-
-                if ($itemtype instanceof DCBreadcrumbInterface) {
-                    return $itemtype::renderDcBreadcrumb($items_id);
-                }
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/cable.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-line";
-    }
 }

@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 
 /**
@@ -49,36 +48,12 @@ abstract class CommonTreeDropdown extends CommonDropdown
 
     public function getAdditionalFields()
     {
-
         return [['name'  => $this->getForeignKeyField(),
             'label' => __('As child of'),
             'type'  => 'parent',
             'list'  => false,
         ],
         ];
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-
-        $this->addStandardTab(static::class, $ong, $options);
-
-        $ong = array_merge($ong, $this->insertTabs($options));
-
-        if ($this->dohistory) {
-            $this->addStandardTab(Log::class, $ong, $options);
-        }
-
-        if ($this->maybeTranslated()) {
-            $this->addStandardTab(DropdownTranslation::class, $ong, $options);
-        }
-
-        return $ong;
     }
 
     /**
@@ -92,37 +67,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         return [];
     }
 
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        if (
-            !$withtemplate
-            && ($item instanceof static)
-        ) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(
-                    $this->getTable(),
-                    [$this->getForeignKeyField() => $item->getID()]
-                );
-            }
-            return self::createTabEntry($this->getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-
-        if ($item instanceof CommonTreeDropdown) {
-            $item->showChildren();
-        }
-        return true;
-    }
-
-
     /**
      * Compute completename based on parent one
      *
@@ -135,7 +79,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
     {
         return $parentCompleteName . " > " . $thisName;
     }
-
 
     /**
      * @param array $input
@@ -176,12 +119,10 @@ abstract class CommonTreeDropdown extends CommonDropdown
         return $input;
     }
 
-
     public function prepareInputForAdd($input)
     {
         return $this->adaptTreeFieldsFromUpdateOrAdd($input);
     }
-
 
     public function pre_deleteItem()
     {
@@ -213,7 +154,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         return true;
     }
 
-
     public function prepareInputForUpdate($input)
     {
         global $GLPI_CACHE;
@@ -243,7 +183,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         }
         return $input;
     }
-
 
     /**
      * @param int $ID
@@ -316,7 +255,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         }
     }
 
-
     /**
      * Clean from database and caches the sons of the current entity and of all its parents.
      *
@@ -354,7 +292,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         }
     }
 
-
     /**
      * Add new son in its parent in cache
      *
@@ -375,7 +312,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
             }
         }
     }
-
 
     public function post_addItem()
     {
@@ -399,7 +335,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
             );
         }
     }
-
 
     public function post_updateItem($history = true)
     {
@@ -474,7 +409,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         }
     }
 
-
     public function post_deleteFromDB()
     {
 
@@ -495,7 +429,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         }
     }
 
-
     /**
      * Get the this for all the current item and all its parent
      *
@@ -515,169 +448,6 @@ abstract class CommonTreeDropdown extends CommonDropdown
         return $link . $this->getLink();
     }
 
-
-    /**
-     * Print the HTML array children of a TreeDropdown
-     *
-     * @return bool
-     */
-    public function showChildren(): bool
-    {
-        global $DB;
-
-        $ID            = $this->getID();
-        $this->check($ID, READ);
-        $fields = array_filter($this->getAdditionalFields(), static fn($field) => isset($field['list']) && $field['list']);
-        $entity_assign = $this->isEntityAssign();
-
-        // Minimal form for quick input.
-        if (static::canCreate()) {
-            $twig_params = [
-                'header' => sprintf(__('New child %s'), static::getTypeName(1)),
-                'form_url' => static::getFormURL(),
-                'entity' => ($entity_assign && static::getForeignKeyField() !== 'entities_id') ? $_SESSION['glpiactive_entity'] : null,
-                'is_recursive' => $entity_assign && $this->isRecursive() ? 1 : 0,
-                'name_label' => __('Name'),
-                'btn_label' => _x('button', 'Add'),
-                'fk' => static::getForeignKeyField(),
-                'id' => $ID,
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                {% import 'components/form/fields_macros.html.twig' as fields %}
-                <div class="mb-3">
-                    <form action="{{ form_url }}" method="post">
-                        {{ fields.largeTitle(header) }}
-                        <input type="hidden" name="{{ fk }}" value="{{ id }}">
-                        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
-                        <div>
-                            <div>
-                                {{ fields.textField('name', '', name_label, {
-                                    full_width: true,
-                                }) }}
-                                {% if entity is not null %}
-                                    <input type="hidden" name="entities_id" value="{{ entity }}">
-                                {% endif %}
-                                {% if is_recursive %}
-                                    <input type="hidden" name="is_recursive" value="1">
-                                {% endif %}
-                            </div>
-                            <div class="d-flex flex-row-reverse pe-2">
-                                <button type="submit" name="add" class="btn btn-primary"><i class="ti ti-plus"></i><span>{{ btn_label }}</span></button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-TWIG, $twig_params);
-        }
-
-        $fk   = static::getForeignKeyField();
-        $result = $DB->request(
-            [
-                'FROM'  => static::getTable(),
-                'WHERE' => [$fk => $ID],
-                'ORDER' => 'name',
-            ]
-        );
-
-        $entries = [];
-        $values_cache = [];
-        foreach ($result as $data) {
-            $entry = [
-                'itemtype' => static::class,
-                'id'       => $data['id'],
-            ];
-            $name = htmlescape($data['name']);
-            if (
-                (($fk === 'entities_id') && in_array($data['id'], $_SESSION['glpiactiveentities'], true))
-                || !$entity_assign
-                || (($fk !== 'entities_id') && in_array($data['entities_id'], $_SESSION['glpiactiveentities'], true))
-            ) {
-                $entry['name'] = sprintf(
-                    '<a href="%s">%s</a>',
-                    htmlescape(static::getFormURLWithID($data['id'])),
-                    $name
-                );
-            } else {
-                $entry['name'] = $name;
-            }
-            echo "</td>";
-            if ($entity_assign) {
-                if (!isset($values_cache['entity'][$data['entities_id']])) {
-                    $values_cache['entity'][$data['entities_id']] = Dropdown::getDropdownName(
-                        'glpi_entities',
-                        $data['entities_id']
-                    );
-                }
-                $entry['entity'] = $values_cache['entity'][$data['entities_id']];
-            }
-
-            foreach ($fields as $field) {
-                switch ($field['type']) {
-                    case 'UserDropdown':
-                        if (!isset($values_cache['UserDropdown'][$data[$field['name']]])) {
-                            $values_cache['UserDropdown'][$data[$field['name']]] = getUserName($data[$field['name']]);
-                        }
-                        $entry[$field['name']] = $values_cache['UserDropdown'][$data[$field['name']]];
-                        break;
-
-                    case 'bool':
-                        $entry[$field['name']] = Dropdown::getYesNo($data[$field['name']]);
-                        break;
-
-                    case 'dropdownValue':
-                        if (!isset($values_cache[$field['name']][$data[$field['name']]])) {
-                            $values_cache[$field['name']][$data[$field['name']]] = Dropdown::getDropdownName(
-                                getTableNameForForeignKeyField($field['name']),
-                                $data[$field['name']]
-                            );
-                        }
-                        $entry[$field['name']] = $values_cache[$field['name']][$data[$field['name']]];
-                        break;
-
-                    default:
-                        $entry[$field['name']] = $data[$field['name']];
-                        break;
-                }
-            }
-            $entry['comment'] = $data['comment'];
-            $entries[] = $entry;
-        }
-
-        $columns = [
-            'name' => __('Name'),
-            'entity' => Entity::getTypeName(1),
-        ];
-        foreach ($fields as $field) {
-            $columns[$field['name']] = $field['label'];
-        }
-        $columns['comment'] = _n('Comment', 'Comments', Session::getPluralNumber());
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'super_header' => [
-                'label' => sprintf(__s('Sons of %s'), $this->getTreeLink()),
-                'is_raw' => true,
-            ],
-            'columns' => $columns,
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => static::canUpdate(),
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . Toolbox::slugify(static::class) . mt_rand(),
-            ],
-        ]);
-
-        return true;
-    }
-
-
     public function getSpecificMassiveActions($checkitem = null)
     {
         $isadmin = static::canUpdate();
@@ -691,27 +461,6 @@ TWIG, $twig_params);
 
         return $actions;
     }
-
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'move_under':
-                $itemtype = $ma->getItemType(true);
-                echo __s('As child of');
-                Dropdown::show($itemtype, ['name'     => 'parent',
-                    'comments' => 0,
-                    'entity'   => $_SESSION['glpiactive_entity'],
-                    'entity_sons' => $_SESSION['glpiactive_entity_recursive'],
-                ]);
-                echo "<br><br><input type='submit' name='massiveaction' class='btn btn-primary' value='"
-                           . _sx('button', 'Move') . "'>\n";
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
 
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
@@ -767,7 +516,6 @@ TWIG, $twig_params);
         }
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
-
 
     public function rawSearchOptions()
     {
@@ -920,7 +668,6 @@ TWIG, $twig_params);
         return implode(' > ', $tmp);
     }
 
-
     public function findID(array &$input)
     {
         global $DB;
@@ -981,7 +728,6 @@ TWIG, $twig_params);
         return -1;
     }
 
-
     public function import(array $input)
     {
         if (empty($input['name']) && empty($input['completename'])) {
@@ -1031,11 +777,5 @@ TWIG, $twig_params);
             $parent = parent::import($tmp);
         }
         return $parent;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-subtask";
     }
 }

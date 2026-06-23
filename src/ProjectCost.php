@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /// ProjectCost class
 /// since version 0.85
 class ProjectCost extends CommonDBChild
@@ -48,11 +46,6 @@ class ProjectCost extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return _n('Cost', 'Costs', $nb);
-    }
-
-    public static function getIcon()
-    {
-        return Infocom::getIcon();
     }
 
     public function prepareInputForAdd($input)
@@ -98,27 +91,6 @@ class ProjectCost extends CommonDBChild
         }
 
         return parent::prepareInputForUpdate($input);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        // can exist for template
-        if (($item::class === Project::class) && Project::canView()) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable('glpi_projectcosts', ['projects_id' => $item->getID()]);
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof Project) {
-            return self::showForProject($item);
-        }
-        return false;
     }
 
     public function rawSearchOptions()
@@ -201,32 +173,6 @@ class ProjectCost extends CommonDBChild
         return $tab;
     }
 
-    public function initBasedOnPrevious(): void
-    {
-        $ticket = new Ticket();
-        if (
-            !isset($this->fields['projects_id'])
-            || !$ticket->getFromDB($this->fields['projects_id'])
-        ) {
-            return;
-        }
-
-        $lastdata = $this->getLastCostForProject($this->fields['projects_id']);
-
-        if (isset($lastdata['end_date'])) {
-            $this->fields['begin_date'] = $lastdata['end_date'];
-        }
-        if (isset($lastdata['cost'])) {
-            $this->fields['cost'] = $lastdata['cost'];
-        }
-        if (isset($lastdata['name'])) {
-            $this->fields['name'] = $lastdata['name'];
-        }
-        if (isset($lastdata['budgets_id'])) {
-            $this->fields['budgets_id'] = $lastdata['budgets_id'];
-        }
-    }
-
     /**
      * Get last datas for a project
      *
@@ -248,200 +194,5 @@ class ProjectCost extends CommonDBChild
         }
 
         return [];
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $options['projects_id'] = $options['parent']->getField('id');
-            $this->check(-1, CREATE, $options);
-            $this->initBasedOnPrevious();
-        }
-
-        $this->showFormHeader($options);
-        echo "<tr class='tab_bg_1'>";
-        echo "<td>" . __s('Name') . "</td>";
-        echo "<td>";
-        echo "<input type='hidden' name='projects_id' value='" . ((int) $this->fields['projects_id']) . "'>";
-        echo Html::input('name', ['value' => $this->fields['name']]);
-        echo "</td>";
-        echo "<td>" . _sn('Cost', 'Costs', 1) . "</td>";
-        echo "<td>";
-        echo "<input type='number' name='cost' value='" . htmlescape(Html::formatNumber($this->fields["cost"], true)) . "'
-             min='0' max='" . constant('PHP_INT_MAX') . "' step='0.0001' size='14'>";
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s('Begin date') . "</td>";
-        echo "<td>";
-        Html::showDateField("begin_date", ['value' => $this->fields['begin_date']]);
-        echo "</td>";
-        $rowspan = 3;
-        echo "<td rowspan='$rowspan'>" . __s('Comments') . "</td>";
-        echo "<td rowspan='$rowspan' class='middle'>";
-        echo "<textarea class='form-control' rows='" . ($rowspan + 3) . "' name='comment' >" . htmlescape($this->fields["comment"])
-           . "</textarea>";
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __s('End date') . "</td>";
-        echo "<td>";
-        Html::showDateField("end_date", ['value' => $this->fields['end_date']]);
-        echo "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . htmlescape(Budget::getTypeName(1)) . "</td>";
-        echo "<td>";
-        Budget::dropdown(['value' => $this->fields["budgets_id"]]);
-        echo "</td></tr>";
-
-        $this->showFormButtons($options);
-
-        return true;
-    }
-
-    /**
-     * Print the project costs
-     *
-     * @param Project $project      object
-     * @param int     $withtemplate Template or basic item (default 0)
-     *
-     * @return bool
-     **/
-    public static function showForProject(Project $project, $withtemplate = 0): bool
-    {
-        global $CFG_GLPI, $DB;
-
-        $ID = $project->getID();
-
-        if (
-            !$project->getFromDB($ID)
-            || !$project->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $project->can($ID, UPDATE);
-
-        $iterator = $DB->request([
-            'FROM'   => self::getTable(),
-            'WHERE'  => ['projects_id' => $ID],
-            'ORDER'  => ['begin_date'],
-        ]);
-
-        $rand   = mt_rand();
-
-        if ($canedit) {
-            echo "<div id='viewcost" . $ID . "_$rand'></div>\n";
-            echo "<script type='text/javascript' >\n";
-            echo "function viewAddCost" . $ID . "_$rand(btn) {\n";
-            echo "// Hide the triggering button\n";
-            echo "$(btn).hide();\n";
-            $params = ['type'         => self::class,
-                'parenttype'   => Project::class,
-                'projects_id' => $ID,
-                'id'           => -1,
-            ];
-            Ajax::updateItemJsCode(
-                "viewcost" . $ID . "_$rand",
-                $CFG_GLPI["root_doc"] . "/ajax/viewsubitem.php",
-                $params
-            );
-            echo "};";
-            echo "</script>";
-            TemplateRenderer::getInstance()->display(
-                'components/tab/addlink_block.html.twig',
-                [
-                    'add_link' => 'javascript:viewAddCost' . $ID . '_' . $rand . '(this);',
-                    'button_label' => __('Add a new cost'),
-                ]
-            );
-        }
-        $total = 0;
-        echo "<table class='table'>";
-        echo "<thead><tr><th colspan='5'>" . htmlescape(self::getTypeName(count($iterator)))
-            . "</th></tr></thead>";
-
-        if (count($iterator)) {
-            echo "<tr><th>" . __s('Name') . "</th>";
-            echo "<th>" . __s('Begin date') . "</th>";
-            echo "<th>" . __s('End date') . "</th>";
-            echo "<th>" . htmlescape(Budget::getTypeName(1)) . "</th>";
-            echo "<th>" . _sn('Cost', 'Costs', 1) . "</th>";
-            echo "</tr>";
-
-            Session::initNavigateListItems(
-                self::class,
-                //TRANS : %1$s is the itemtype name,
-                //        %2$s is the name of the item (used for headings of a list)
-                sprintf(
-                    __('%1$s = %2$s'),
-                    Project::getTypeName(1),
-                    $project->getName()
-                )
-            );
-
-            foreach ($iterator as $data) {
-                $cost_id = (int) $data['id'];
-                $project_id = (int) $data['projects_id'];
-
-                echo "<tr class='tab_bg_2' "
-                    . ($canedit ? "style='cursor:pointer' onClick=\"viewEditCost" . $project_id . "_" . $cost_id . "_$rand();\"" : '')
-                    . ">";
-
-                $name = empty($data['name'])
-                    ? sprintf(
-                        __('%1$s (%2$s)'),
-                        $data['name'],
-                        $cost_id
-                    )
-                    : $data['name'];
-                echo "<td>";
-                printf(
-                    __s('%1$s %2$s'),
-                    htmlescape($name),
-                    !empty($data['comment']) ? Html::showToolTip(htmlescape($data['comment']), ['display' => false]) : ''
-                );
-                if ($canedit) {
-                    $js = "function viewEditCost" . $project_id . "_" . $cost_id . "_$rand() {";
-                    $js .= Ajax::updateItemJsCode(
-                        toupdate: "viewcost" . $ID . "_$rand",
-                        url: $CFG_GLPI["root_doc"] . "/ajax/viewsubitem.php",
-                        parameters: [
-                            'type'        => self::class,
-                            'parenttype'  => Project::class,
-                            'projects_id' => $project_id,
-                            'id'          => $cost_id,
-                            'display'     => false,
-                        ],
-                        display: false
-                    );
-                    $js .=  "};";
-
-                    echo Html::scriptBlock($js);
-                }
-                echo "</td>";
-                echo "<td>" . htmlescape(Html::convDate($data['begin_date'])) . "</td>";
-                echo "<td>" . htmlescape(Html::convDate($data['end_date'])) . "</td>";
-                echo "<td>" . htmlescape(Dropdown::getDropdownName('glpi_budgets', $data['budgets_id'])) . "</td>";
-                echo "<td class='numeric'>" . htmlescape(Html::formatNumber($data['cost'])) . "</td>";
-                $total += (float) $data['cost'];
-                echo "</tr>";
-                Session::addToNavigateListItems(self::class, $cost_id);
-            }
-            echo "<tr class='b noHover'><td colspan='3'>&nbsp;</td>";
-            echo "<td class='right'>" . __s('Total cost') . '</td>';
-            echo "<td class='numeric'>" . htmlescape(Html::formatNumber($total)) . '</td></tr>';
-        } else {
-            echo "<tr><td colspan='5'><div class='alert alert-info'>" . __s('No results found') . "</div></td></tr>";
-        }
-        echo "</table>";
-        echo "<div>";
-        $ticketcost = TicketCost::showForObject($project);
-        echo "</div>";
-        echo "<div class='b'>";
-        printf(__s('%1$s: %2$s'), __s('Total cost'), $total + $ticketcost);
-        echo "</div>";
-
-        return true;
     }
 }

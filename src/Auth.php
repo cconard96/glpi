@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Error\ErrorHandler;
 use Glpi\Event;
@@ -126,57 +125,6 @@ class Auth extends CommonGLPI
     public function __construct()
     {
         $this->user = new User();
-    }
-
-    public static function getMenuContent()
-    {
-        $menu = [];
-        if (Config::canUpdate()) {
-            $menu = [
-                'title'   => __('Authentication'),
-                'page'    => '/front/setup.auth.php',
-                'icon'    => static::getIcon(),
-                'options' => [],
-                'links'   => [],
-            ];
-
-            $menu['options'][AuthLDAP::class] = [
-                'icon'  => AuthLDAP::getIcon(),
-                'title' => AuthLDAP::getTypeName(Session::getPluralNumber()),
-                'page'  => AuthLDAP::getSearchURL(false),
-                'links' => [
-                    'search' => AuthLDAP::getSearchURL(false),
-                    'add'    => AuthLDAP::getFormURL(false),
-                ],
-            ];
-
-            $menu['options'][AuthMail::class] = [
-                'icon'  => AuthMail::getIcon(),
-                'title' => AuthMail::getTypeName(Session::getPluralNumber()),
-                'page'  => AuthMail::getSearchURL(false),
-                'links' => [
-                    'search' => AuthMail::getSearchURL(false),
-                    'add'    => AuthMail::getFormURL(false),
-                ],
-            ];
-
-            $menu['options']['others'] = [
-                'icon'  => 'ti ti-login',
-                'title' => __('Others'),
-                'page'  => '/front/auth.others.php',
-            ];
-
-            $menu['options']['settings'] = [
-                'icon'  => 'ti ti-adjustments',
-                'title' => __('Setup'),
-                'page'  => '/front/auth.settings.php',
-            ];
-        }
-
-        if (count($menu)) {
-            return $menu;
-        }
-        return false;
     }
 
     /**
@@ -1556,69 +1504,6 @@ class Auth extends CommonGLPI
     }
 
     /**
-     * Redirect user to page if authenticated
-     *
-     * @param string $redirect redirect string if exists, if null, check in $_POST or $_GET
-     *
-     * @return void|bool nothing if redirect is true, else false
-     */
-    public static function redirectIfAuthenticated($redirect = null)
-    {
-        global $CFG_GLPI;
-
-        if (!Session::getLoginUserID()) {
-            return false;
-        }
-
-        if (Session::mustChangePassword()) {
-            Html::redirect($CFG_GLPI['root_doc'] . '/front/updatepassword.php');
-        }
-
-        if (!$redirect) {
-            if (isset($_POST['redirect']) && ($_POST['redirect'] !== '')) {
-                $redirect = $_POST['redirect'];
-            } elseif (isset($_GET['redirect']) && $_GET['redirect'] !== '') {
-                $redirect = $_GET['redirect'];
-            }
-            $redirect ??= '';
-        }
-
-        //Direct redirect
-        if ($redirect) {
-            Toolbox::manageRedirect($redirect);
-        }
-
-        // Redirect to Command Central if not post-only
-        if (Session::getCurrentInterface() === "helpdesk") {
-            if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']) {
-                Html::redirect($CFG_GLPI['root_doc'] . "/ServiceCatalog");
-            }
-            Html::redirect($CFG_GLPI['root_doc'] . "/Helpdesk");
-        } else {
-            if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']) {
-                Html::redirect(Ticket::getFormURL());
-            }
-            Html::redirect($CFG_GLPI['root_doc'] . "/front/central.php");
-        }
-    }
-
-    /**
-     * Display refresh button in the user page
-     *
-     * @param User $user User object
-     *
-     * @return void
-     */
-    public static function showSynchronizationForm(User $user)
-    {
-        if (Session::haveRight("user", User::UPDATEAUTHENT)) {
-            TemplateRenderer::getInstance()->display('pages/setup/authentication/sync.html.twig', [
-                'user' => $user,
-            ]);
-        }
-    }
-
-    /**
      * Check if a login is valid
      *
      * @param string $login login to check
@@ -1631,45 +1516,6 @@ class Auth extends CommonGLPI
             preg_match("/^[[:alnum:]'@.\-_ ]+$/iu", $login)
             || filter_var($login, FILTER_VALIDATE_EMAIL) !== false
         );
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            switch ($item::class) {
-                case User::class:
-                    if (Session::haveRight("user", User::UPDATEAUTHENT)) {
-                        return self::createTabEntry(__('Synchronization'), 0, $item::class, 'ti ti-refresh');
-                    }
-                    break;
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === User::class) {
-            self::showSynchronizationForm($item);
-        }
-        return true;
-    }
-
-    /**
-     * Show form for authentication configuration.
-     *
-     * @return void|bool False if the form is not shown due to right error. Form is directly printed.
-     */
-    public static function showOtherAuthList()
-    {
-        global $CFG_GLPI;
-
-        if (!Config::canUpdate()) {
-            return false;
-        }
-        TemplateRenderer::getInstance()->display('pages/setup/authentication/other_ext_setup.html.twig', [
-            'config' => $CFG_GLPI,
-        ]);
     }
 
     /**
@@ -1719,44 +1565,6 @@ class Auth extends CommonGLPI
         }
 
         return $elements;
-    }
-
-    /**
-     * Display the authentication source dropdown for login form
-     *
-     * @param bool $display
-     * @param int $rand
-     *
-     * @return string
-     */
-    public static function dropdownLogin(bool $display = true, $rand = 1)
-    {
-        $out = "";
-        $elements = self::getLoginAuthMethods();
-        $default = $elements['_default'];
-        unset($elements['_default']);
-        // show dropdown of login src only when multiple src
-        $out .= Dropdown::showFromArray('auth', $elements, [
-            'display'   => false,
-            'rand'      => $rand,
-            'value'     => $default,
-            'width'     => '100%',
-        ]);
-
-        if ($display) {
-            echo $out;
-            return "";
-        }
-
-        return $out;
-    }
-
-    /**
-     * @return string
-     */
-    public static function getIcon()
-    {
-        return "ti ti-login";
     }
 
     /**

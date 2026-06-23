@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssetImage;
 use Glpi\Features\Clonable;
 use Glpi\Plugin\Hooks;
@@ -55,15 +54,9 @@ class Contact extends CommonDBTM
     protected $usenotepad       = true;
 
 
-
     public static function getTypeName($nb = 0)
     {
         return _n('Contact', 'Contacts', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
     }
 
     public static function getLogDefaultServiceName(): string
@@ -102,22 +95,6 @@ class Contact extends CommonDBTM
         ];
     }
 
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Contact_Supplier::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-
     /**
      * Get address of the contact (company one)
      *
@@ -154,7 +131,6 @@ class Contact extends CommonDBTM
         return null;
     }
 
-
     /**
      * Get website of the contact (company one)
      *
@@ -186,42 +162,6 @@ class Contact extends CommonDBTM
         return '';
     }
 
-
-    public function showForm($ID, array $options = [])
-    {
-
-        $this->initForm($ID, $options);
-
-        TemplateRenderer::getInstance()->display('generic_show_form.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-
-        return true;
-    }
-
-    protected function getFormHeaderToolbar(): array
-    {
-        $ID = $this->getID();
-        $toolbar = [];
-
-        if ($ID > 0) {
-            $vcard_lbl = __s('Vcard');
-            $vcard_url = htmlescape(self::getFormURLWithID($ID) . "&getvcard=1");
-            $vcard_btn = <<<HTML
-            <a href="{$vcard_url}" target="_blank"
-                     class="btn btn-icon btn-sm btn-ghost-secondary"
-                     title="{$vcard_lbl}"
-                     data-bs-toggle="tooltip" data-bs-placement="bottom">
-               <i class="ti ti-id fs-2"></i>
-            </a>
-HTML;
-            $toolbar[] = $vcard_btn;
-        }
-        return $toolbar;
-    }
-
-
     public function getSpecificMassiveActions($checkitem = null)
     {
         $isadmin = static::canUpdate();
@@ -234,7 +174,6 @@ HTML;
 
         return $actions;
     }
-
 
     protected function computeFriendlyName()
     {
@@ -249,7 +188,6 @@ HTML;
         }
         return '';
     }
-
 
     public function rawSearchOptions()
     {
@@ -458,7 +396,6 @@ HTML;
         return $tab;
     }
 
-
     /**
      * Generate the Vcard for the current Contact
      *
@@ -513,11 +450,5 @@ HTML;
         @header("content-type: text/x-vcard; charset=UTF-8");
 
         echo $output;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-address-book";
     }
 }

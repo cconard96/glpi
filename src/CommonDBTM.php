@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\Asset_PeripheralAsset;
 use Glpi\DBAL\QueryFunction;
 use Glpi\DBAL\QueryParam;
@@ -160,10 +159,6 @@ class CommonDBTM extends CommonGLPI
      * @TODO Should be removed and replaced by real cache usage.
      */
     protected $searchopt = false;
-
-    public $taborientation = 'vertical';
-
-    public $get_item_to_display_tab = true;
 
     /**
      * List of linked item types from plugins on which entities information should be forwarded on update.
@@ -527,37 +522,6 @@ class CommonDBTM extends CommonGLPI
             }
             return $f !== null && (str_starts_with($f, '_') || $this->isField($f));
         });
-    }
-
-    /**
-     * Print the item generic form
-     * Use a twig template to detect automatically fields and display them in a two column layout
-     *
-     * @param int                 $ID        ID of the item
-     * @param array<string,mixed> $options   possible optional options:
-     *     - target for the Form
-     *     - withtemplate : 1 for newtemplate, 2 for newobject from template
-     *
-     * @return bool true if displayed  false if item not found or not right to display
-     */
-    public function showForm($ID, array $options = [])
-    {
-        global $CFG_GLPI;
-
-        $this->initForm($ID, $options);
-        $new_item = static::isNewID($ID);
-        $in_modal = (bool) ($_GET['_in_modal'] ?? false);
-        $cluster = !$new_item && in_array(static::class, $CFG_GLPI['cluster_types'], true)
-            ? Cluster::getClusterByItem($this)
-            : null;
-        TemplateRenderer::getInstance()->display('generic_show_form.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-            'no_header' => !$new_item && !$in_modal,
-            'cluster' => $cluster,
-            'field_order' => $this->getFormFields(),
-        ]);
-        return true;
     }
 
     /**
@@ -2790,47 +2754,6 @@ class CommonDBTM extends CommonGLPI
     }
 
     /**
-     * Display a 2 columns Footer for Form buttons
-     * Close the form is user can edit
-     *
-     * @param array<string,mixed> $options array of possible options:
-     *     - withtemplate : 1 for newtemplate, 2 for newobject from template
-     *     - colspan for each column (default 2)
-     *     - candel : set to false to hide "delete" button
-     *     - canedit : set to false to hide all buttons
-     *     - addbuttons : array of buttons to add
-     *
-     * @return void
-     **/
-    public function showFormButtons($options = [])
-    {
-        $params = [
-            'colspan'      => 2,
-            'withtemplate' => '',
-            'candel'       => true,
-            'canedit'      => true,
-            'addbuttons'   => [],
-            'formfooter'   => null,
-        ];
-
-        if (is_array($options) && count($options)) {
-            foreach ($options as $key => $val) {
-                $params[$key] = $val;
-            }
-        }
-
-        echo "</table>";
-
-        TemplateRenderer::getInstance()->display('components/form/buttons.html.twig', [
-            'item'   => $this,
-            'params' => $params,
-        ]);
-
-        echo "</div>"; //.asset
-    }
-
-
-    /**
      * Initialize item and check right before managing the edit form
      *
      * @param int                 $ID      ID of the item/template
@@ -2872,68 +2795,6 @@ class CommonDBTM extends CommonGLPI
         }
 
         return ($options['withtemplate'] ?? '');
-    }
-
-
-    /**
-     *
-     * Display a 2 columns Header 1 for ID, 1 for recursivity menu
-     * Open the form is user can edit
-     *
-     * @param array<string,mixed> $options array of possible options:
-     *     - target for the Form
-     *     - withtemplate : 1 for newtemplate, 2 for newobject from template
-     *     - colspan for each column (default 2)
-     *     - formoptions string (javascript p.e.)
-     *     - canedit boolean edit mode of form ?
-     *     - formtitle specific form title
-     *     - noid Set to true if ID should not be append (eg. already done in formtitle)
-     *     - header_toolbar Array of header toolbar elements (HTML code)
-     *
-     * @return void
-     **/
-    public function showFormHeader($options = [])
-    {
-        $params = [
-            'target'         => $this->getFormURL(),
-            'colspan'        => 2,
-            'withtemplate'   => '',
-            'formoptions'    => '',
-            'canedit'        => true,
-            'formtitle'      => null,
-            'no_header'      => false,
-            'noid'           => false,
-            'header_toolbar' => [],
-        ];
-
-        if (is_array($options) && count($options)) {
-            foreach ($options as $key => $val) {
-                $params[$key] = $val;
-            }
-        }
-
-        // Template case : clean entities data
-        if (
-            ($params['withtemplate'] == 2)
-            && $this->isEntityAssign()
-        ) {
-            $this->fields['entities_id']  = $_SESSION['glpiactive_entity'];
-        }
-
-        $header_toolbar = $params['header_toolbar'];
-        unset($params['header_toolbar']);
-
-        echo "<div class='asset'>";
-        TemplateRenderer::getInstance()->display('components/form/header.html.twig', [
-            'item'           => $this,
-            'params'         => $params,
-            'no_header'      => $params['no_header'],
-            'header_toolbar' => $header_toolbar,
-        ]);
-
-        echo "<table class='tab_cadre_fixe'>";
-        echo "<tr class='tab_bg_2'>";
-        echo "<td class='center' colspan='" . ((int) $params['colspan'] * 2) . "'>";
     }
 
     public static function isNewID($ID)
@@ -5242,111 +5103,6 @@ class CommonDBTM extends CommonGLPI
         }
         // default case field text
         return Html::input($name, ['value' => $value]);
-    }
-
-    /**
-     * @param string  $itemtype Item type
-     * @param string  $target   Target
-     * @param bool $add      If true, displays the template list to select the template to use when creating an item. Otherwise, displays the list of templates with the options to add/delete templates.
-     *
-     * @return false|void
-     */
-    public static function listTemplates($itemtype, $target, $add = false)
-    {
-        global $DB;
-
-        if (!($item = getItemForItemtype($itemtype))) {
-            return false;
-        }
-
-        if (!$item->maybeTemplate()) {
-            return false;
-        }
-
-        // Avoid to get old data
-        $item->clearSavedInput();
-
-        if (
-            !$item::canView()
-            && !$item::canCreate()
-        ) {
-            return false;
-        }
-
-        $request = [
-            'FROM'   => $item::getTable(),
-            'WHERE'  => [
-                'is_template' => 1,
-            ] + $item::getSystemSQLCriteria(),
-            'ORDER'  => ['template_name'],
-        ];
-
-        if ($item->isEntityAssign()) {
-            $request['WHERE'] += getEntitiesRestrictCriteria(
-                $item::getTable(),
-                'entities_id',
-                $_SESSION['glpiactiveentities'],
-                $item->maybeRecursive()
-            );
-        }
-
-        $iterator = $DB->request($request);
-        $blank_params = (strpos($target, '?') ? '&' : '?') . "id=-1&withtemplate=2";
-        $target_blank = $target . $blank_params;
-
-        if ($add && count($iterator) === 0) {
-            // if there are no templates, just use blank
-            Html::redirect($target_blank);
-        }
-
-        $entries = [];
-        $entity_cache = [];
-
-        if ($add) {
-            $entries[] = [
-                'name' => '<a href="' . htmlescape($target_blank) . '">' . __s('Blank Template') . '</a>',
-            ];
-        }
-
-        foreach ($iterator as $data) {
-            $entry = [
-                'id' => $data['id'],
-            ];
-            $templname = $data["template_name"];
-            if ($_SESSION["glpiis_ids_visible"] || empty($data["template_name"])) {
-                $templname = sprintf(__('%1$s (%2$s)'), $templname, $data["id"]);
-            }
-            if (!$add && $item::canCreate()) {
-                $modify_params = (strpos($target, '?') ? '&' : '?') . "id=" . $data['id'] . "&withtemplate=1";
-                $target_modify = $target . $modify_params;
-
-                $entry['name'] = '<a href="' . htmlescape($target_modify) . '">' . htmlescape($templname) . '</a>';
-                if (Session::isMultiEntitiesMode()) {
-                    if (!isset($entity_cache[$data['entities_id']])) {
-                        $entity_cache[$data['entities_id']] = Dropdown::getDropdownName('glpi_entities', $data['entities_id']);
-                    }
-                    $entity = Dropdown::getDropdownName('glpi_entities', $data['entities_id']);
-                    $entry['entity'] = $entity;
-                }
-                $entry['can_delete'] = $item::canPurge() && $item->can($data['id'], PURGE);
-            } else {
-                $add_params = (strpos($target, '?') ? '&' : '?') . "id=" . $data['id'] . "&withtemplate=2";
-                $target_add = $target . $add_params;
-                $entry['name'] = '<a href="' . htmlescape($target_add) . '">' . htmlescape($templname) . '</a>';
-            }
-            $entries[] = $entry;
-        }
-
-        $twig_params = [
-            'add_mode' => (bool) $add,
-            'templates' => $entries,
-            'target' => $target,
-            'can_delete' => $item::canPurge(),
-            'add_template' => $item::canCreate() && !$add,
-            'target_create' => $target . (strpos($target, '?') ? '&id=-1&withtemplate=1' : '?id=-1&withtemplate=1'),
-        ];
-
-        TemplateRenderer::getInstance()->display('pages/assets/template_list.html.twig', $twig_params);
     }
 
     /**

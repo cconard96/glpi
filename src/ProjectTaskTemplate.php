@@ -51,10 +51,8 @@ class ProjectTaskTemplate extends CommonDropdown
         return _n('Project task template', 'Project task templates', $nb);
     }
 
-
     public function getAdditionalFields()
     {
-
         return [['name'  => 'projectstates_id',
             'label' => _x('item', 'State'),
             'type'  => 'dropdownValue',
@@ -219,49 +217,5 @@ class ProjectTaskTemplate extends CommonDropdown
         ];
 
         return $tab;
-    }
-
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-
-        switch ($field['type']) {
-            case 'percent_done':
-                Dropdown::showNumber("percent_done", [
-                    'value'     => $this->fields['percent_done'],
-                    'min'       => 0,
-                    'max'       => 100,
-                    'step'      => 5,
-                    'unit'      => '%',
-                    'width'     => '100%',
-                ]);
-                break;
-            case 'actiontime':
-                Dropdown::showTimeStamp($field["name"], [
-                    'min'             => 0,
-                    'max'             => 100 * HOUR_TIMESTAMP,
-                    'step'            => HOUR_TIMESTAMP,
-                    'value'           => $this->fields[$field["name"]],
-                    'addfirstminutes' => true,
-                    'inhours'         => true,
-                    'width'           => '100%',
-                ]);
-                break;
-        }
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = parent::defineTabs($options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-stack-2-filled";
     }
 }

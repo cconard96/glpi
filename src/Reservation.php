@@ -33,9 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Event;
-use Glpi\RichText\RichText;
 
 use function Safe\strtotime;
 
@@ -54,29 +52,6 @@ class Reservation extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return _n('Reservation', 'Reservations', $nb);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (
-            !$withtemplate
-            && Session::haveRight("reservation", READ)
-        ) {
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), 0, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === User::class) {
-            self::showForUser($_GET["id"]);
-        } elseif ($item instanceof CommonDBTM) {
-            self::showForItem($item);
-        } else {
-            throw new LogicException("Item must be CommonDBTM");
-        }
-        return true;
     }
 
     public function pre_deleteItem()
@@ -508,198 +483,6 @@ class Reservation extends CommonDBChild
             }
         }
     }
-
-    /**
-     * Show reservation calendar
-     *
-     * @param int $ID   ID of the reservation item (if 0 display all)
-     *
-     * @return void
-     */
-    public static function showCalendar(int $ID = 0)
-    {
-        global $CFG_GLPI;
-
-        if (!Session::haveRightsOr("reservation", [READ, ReservationItem::RESERVEANITEM])) {
-            return;
-        }
-
-        $rand = mt_rand();
-
-        if ($ID > 0) {
-            $m = new ReservationItem();
-            $m->getFromDB($ID);
-
-            if ((!isset($m->fields['is_active'])) || !$m->fields['is_active']) {
-                echo "<div class='text-center'>";
-                echo __s('Device temporarily unavailable');
-                Html::displayBackLink();
-                echo "</div>";
-                return;
-            }
-            $type = $m->fields["itemtype"];
-            $name = NOT_AVAILABLE;
-            if ($item = getItemForItemtype($m->fields["itemtype"])) {
-                $type = $item->getTypeName();
-
-                if ($item->getFromDB($m->fields["items_id"])) {
-                    $name = $item->getName();
-                }
-                $name = sprintf(__('%1$s - %2$s'), $type, $name);
-            }
-
-            $all = "<a class='btn btn-primary ms-2 view-all' href='reservation.php?reservationitems_id=0'>"
-               . __s('View all items')
-               . "&nbsp;<i class='ti ti-eye'></i>"
-            . "</a>";
-        } else {
-            $type = "";
-            $name = __('All reservable devices');
-            $all  = "";
-        }
-        echo "<div class='card'>";
-        echo "<div class='text-center card-header'>";
-        echo "<img src='" . htmlescape($CFG_GLPI["root_doc"]) . "/pics/reservation.png' alt='' class='reservation-icon'>";
-        echo "<h2 class='item-name'>" . htmlescape($name) . "</h2>";
-        echo $all;
-        echo "</div>"; // .center
-        echo "<div id='reservations_planning_$rand' class='card-body reservations-planning'></div>";
-        echo "</div>"; // .reservation_panel
-
-        $can_reserve = (
-            Session::haveRight("reservation", ReservationItem::RESERVEANITEM)
-            && count(self::getReservableItemtypes()) > 0
-        );
-
-        $default_date = date('Y-m-d');
-        if (isset($_REQUEST['defaultDate'])) {
-            $default_date = $_REQUEST['defaultDate'];
-        } elseif (isset($_REQUEST['month'], $_REQUEST['year'])) {
-            $month = (int) $_REQUEST['month'];
-            $year  = (int) $_REQUEST['year'];
-            $default_date = sprintf('%04d-%02d-01', $year, $month);
-        }
-
-        $js = "
-            $(function() {
-                var reservation = new Reservations();
-                reservation.init({
-                    id: $ID,
-                    is_all: " . ($ID === 0 ? "true" : "false") . ",
-                    rand: $rand,
-                    can_reserve: " . ($can_reserve ? "true" : "false") . ",
-                    now: '" . jsescape($_SESSION["glpi_currenttime"]) . "',
-                    defaultDate: '" . jsescape($default_date) . "',
-                });
-                reservation.displayPlanning();
-          });
-        ";
-        echo Html::scriptBlock($js);
-    }
-
-    public static function getEvents(array $params): array
-    {
-        global $DB, $CFG_GLPI;
-
-        $defaults = [
-            'start'               => '',
-            'end'                 => '',
-            'reservationitems_id' => 0,
-        ];
-        $params = array_merge($defaults, $params);
-
-        $start = date("Y-m-d H:i:s", strtotime($params['start']));
-        $end   = date("Y-m-d H:i:s", strtotime($params['end']));
-
-        $res_table   = static::getTable();
-        $res_i_table = ReservationItem::getTable();
-
-        $can_read    = Session::haveRight("reservation", READ);
-        $can_edit    = Session::getCurrentInterface() === "central" && Session::haveRight("reservation", UPDATE);
-        $can_reserve = Session::haveRight("reservation", ReservationItem::RESERVEANITEM);
-
-        $user = new User();
-
-        $where = [];
-        if ($params['reservationitems_id'] > 0) {
-            $where = [
-                "$res_table.reservationitems_id" => $params['reservationitems_id'],
-            ];
-        }
-
-        $iterator = $DB->request([
-            'SELECT'     => [
-                "$res_table.id",
-                "$res_table.begin",
-                "$res_table.end",
-                "$res_table.comment",
-                "$res_table.users_id",
-                "$res_i_table.items_id",
-                "$res_i_table.itemtype",
-            ],
-            'FROM'       => $res_table,
-            'INNER JOIN' => [
-                $res_i_table => [
-                    'ON' => [
-                        $res_i_table => 'id',
-                        $res_table   => 'reservationitems_id',
-                    ],
-                ],
-            ],
-            'WHERE' => [
-                'end'   => ['>', $start],
-                'begin' => ['<', $end],
-            ] + $where,
-        ]);
-
-        $events = [];
-        if (!count($iterator)) {
-            return [];
-        }
-        foreach ($iterator as $data) {
-            $item = getItemForItemtype($data['itemtype']);
-            if (!$item->getFromDB($data['items_id'])) {
-                continue;
-            }
-            if (!Session::haveAccessToEntity($item->getEntityID(), $item->isRecursive())) {
-                continue;
-            }
-
-            $my_item = $data['users_id'] === Session::getLoginUserID();
-
-            $data['comment'] = RichText::getSafeHtml($data['comment']);
-            if ($can_read || $my_item) {
-                $user->getFromDB($data['users_id']);
-                $data['comment'] .= '<br />' . htmlescape(sprintf(__("Reserved by %s"), $user->getFriendlyName()));
-            }
-
-            $name = $item->getName([
-                'complete' => true,
-            ]);
-
-            $editable = $can_edit || ($can_reserve && $my_item);
-
-            $events[] = [
-                'id'          => $data['id'],
-                'resourceId'  => $data['itemtype'] . "-" . $data['items_id'],
-                'start'       => $data['begin'],
-                'end'         => $data['end'],
-                'comment'     => $can_read || $my_item ? $data['comment'] : '',
-                'title'       => $params['reservationitems_id'] ? "" : $name,
-                'icon'        => $item->getIcon(),
-                'description' => $item->getTypeName(),
-                'itemtype'    => $data['itemtype'],
-                'items_id'    => $data['items_id'],
-                'color'       => Toolbox::getColorForString($name),
-                'ajaxurl'     => $CFG_GLPI['root_doc'] . '/ajax/reservations.php?action=add_edit_reservation_fromselect&id=' . $data['id'],
-                'editable'    => $editable, // "editable" is used by fullcalendar, but is not accessible
-                '_editable'   => $editable, // "_editable" will be used by custom event handlers
-            ];
-        }
-
-        return $events;
-    }
-
     /**
      * @return array
      */
@@ -765,111 +548,6 @@ class Reservation extends CommonDBChild
             'begin' => date("Y-m-d H:i:s", strtotime($event['start'])),
             'end'   => date("Y-m-d H:i:s", strtotime($event['end'])),
         ]);
-    }
-
-    /**
-     * Display for reservation
-     *
-     * @param int $ID ID of the reservation (empty for create new)
-     * @param array<string,mixed> $options possible optional options:
-     * <ul>
-     *      <li>item: Reservation items ID(s) for creation process. The array keys and values are expected to be symmetrical (ex: [2 => 2, 5 => 5])</li>
-     *      <li>begin: planning start (should be an ISO_8601 date, but could be anything that can be parsed by strtotime)</li>
-     *      <li>end: planning end (should be an ISO_8601 date, but could be anything that can be parsed by strtotime)</li>
-     *  </ul>
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        global $CFG_GLPI;
-
-        $resa = new self();
-
-        if (!empty($ID) && $ID > 0) {
-            if (!$resa->getFromDB($ID)) {
-                return false;
-            }
-
-            if (!$resa->can($ID, UPDATE)) {
-                return false;
-            }
-            // Set item if not set
-            if (
-                (!isset($options['item']) || (count($options['item']) === 0))
-                && ($itemid = $resa->getField('reservationitems_id'))
-            ) {
-                $options['item'][$itemid] = $itemid;
-            }
-        } else {
-            if (!self::canCreate()) {
-                return false;
-            }
-
-            $resa->getEmpty();
-            $options = Planning::cleanDates($options);
-            $resa->fields["begin"] = !empty($options['begin']) ? date("Y-m-d H:i:s", strtotime($options['begin'])) : date('Y-m-d H:00:00', strtotime(Session::getCurrentTime()));
-            if (!isset($options['end'])) {
-                $resa->fields["end"] = date("Y-m-d H:00:00", strtotime($resa->fields["begin"]) + HOUR_TIMESTAMP);
-            } else {
-                $resa->fields["end"] = date("Y-m-d H:i:s", strtotime($options['end']));
-            }
-        }
-
-        $r = new ReservationItem();
-        $items = [];
-        foreach ($options['item'] as $itemID) {
-            // existing item(s)
-            if ($r->getFromDB($itemID)) {
-                $type = $r->fields["itemtype"];
-                $name = NOT_AVAILABLE;
-                $item = null;
-
-                if ($item = getItemForItemtype($r->fields["itemtype"])) {
-                    $type = $item::getTypeName(1);
-
-                    if ($item->getFromDB($r->fields["items_id"])) {
-                        $name = $item->getName();
-                    } else {
-                        $item = null;
-                    }
-                }
-
-                $items[] = [
-                    'id'        => $itemID,
-                    'type_name' => sprintf(__('%1$s - %2$s'), $type, $name),
-                    'comment'   => $r->fields['comment'] ?? '',
-                ];
-            }
-        }
-
-        $uid = (empty($ID) ? Session::getLoginUserID() : $resa->fields['users_id']);
-        $resa->fields["users_id_friendlyname"] = User::getFriendlyNameById($uid);
-
-        $entities_id  = (isset($item)) ? $item->getEntityID() : Session::getActiveEntity();
-        $canedit = Session::haveRight("reservation", UPDATE) && Session::haveAccessToEntity($entities_id);
-
-        $default_delay = floor((strtotime($resa->fields["end"]) - strtotime($resa->fields["begin"]))
-                             / $CFG_GLPI['time_step'] / MINUTE_TIMESTAMP)
-                       * $CFG_GLPI['time_step'] * MINUTE_TIMESTAMP;
-
-        if ((int) $default_delay === 0) {
-            $options['duration'] = 0;
-        }
-
-        $options['canedit'] = ($resa->fields["users_id"] === Session::getLoginUserID())
-                             || Session::haveRight(static::$rightname, UPDATE);
-        $options['candel'] = ($resa->fields["users_id"] === Session::getLoginUserID())
-                             || Session::haveRightsOr(static::$rightname, [PURGE, UPDATE]);
-
-        $resa->initForm($ID, $resa->fields);
-        TemplateRenderer::getInstance()->display('components/form/reservation.html.twig', [
-            'item'              => $resa,
-            'items'             => $items,
-            'itemtypes'         => self::getReservableItemtypes(),
-            'default_delay'     => $default_delay,
-            'params'            => $options,
-            'canedit'           => $canedit,
-        ]);
-        return true;
     }
 
     /**
@@ -995,64 +673,6 @@ class Reservation extends CommonDBChild
     }
 
     /**
-     * Display reservations for an item
-     *
-     * @param CommonDBTM $item Object for which the reservation tab need to be displayed
-     * @param int $withtemplate
-     * @return void
-     **/
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        if (!Session::haveRight("reservation", READ)) {
-            return;
-        }
-
-        echo "<div class='mb-3'>";
-        ReservationItem::showActivationFormForItem($item);
-
-        $ri = new ReservationItem();
-        if (!$ri->getFromDBbyItem($item->getType(), $item->getID())) {
-            return;
-        }
-
-        // js vars
-        $rand   = mt_rand();
-        $ID     = $ri->getID();
-
-        echo "<br>";
-        echo "<h1>" . __s('Reservations for this item') . "</h1>";
-        echo "<div id='reservations_planning_$rand' class='reservations-planning tabbed'></div>";
-
-        $default_date = date('Y-m-d');
-        if (isset($_REQUEST['defaultDate'])) {
-            $default_date = $_REQUEST['defaultDate'];
-        } elseif (isset($_REQUEST['month'], $_REQUEST['year'])) {
-            $month = (int) $_REQUEST['month'];
-            $year  = (int) $_REQUEST['year'];
-            $default_date = sprintf('%04d-%02d-01', $year, $month);
-        }
-        $default_date = jsescape($default_date);
-        $now = date("Y-m-d H:i:s");
-        $js = <<<JAVASCRIPT
-            $(() => {
-                const reservation = new Reservations();
-                reservation.init({
-                    id: $ID,
-                    is_all: false,
-                    is_tab: true,
-                    rand: $rand,
-                    currentv: 'listFull',
-                    defaultDate: '$default_date',
-                    now: '$now',
-                });
-                reservation.displayPlanning();
-            });
-JAVASCRIPT;
-        echo Html::scriptBlock($js);
-        echo "</div>";
-    }
-
-    /**
      * Get reservation data for a user
      * @param int $users_id ID of the user
      * @return array
@@ -1143,104 +763,6 @@ JAVASCRIPT;
         ];
     }
 
-    public static function showReservationsAsList(array $reservations, string $title): void
-    {
-        $entity_cache = [];
-        $fn_format_entry = static function (array $data, bool $is_old) use (&$entity_cache) {
-            global $CFG_GLPI;
-            $entry = [
-                'itemtype' => ReservationItem::class,
-                'id' => $data['id'],
-                'start_date' => $data['start_date'],
-                'end_date' => $data['end_date'],
-                'item' => '',
-                'entity' => '',
-                'by' => getUserName($data["by"]),
-                'comments' => RichText::getSafeHtml($data["comments"]),
-            ];
-
-            $item = null;
-            if ($data['item'] !== null) {
-                if (($item = getItemForItemtype($data['item']['itemtype'])) && $item->getFromDB($data['item']['id'])) {
-                    $entry['item'] = $item->getLink();
-                }
-            }
-            if ($data['entity'] !== null) {
-                if (!isset($entity_cache[$data['entity']])) {
-                    $entity_cache[$data['entity']] = Dropdown::getDropdownName('glpi_entities', $data['entity']);
-                }
-                $entry['entity'] = $entity_cache[$data['entity']];
-            }
-
-            if (!$is_old) {
-                [$annee, $mois] = explode("-", $data["start_date"]);
-                $href = htmlescape($CFG_GLPI["root_doc"]) . "/front/reservation.php?reservationitems_id={$data['id']}&month=$mois&year=$annee";
-                $entry['planning'] = "<a href='$href' title='" . __s('See planning') . "'>";
-                $entry['planning'] .= "<i class='" . htmlescape(Planning::getIcon()) . "'></i>";
-                $entry['planning'] .= "<span class='sr-only'>" . __s('See planning') . "</span>";
-                $entry['planning'] .= "</a>";
-            } elseif ($item instanceof CommonDBTM) {
-                $href = htmlescape($item::getFormURLWithID($item->getID()) . "&forcetab=Reservation$1&tab_params[defaultDate]={$data['start_date']}");
-                $entry['planning'] = "<a href='$href' title=\"" . __s('See planning') . "\">";
-                $entry['planning'] .= "<i class='" . htmlescape(Planning::getIcon()) . "'></i>";
-                $entry['planning'] .= "<span class='sr-only'>" . __s('See planning') . "</span>";
-            }
-            return $entry;
-        };
-
-        $entries = [];
-        foreach ($reservations as $data) {
-            $entries[] = $fn_format_entry($data, false);
-        }
-
-        $columns = [
-            'start_date' => __('Start date'),
-            'end_date'   => __('End date'),
-            'item'       => _n('Item', 'Items', 1),
-            'entity'     => Entity::getTypeName(1),
-            'by'         => __('By'),
-            'comments'   => _n('Comment', 'Comments', Session::getPluralNumber()),
-            'planning'  => '',
-        ];
-        $formatters = [
-            'start_date' => 'datetime',
-            'end_date'   => 'datetime',
-            'item' => 'raw_html',
-            'planning' => 'raw_html',
-            'comments' => 'raw_html',
-        ];
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'table_class_style' => 'table-hover mb-3',
-            'super_header' => $title,
-            'columns' => $columns,
-            'formatters' => $formatters,
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => false,
-        ]);
-    }
-
-    /**
-     * Display reservations for a user
-     *
-     * @param int $ID ID of the user
-     * @return void
-     **/
-    public static function showForUser($ID)
-    {
-        if (!Session::haveRight("reservation", READ)) {
-            return;
-        }
-
-        $reservations = self::getForUser($ID);
-        self::showReservationsAsList($reservations['in_progress'], __('Current and future reservations'));
-        self::showReservationsAsList($reservations['old'], __('Past reservations'));
-    }
-
     /**
      * Get reservable itemtypes from GLPI config, filtering out itemtype with no
      * reservable items
@@ -1255,11 +777,6 @@ JAVASCRIPT;
             $CFG_GLPI['reservation_types'],
             static fn($type) => ReservationItem::countAvailableItems($type) > 0
         );
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-calendar-event";
     }
 
     public static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = false, ?CommonDBTM $checkitem = null)
@@ -1294,34 +811,6 @@ JAVASCRIPT;
                 $actions[$action_prefix . 'unavailable'] = "<i class='ti ti-calendar-off'></i>" . __s('Make unavailable for reservations');
             }
         }
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        switch ($ma->getAction()) {
-            case 'enable':
-                echo "<br><br><input type='submit' name='massiveaction' class='btn btn-primary' value='"
-                    . __s('Authorize reservations') . "'>";
-                return true;
-            case 'disable':
-                echo '<div class="alert alert-warning">';
-                echo __s('Are you sure you want to return this non-reservable item?');
-                echo '<br>';
-                echo "<span class='fw-bold'>" . __s('That will remove all the reservations in progress.') . "</span>";
-                echo '</div>';
-                echo "<br><br><input type='submit' name='massiveaction' class='btn btn-primary' value='"
-                    . __s('Prohibit reservations') . "'>";
-                return true;
-            case 'available':
-                echo "<br><br><input type='submit' name='massiveaction' class='btn btn-primary' value='"
-                    . __s('Make available for reservations') . "'>";
-                return true;
-            case 'unavailable':
-                echo "<br><br><input type='submit' name='massiveaction' class='btn btn-primary' value='"
-                    . __s('Make unavailable for reservations') . "'>";
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item, array $ids)

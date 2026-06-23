@@ -241,9 +241,4 @@ class FQDN extends CommonDropdown
         }
         return true;
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-world";
-    }
 }

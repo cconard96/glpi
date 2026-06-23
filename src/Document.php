@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QuerySubQuery;
 use Glpi\Event;
 use Glpi\Features\ParentStatus;
@@ -85,11 +84,6 @@ class Document extends CommonDBTM implements TreeBrowseInterface
         return _n('Document', 'Documents', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     /**
      * Check if given object can have Document
      *
@@ -120,11 +114,6 @@ class Document extends CommonDBTM implements TreeBrowseInterface
             CommonDevice::getDeviceTypes(),
             Item_Devices::getDeviceTypes()
         );
-    }
-
-    public static function getMenuShorcut()
-    {
-        return 'd';
     }
 
     public static function canCreate(): bool
@@ -207,17 +196,6 @@ class Document extends CommonDBTM implements TreeBrowseInterface
                 }
             }
         }
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function prepareInputForAdd($input)
@@ -361,24 +339,6 @@ class Document extends CommonDBTM implements TreeBrowseInterface
         }
 
         return $input;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        }
-
-        TemplateRenderer::getInstance()->display('pages/management/document.html.twig', [
-            'item'  => $this,
-            'uploader' => $this->fields['users_id'] > 0 ? getUserLink($this->fields["users_id"]) : '',
-            'uploaded_files' => self::getUploadedFiles(),
-            'params' => [
-                'canedit' => $this->canUpdateItem(),
-            ],
-        ]);
-
-        return true;
     }
 
     /**
@@ -1725,11 +1685,6 @@ class Document extends CommonDBTM implements TreeBrowseInterface
         }
 
         return ($nb > 0 ? 1 : 0);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-files";
     }
 
     /**

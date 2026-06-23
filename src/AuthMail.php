@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  *  Class used to manage Auth mail config
  */
@@ -48,11 +46,6 @@ class AuthMail extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return _n('Email server', 'Email servers', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', Auth::class, self::class];
     }
 
     public function prepareInputForUpdate($input)
@@ -91,16 +84,6 @@ class AuthMail extends CommonDBTM
             $input["connect_string"] = Toolbox::constructMailServerConfig($input);
         }
         return $input;
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(self::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function rawSearchOptions()
@@ -184,25 +167,6 @@ class AuthMail extends CommonDBTM
         return $tab;
     }
 
-    public function showForm($ID, array $options = [])
-    {
-        if (!$this->can($ID, UPDATE)) {
-            return false;
-        }
-
-        $protocol_choices = [];
-        foreach (Toolbox::getMailServerProtocols(allow_plugins_protocols: false) as $key => $protocol) {
-            $protocol_choices['/' . $key] = $protocol['label'];
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/authentication/mail.html.twig', [
-            'item'             => $this,
-            'params'           => $options,
-            'protocol_choices' => $protocol_choices,
-        ]);
-        return true;
-    }
-
     /**
      * @return void
      */
@@ -225,55 +189,6 @@ class AuthMail extends CommonDBTM
         }
 
         parent::post_addItem();
-    }
-
-    /**
-     * Show test mail form
-     *
-     * @return void
-     */
-    public function showFormTestMail()
-    {
-        $ID = $this->getField('id');
-
-        if ($this->getFromDB($ID)) {
-            $twig_params = [
-                'title'          => __('Test connection to email server'),
-                'login'          => __('Login'),
-                'password'       => __('Password'),
-                'test'           => _x('button', 'Test'),
-                'connect_string' => $this->fields['connect_string'] ?? '',
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                {% import 'components/form/fields_macros.html.twig' as fields %}
-                <form method="post" action="{{ 'AuthMail'|itemtype_form_path }}" data-submit-once>
-                    <div class="text-center d-flex flex-column">
-                        <div>
-                            <h1 class="fs-2">{{ title }}</h1>
-                        </div>
-                        {{ fields.textField('imap_login', '', login, {
-                            full_width: true,
-                            additional_attributes: {
-                                autocomplete: 'username'
-                            }
-                        }) }}
-                        {{ fields.passwordField('imap_password', '', password, {
-                            full_width: true,
-                            clearable: false,
-                            additional_attributes: {
-                                autocomplete: 'password'
-                            }
-                        }) }}
-                        {{ fields.hiddenField('imap_string', connect_string) }}
-                        <div>
-                            {{ fields.csrfField() }}
-                            <button type="submit" name="test" class="btn btn-primary">{{ test }}</button>
-                        </div>
-                    </div>
-                </form>
-TWIG, $twig_params);
-        }
     }
 
     /**
@@ -369,29 +284,6 @@ TWIG, $twig_params);
     public function cleanDBonPurge()
     {
         Rule::cleanForItemCriteria($this, 'MAIL_SERVER');
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        /** @var CommonDBTM $item */
-        if (!$withtemplate && $item->can($item->getField('id'), READ)) {
-            $ong = [];
-            $ong[1] = self::createTabEntry(_x('button', 'Test'), icon: 'ti ti-stethoscope');
-
-            return $ong;
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        /** @var AuthMail $item */
-        switch ($tabnum) {
-            case 1:
-                $item->showFormTestMail();
-                break;
-        }
-        return true;
     }
 
     public static function getIcon()

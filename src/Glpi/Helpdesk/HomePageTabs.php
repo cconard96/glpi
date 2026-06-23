@@ -113,62 +113,6 @@ final class HomePageTabs extends CommonGLPI
         return $tabs;
     }
 
-    #[Override]
-    public static function displayTabContentForItem(
-        CommonGLPI $item,
-        $tabnum = 1,
-        $withtemplate = 0
-    ): bool {
-        if (!($item instanceof self)) {
-            return false;
-        }
-
-        $tabs = new self();
-
-        if ($tabnum == self::ONGOING_TICKETS_TAB) {
-            $tabs->displayOngoingTicketsTabs();
-            return true;
-        }
-
-        if ($tabnum == self::SOLVED_TICKETS_TAB) {
-            $tabs->displaySolvedTicketsTabs();
-            return true;
-        }
-
-        if ($tabnum == self::PUBLIC_REMINDER_TAB) {
-            if (!Session::haveRight("reminder_public", READ)) {
-                return false;
-            }
-
-            // TODO: improve display
-            echo Reminder::showListForCentral(false, false);
-            return true;
-        }
-
-        if ($tabnum == self::RSS_FEED_PUBLIC) {
-            if (!Session::haveRight("rssfeed_public", READ)) {
-                return false;
-            }
-
-            // TODO: improve display
-            echo RSSFeed::showListForCentral(false, false);
-            return true;
-        }
-
-        if ($tabnum == self::DASHBOARD_TAB) {
-            if (!Grid::canViewOneDashboard()) {
-                return false;
-            }
-
-            $default   = Grid::getDefaultDashboardForMenu('central');
-            $dashboard = new Grid($default);
-            $dashboard->show();
-            return true;
-        }
-
-        return false;
-    }
-
     private function displayOngoingTicketsTabs(): void
     {
         $this->showTicketList([

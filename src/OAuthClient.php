@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\OAuth\AccessTokenRepository;
 use Glpi\OAuth\AuthCodeRepository;
 use Glpi\OAuth\RefreshTokenRepository;
@@ -53,26 +52,6 @@ final class OAuthClient extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return _n('OAuth client', 'OAuth clients', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', self::class];
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-key';
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        TemplateRenderer::getInstance()->display('pages/setup/oauthclient.html.twig', [
-            'item' => $this,
-            'params' => $options,
-            'allowed_scopes' => Server::getAllowedScopes(),
-        ]);
-        return true;
     }
 
     public function rawSearchOptions()

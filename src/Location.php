@@ -33,16 +33,11 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\DBAL\QueryExpression;
-use Glpi\DBAL\QueryUnion;
 use Glpi\Features\Clonable;
-use Glpi\Socket;
 
 /// Location class
 class Location extends CommonTreeDropdown
 {
-    use MapGeolocation;
     /** @use Clonable<static> */
     use Clonable;
 
@@ -397,51 +392,10 @@ class Location extends CommonTreeDropdown
         return $tab;
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = parent::defineTabs($options);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Socket::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(self::class, $ong, $options);
-
-        return $ong;
-    }
-
     public function cleanDBonPurge()
     {
         Rule::cleanForItemAction($this);
         Rule::cleanForItemCriteria($this, '_locations_id%');
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            switch ($item::class) {
-                case self::class:
-                    $ong    = [];
-                    $ong[1] = self::createTabEntry(self::getTypeName(Session::getPluralNumber()));
-                    $ong[2] = self::createTabEntry(_n('Item', 'Items', Session::getPluralNumber()), icon: 'ti ti-package');
-                    return $ong;
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof self) {
-            return false;
-        }
-
-        switch ($tabnum) {
-            case 1:
-                return $item->showChildren();
-            case 2:
-                return $item->showItems();
-            default:
-                return false;
-        }
     }
 
     /**
@@ -460,148 +414,6 @@ class Location extends CommonTreeDropdown
             }
         }
         return null;
-    }
-
-    /**
-     * Print the HTML array of items for a location
-     *
-     * @since 0.85
-     *
-     * @return bool
-     **/
-    public function showItems(): bool
-    {
-        global $CFG_GLPI, $DB;
-
-        $locations_id = $this->fields['id'];
-        $filters = $_GET['filters'] ?? [];
-        $location_types = $CFG_GLPI['location_types'];
-        $location_types = array_combine($location_types, array_map(static fn($itemtype) => $itemtype::getTypeName(1), $location_types));
-        asort($location_types);
-
-        if (!$this->can($locations_id, READ)) {
-            return false;
-        }
-
-        $queries = [];
-        $itemtypes = (!isset($filters['type']) || in_array('', $filters['type'], true)) ? array_keys($location_types) : $filters['type'];
-        foreach ($itemtypes as $itemtype) {
-            $item = getItemForItemtype($itemtype);
-            if (!$item->maybeLocated()) {
-                continue;
-            }
-            $table = getTableForItemType($itemtype);
-            $itemtype_criteria = [
-                'SELECT' => [
-                    "$table.id",
-                    new QueryExpression($DB::quoteValue($itemtype), 'type'),
-                ],
-                'FROM'   => $table,
-                'WHERE'  => [
-                    "$table.locations_id"   => $locations_id,
-                ] + $item->getSystemSQLCriteria(),
-            ];
-            if ($item->maybeDeleted()) {
-                $itemtype_criteria['WHERE']['is_deleted'] = 0;
-            }
-
-            if ($item->isEntityAssign()) {
-                $itemtype_criteria['WHERE'] + getEntitiesRestrictCriteria($table, 'entities_id');
-            }
-
-            $queries[] = $itemtype_criteria;
-        }
-        $criteria = count($queries) === 1 ? $queries[0] : ['FROM' => new QueryUnion($queries)];
-
-        $start  = (isset($_REQUEST['start']) ? (int) $_REQUEST['start'] : 0);
-        $criteria['START'] = $start;
-        $criteria['LIMIT'] = $_SESSION['glpilist_limit'];
-
-        $iterator = $DB->request($criteria);
-
-        // Execute a second request to get the total number of rows
-        unset($criteria['SELECT'], $criteria['START'], $criteria['LIMIT']);
-
-        $criteria['COUNT'] = 'total';
-        $number = $DB->request($criteria)->current()['total'];
-
-        $entries = [];
-        $entity_name_cache = [];
-        foreach ($iterator as $data) {
-            $item = getItemForItemtype($data['type']);
-            $item->getFromDB($data['id']);
-            if (!isset($entity_name_cache[$item->getEntityID()])) {
-                $entity_name_cache[$item->getEntityID()] = Dropdown::getDropdownName(
-                    "glpi_entities",
-                    $item->getEntityID()
-                );
-            }
-            $entries[] = [
-                'type'         => $item::getTypeName(1),
-                'entity'       => $entity_name_cache[$item->getEntityID()],
-                'name'         => $item->getLink(),
-                'serial'       => $item->fields["serial"] ?? "-",
-                'otherserial' => $item->fields["otherserial"] ?? "-",
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'start' => $start,
-            'limit' => $_SESSION['glpilist_limit'],
-            'is_tab' => true,
-            'filters' => $filters,
-            'nosort' => true,
-            'columns' => [
-                'type' => [
-                    'label' => _n('Type', 'Types', 1),
-                    'filter_formatter' => 'array',
-                ],
-                'entity' => [
-                    'label' => Entity::getTypeName(1),
-                    'no_filter' => true,
-                ],
-                'name' => [
-                    'label' => __('Name'),
-                    'no_filter' => true,
-                ],
-                'serial' => [
-                    'label' => __('Serial number'),
-                    'no_filter' => true,
-                ],
-                'otherserial' => [
-                    'label' => __('Inventory number'),
-                    'no_filter' => true,
-                ],
-            ],
-            'columns_values' => [
-                'type' => array_merge(['' => __('All')], $location_types),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => $number,
-            'filtered_number' => $number,
-            'showmassiveactions' => false,
-        ]);
-
-        return true;
-    }
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        switch ($field['type']) {
-            case 'setlocation':
-                $this->showMap();
-                break;
-            default:
-                throw new RuntimeException("Unknown {$field['type']}");
-        }
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-map-pin";
     }
 
     public function prepareInputForAdd($input)

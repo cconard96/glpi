@@ -35,9 +35,7 @@
 
 namespace Glpi\Dashboard\Filters;
 
-use Html;
 use Search;
-
 use function Safe\strtotime;
 
 abstract class AbstractFilter
@@ -48,15 +46,6 @@ abstract class AbstractFilter
      * @return string
      */
     abstract public static function getName(): string;
-
-    /**
-     * Get the html for the filter
-     *
-     * @param mixed $value
-     *
-     * @return string
-     */
-    abstract public static function getHtml($value): string;
 
     /**
     * Get the filter id
@@ -112,101 +101,6 @@ abstract class AbstractFilter
             }
         }
         return array_search($name . "-" . $tableToSearch, $sort);
-    }
-
-    /**
-     * Get generic HTML for a filter
-     *
-     * @param string $id system name of the filter (ex "dates")
-     * @param string $field html of the filter
-     * @param string $label displayed label for the filter
-     * @param bool   $filled
-     *
-     * @return string the html for the complete field
-     */
-    final protected static function field(
-        string $id,
-        string $field,
-        string $label,
-        bool $filled = false
-    ): string {
-
-        $rand  = mt_rand();
-        $class = $filled ? "filled" : "";
-
-        $js = "
-            $(function () {
-                $('#filter-{$rand} input')
-                    .on('input', function() {
-                        var str_len = $(this).val().length;
-                        if (str_len > 0) {
-                            $('#filter-{$rand}').addClass('filled');
-                        } else {
-                            $('#filter-{$rand}').removeClass('filled');
-                        }
-
-                        $(this).width((str_len + 1) * 8 );
-                    });
-
-                $('#filter-{$rand}')
-                    .hover(function() {
-                        $('.dashboard .card.filter-" . \jsescape($id) . "').addClass('filter-impacted');
-                    }, function() {
-                        $('.dashboard .card.filter-" . \jsescape($id) . "').removeClass('filter-impacted');
-                    });
-                });
-        ";
-        $js = Html::scriptBlock($js);
-
-        $html  = '
-            <fieldset id="filter-' . $rand . '" class="filter ' . \htmlescape($class) . '" data-filter-id="' . \htmlescape($id) . '">
-                ' . $field . '
-                <legend>' . \htmlescape($label) . '</legend>
-                <button class="btn btn-sm btn-icon btn-ghost-secondary delete-filter">
-                    <i class="ti ti-trash"></i>
-                </button>
-                ' . $js . '
-            </fieldset>
-        ';
-
-        return $html;
-    }
-
-    protected static function displayList(
-        string $label,
-        string $value,
-        string $fieldname,
-        string $itemtype,
-        array $add_params = []
-    ): string {
-        $value     = !empty($value) ? $value : null;
-        $rand      = mt_rand();
-        $field     = $itemtype::dropdown([
-            'name'                => $fieldname,
-            'value'               => $value,
-            'rand'                => $rand,
-            'display'             => false,
-            'display_emptychoice' => false,
-            'emptylabel'          => '',
-            'placeholder'         => $label,
-            'on_change'           => "on_change_{$rand}()",
-            'allowClear'          => true,
-            'width'               => '',
-        ] + $add_params);
-
-        $js = "
-            var on_change_{$rand} = function() {
-                var dom_elem    = $('#dropdown_" . \jsescape($fieldname . $rand) . "');
-                var selected    = dom_elem.find(':selected').val();
-
-                GLPI.Dashboard.getActiveDashboard().saveFilter('" . \jsescape($fieldname) . "', selected);
-
-                $(dom_elem).closest('fieldset').toggleClass('filled', selected !== null);
-            };
-        ";
-        $field .= Html::scriptBlock($js);
-
-        return self::field($fieldname, $field, $label, $value !== null);
     }
 
     protected static function getDatesCriteria(string $field, array $dates): array

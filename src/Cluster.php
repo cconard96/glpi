@@ -67,35 +67,10 @@ class Cluster extends CommonDBTM implements AssignableItemInterface, StateInterf
         return _n('Cluster', 'Clusters', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
     }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Item_Cluster::class, $ong, $options)
-         ->addStandardTab(NetworkPort::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(ManualLink::class, $ong, $options)
-         ->addStandardTab(Appliance_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -233,11 +208,5 @@ class Cluster extends CommonDBTM implements AssignableItemInterface, StateInterf
         }
 
         return null;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-hierarchy-2";
     }
 }

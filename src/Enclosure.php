@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 use Glpi\Features\Clonable;
@@ -75,55 +74,10 @@ class Enclosure extends CommonDBTM implements AssignableItemInterface, DCBreadcr
         return _n('Enclosure', 'Enclosures', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
     }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Item_Enclosure::class, $ong, $options)
-         ->addStandardTab(Item_Devices::class, $ong, $options)
-         ->addStandardTab(NetworkPort::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
-
-    /**
-     * Print the enclosure form
-     *
-     * @param $ID integer ID of the item
-     * @param $options array
-     *     - target filename : where to go when done.
-     *     - withtemplate boolean : template or basic item
-     *
-     * @return bool item found
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/enclosure.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -339,11 +293,5 @@ class Enclosure extends CommonDBTM implements AssignableItemInterface, DCBreadcr
         unset($input['id']);
         unset($input['withtemplate']);
         return $input;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-columns";
     }
 }

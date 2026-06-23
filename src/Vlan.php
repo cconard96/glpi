@@ -79,7 +79,6 @@ class Vlan extends CommonDropdown
         return $tab;
     }
 
-
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -88,100 +87,5 @@ class Vlan extends CommonDropdown
                 NetworkPort_Vlan::class,
             ]
         );
-    }
-
-    /**
-     * @param class-string<CommonDBTM> $itemtype
-     * @param HTMLTableBase $base
-     * @param HTMLTableSuperHeader|null $super
-     * @param HTMLTableHeader|null $father
-     * @param array $options
-     * @return void
-     * @since 0.84
-     */
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        if ($itemtype == 'NetworkPort_Vlan') {
-            $base->addHeader($column_name, htmlescape(self::getTypeName()), $super, $father);
-        }
-    }
-
-    /**
-     * @param HTMLTableRow|null $row object (default NULL)
-     * @param CommonDBTM|null $item object (default NULL)
-     * @param HTMLTableCell|null $father object (default NULL)
-     * @param array $options
-     * @return void
-     * @since 0.84
-     */
-    public static function getHTMLTableCellsForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        if ($item === null) {
-            if ($father === null) {
-                return;
-            }
-            $item = $father->getItem();
-            if ($item === false) {
-                return;
-            }
-        }
-
-        if ($item::class === NetworkPort_Vlan::class) {
-            if (isset($item->fields["tagged"]) && ($item->fields["tagged"] === 1)) {
-                $tagged_msg = __('Tagged');
-            } else {
-                $tagged_msg = __('Untagged');
-            }
-
-            $vlan = new self();
-            if ($vlan->getFromDB($options['items_id'])) {
-                $content = htmlescape(sprintf(__('%1$s - %2$s'), $vlan->getName(), $tagged_msg));
-                $content .= Html::showToolTip(
-                    htmlescape(sprintf(
-                        __('%1$s: %2$s'),
-                        __('ID TAG'),
-                        $vlan->fields['tag']
-                    )) . "<br>"
-                    . htmlescape(sprintf(
-                        __('%1$s: %2$s'),
-                        _n('Comment', 'Comments', Session::getPluralNumber()),
-                        $vlan->fields['comment']
-                    )),
-                    ['display' => false]
-                );
-
-                $this_cell = $row->addCell($row->getHeaderByName($column_name), $content, $father);
-            }
-        }
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addStandardTab(NetworkPort_Vlan::class, $ong, $options);
-
-        return $ong;
     }
 }

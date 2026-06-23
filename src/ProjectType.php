@@ -44,9 +44,4 @@ class ProjectType extends CommonDropdown
     {
         return _n('Project type', 'Project types', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-category";
-    }
 }

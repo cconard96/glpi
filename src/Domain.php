@@ -85,11 +85,6 @@ class Domain extends CommonDBTM implements AssignableItemInterface
         return _n('Domain', 'Domains', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public function cleanDBonPurge()
     {
         global $DB;
@@ -324,27 +319,6 @@ class Domain extends CommonDBTM implements AssignableItemInterface
         return $tab;
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(DomainRecord::class, $ong, $options);
-        $this->addStandardTab(Domain_Item::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Item_Ticket::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        $this->addStandardTab(Change_Item::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(Certificate_Item::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     /**
      * @param array $input
      *
@@ -461,53 +435,6 @@ class Domain extends CommonDBTM implements AssignableItemInterface
             }
         }
         return $actions;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'add_item':
-                Dropdown::show(
-                    'DomainRelation',
-                    [
-                        'name'   => "domainrelations_id",
-                        'value'  => DomainRelation::BELONGS,
-                        'display_emptychoice'   => false,
-                    ]
-                );
-                self::dropdownDomains([]);
-                echo "&nbsp;"
-                 . Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-            case 'remove_domain':
-                self::dropdownDomains([]);
-                echo "&nbsp;"
-                 . Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-            case "install":
-                Dropdown::showSelectItemFromItemtypes([
-                    'items_id_name' => 'item_item',
-                    'itemtype_name' => 'typeitem',
-                    'itemtypes'     => self::getTypes(true),
-                    'checkright'    => true,
-                ]);
-                echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-            case "uninstall":
-                Dropdown::showSelectItemFromItemtypes([
-                    'items_id_name' => 'item_item',
-                    'itemtype_name' => 'typeitem',
-                    'itemtypes'     => self::getTypes(true),
-                    'checkright'    => true,
-                ]);
-                echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-            case "duplicate":
-                Dropdown::show('Entity');
-                break;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item, array $ids)

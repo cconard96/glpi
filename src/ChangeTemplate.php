@@ -56,11 +56,6 @@ class ChangeTemplate extends ITILTemplate
         return _n('Change template', 'Change templates', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['helpdesk', Change::class, self::class];
-    }
-
     public function getCloneRelations(): array
     {
         return [

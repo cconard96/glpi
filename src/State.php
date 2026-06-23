@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\AssetDefinitionManager;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QuerySubQuery;
@@ -54,11 +53,6 @@ class State extends CommonTreeDropdown
     public static function getTypeName($nb = 0)
     {
         return _n('Status of items', 'Statuses of items', $nb);
-    }
-
-    public static function getFieldLabel()
-    {
-        return __('Status');
     }
 
     public function getAdditionalFields()
@@ -86,7 +80,6 @@ class State extends CommonTreeDropdown
 
         return $fields;
     }
-
 
     /**
      * States for behaviour config
@@ -137,140 +130,6 @@ class State extends CommonTreeDropdown
     {
         $elements = self::getBehaviours($lib, $is_inheritable);
         Dropdown::showFromArray($name, $elements, ['value' => $value]);
-    }
-
-    /**
-     * @return void
-     */
-    public static function showSummary()
-    {
-        global $CFG_GLPI, $DB;
-
-        $state_type = $CFG_GLPI["state_types"];
-        $states     = [];
-
-        foreach ($state_type as $key => $itemtype) {
-            if ($item = getItemForItemtype($itemtype)) {
-                if (!$item::canView()) {
-                    unset($state_type[$key]);
-                } else {
-                    $table = getTableForItemType($itemtype);
-                    $WHERE = [];
-                    if ($item->maybeDeleted()) {
-                        $WHERE["$table.is_deleted"] = 0;
-                    }
-                    if ($item->maybeTemplate()) {
-                        $WHERE["$table.is_template"] = 0;
-                    }
-                    $WHERE += getEntitiesRestrictCriteria($table);
-                    $iterator = $DB->request([
-                        'SELECT' => [
-                            'states_id',
-                            'COUNT'  => '* AS cpt',
-                        ],
-                        'FROM'   => $table,
-                        'WHERE'  => $WHERE,
-                        'GROUP'  => 'states_id',
-                    ]);
-
-                    foreach ($iterator as $data) {
-                        $states[$data["states_id"]][$itemtype] = $data["cpt"];
-                    }
-                }
-            }
-        }
-
-        $columns = [
-            'state' => __('Status'),
-        ];
-        $formatters = [
-            'state' => 'raw_html',
-        ];
-        $entries = [];
-        $total = [];
-
-        foreach ($state_type as $key => $itemtype) {
-            if ($item = getItemForItemtype($itemtype)) {
-                $columns[$itemtype] = $item::getTypeName(Session::getPluralNumber());
-                $formatters[$itemtype] = 'integer';
-                $total[$itemtype] = 0;
-            } else {
-                unset($state_type[$key]);
-            }
-        }
-
-        $iterator = $DB->request([
-            'FROM'   => 'glpi_states',
-            'WHERE'  => getEntitiesRestrictCriteria('glpi_states', '', '', true),
-            'ORDER'  => 'completename',
-        ]);
-
-        // No state
-        $tot = 0;
-        $no_state_entry = [
-            'state' => '---',
-        ];
-        foreach ($state_type as $itemtype) {
-            $count = $states[0][$itemtype] ?? 0;
-            $no_state_entry[$itemtype] = $count;
-            $total[$itemtype] += $count;
-            $tot              += $count;
-        }
-        $no_state_entry['total'] = $tot;
-        $entries[] = $no_state_entry;
-
-        foreach ($iterator as $data) {
-            $tot = 0;
-            $opt = [
-                'reset'    => 'reset',
-                'sort'     => 1,
-                'start'    => 0,
-                'criteria' => [
-                    '0' => [
-                        'value' => '$$$$' . $data['id'],
-                        'searchtype' => 'contains',
-                        'field' => 31,
-                    ],
-                ],
-            ];
-
-
-            $url = htmlescape(AllAssets::getSearchURL()) . '?' . Toolbox::append_params($opt, '&amp;');
-            $entry = [
-                'state' => '<a href="' . $url . '">' . htmlescape($data["completename"]) . '</a>',
-            ];
-            foreach ($state_type as $itemtype) {
-                $count = $states[$data["id"]][$itemtype] ?? 0;
-                $entry[$itemtype] = $count;
-                $total[$itemtype] += $count;
-                $tot              += $count;
-            }
-            $entry['total'] = $tot;
-            $entries[] = $entry;
-        }
-
-        $columns['total'] = __('Total');
-        $footer = [
-            'state' => __('Total'),
-        ];
-        foreach ($total as $itemtype => $value) {
-            $footer[$itemtype] = $value;
-        }
-        $footer['total'] = array_sum($total);
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => $columns,
-            'formatters' => $formatters,
-            'entries' => $entries,
-            'footers' => [$footer],
-            'footer_class' => 'fw-bold',
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => false,
-        ]);
     }
 
     public function getEmpty()
@@ -350,45 +209,6 @@ class State extends CommonTreeDropdown
         }
 
         return $actions;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        if ($ma->getAction() !== 'update_visibility') {
-            return parent::showMassiveActionsSubForm($ma);
-        }
-
-        // Itemtype choice
-        global $CFG_GLPI;
-        $itemtype_options = [];
-
-        // Asset definition (native + custom)
-        if (!empty($CFG_GLPI['state_types']) && is_array($CFG_GLPI['state_types'])) {
-            foreach ($CFG_GLPI['state_types'] as $itemtype) {
-                // Ensure the itemtype/class exists and provides a type name
-                if (is_a($itemtype, CommonDBTM::class, true)) {
-                    /** @var class-string<CommonDBTM> $itemtype */
-                    $itemtype_options[$itemtype] = $itemtype::getTypeName(Session::getPluralNumber());
-                }
-            }
-        }
-
-        echo __s('Asset type') . '<br>';
-        Dropdown::showFromArray('visible_itemtype', $itemtype_options, [
-            'display_emptychoice' => false,
-            'multiple' => true,
-        ]);
-        echo '<br><br>';
-
-        // Visibility choice
-        echo __s('Visible') . '<br>';
-        Dropdown::showYesNo('is_visible', 1);
-        echo '<br><br>';
-
-        // submit button
-        echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction', 'class' => 'btn btn-primary']);
-
-        return true;
     }
 
     public static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item, array $ids)
@@ -1033,10 +853,5 @@ class State extends CommonTreeDropdown
         foreach ($visibilities as $visibility) {
             $this->fields['is_visible_' . strtolower($visibility['visible_itemtype'])] = $visibility['is_visible'];
         }
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-label";
     }
 }

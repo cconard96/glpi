@@ -108,9 +108,4 @@ class DeviceSimcard extends CommonDevice
             'devicesimcardtypes_id'   => 'equal',
         ];
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-device-sim";
-    }
 }

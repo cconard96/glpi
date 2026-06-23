@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Features\AssetImage;
 use Glpi\Features\AssignableItem;
@@ -78,16 +77,6 @@ class CartridgeItem extends CommonDBTM implements AssignableItemInterface
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
-    public static function getMenuName()
-    {
-        return Cartridge::getTypeName(Session::getPluralNumber());
     }
 
     public function getPostAdditionalInfosForName()
@@ -139,22 +128,6 @@ class CartridgeItem extends CommonDBTM implements AssignableItemInterface
                 10
             );
         }
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(Cartridge::class, $ong, $options);
-        $this->addStandardTab(CartridgeItem_PrinterModel::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     ///// SPECIFIC FUNCTIONS
@@ -602,20 +575,5 @@ class CartridgeItem extends CommonDBTM implements AssignableItemInterface
     public function getEvents()
     {
         return ['alert' => __('Send alarms on cartridges')];
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/cartridgeitem.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
-    public static function getIcon()
-    {
-        return Cartridge::getIcon();
     }
 }

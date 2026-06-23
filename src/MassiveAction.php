@@ -37,7 +37,6 @@ use Glpi\Asset\CustomFieldDefinition;
 use Glpi\Event;
 use Glpi\Features\Clonable;
 use Glpi\Plugin\Hooks;
-use Glpi\Search\SearchOption;
 use Symfony\Component\HttpFoundation\Request;
 
 use function Safe\preg_match;
@@ -543,39 +542,10 @@ class MassiveAction
      **/
     public function getItemtype($display_selector)
     {
-
         $keys = array_keys($this->items);
         if (count($keys) == 1) {
             return $keys[0];
         }
-
-        if (
-            $display_selector
-            && (count($keys) > 1)
-        ) {
-            $itemtypes = [-1 => Dropdown::EMPTY_VALUE];
-            foreach ($keys as $itemtype) {
-                /** @var class-string $itemtype */
-                $itemtypes[$itemtype] = $itemtype::getTypeName(Session::getPluralNumber());
-            }
-            echo __s('Select the type of the item on which applying this action') . "<br>";
-
-            $rand = Dropdown::showFromArray('specialize_itemtype', $itemtypes);
-            echo "<br><br>";
-
-            $params                        = $this->POST;
-            $params['specialize_itemtype'] = '__VALUE__';
-            Ajax::updateItemOnSelectEvent(
-                "dropdown_specialize_itemtype$rand",
-                "show_itemtype$rand",
-                $_SERVER['REQUEST_URI'],
-                $params
-            );
-
-            echo "<span id='show_itemtype$rand'>&nbsp;</span>";
-            return true;
-        }
-
         return false;
     }
 
@@ -600,7 +570,6 @@ class MassiveAction
                     . _sx('button', 'Add to transfer list');
         }
     }
-
 
     /**
      * Get the standard massive actions
@@ -808,511 +777,6 @@ class MassiveAction
         return $actions;
     }
 
-
-    /**
-     * Main entry of the modal window for massive actions
-     *
-     * @return void
-     **/
-    public function showSubForm()
-    {
-        $processor = $this->processor;
-
-        if (!$processor::showMassiveActionsSubForm($this)) {
-            $this->showDefaultSubForm();
-        }
-
-        $this->addHiddenFields();
-    }
-
-
-    /**
-     * Class-specific method used to show the fields to specify the massive action
-     *
-     * @return void
-     **/
-    public function showDefaultSubForm()
-    {
-        echo Html::submit(_x('button', 'Post'), [
-            'name'  => 'massiveaction',
-            'icon'  => 'ti ti-device-floppy',
-            'class' => 'btn btn-sm btn-primary',
-        ]);
-    }
-
-
-    /**
-     * @param MassiveAction $ma
-     *
-     * @return bool
-     */
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        global $DB;
-
-        switch ($ma->getAction()) {
-            case 'associate_group':
-            case 'dissociate_group':
-                $values = [
-                    'groups_id'      => Group::getTypeName(1),
-                    'groups_id_tech' => __('Group in charge'),
-                ];
-                Dropdown::showFromArray('fieldname', $values);
-
-                echo '<br>';
-                Group::dropdown([
-                    'name'     => 'selected_group[]',
-                    'multiple' => true,
-                ]);
-                echo '<br>';
-                echo Html::submit(_x('button', 'Post'), [
-                    'name'  => 'massiveaction',
-                ]);
-                return true;
-
-            case 'update':
-                if (!isset($ma->POST['id_field'])) {
-                    $itemtypes        = array_keys($ma->items);
-                    $options_per_type = [];
-                    $options_count   = [];
-                    foreach ($itemtypes as $itemtype) {
-                        /** @var class-string $itemtype */
-                        $options_per_type[$itemtype] = [];
-                        $group                       = '';
-                        $show_all                    = true;
-                        $show_infocoms               = true;
-                        $itemtable                   = getTableForItemType($itemtype);
-
-                        if (
-                            Infocom::canApplyOn($itemtype)
-                            && (!$itemtype::canUpdate()
-                            || !Infocom::canUpdate())
-                        ) {
-                            $show_all      = false;
-                            $show_infocoms = Infocom::canUpdate();
-                        }
-                        foreach (Search::getCleanedOptions($itemtype, UPDATE) as $index => $option) {
-                            if (!is_array($option) || count($option) == 1) {
-                                $group                               = !is_array($option) ? $option : $option['name'];
-                                $options_per_type[$itemtype][$group] = [];
-                            } else {
-                                if (
-                                    ($option['field'] != 'id')
-                                    && ($index != 1)
-                                    // Permit entities_id is explicitly activate
-                                    && (($option["linkfield"] != 'entities_id')
-                                    || (isset($option['massiveaction']) && $option['massiveaction']))
-                                ) {
-                                    if (!isset($option['massiveaction']) || $option['massiveaction']) {
-                                        if (
-                                            ($show_all)
-                                            || (($show_infocoms
-                                            && Search::isInfocomOption($itemtype, $index))
-                                            || (!$show_infocoms
-                                            && !Search::isInfocomOption($itemtype, $index)))
-                                        ) {
-                                            $options_per_type[$itemtype][$group][$itemtype . ':' . $index]
-                                            = $option['name'];
-                                            if ($itemtable == $option['table']) {
-                                                $field_key = 'MAIN:' . $option['field'] . ':' . $index;
-                                            } else {
-                                                $field_key = $option['table'] . ':' . $option['field'] . ':' . $index;
-                                            }
-                                            if (!isset($options_count[$field_key])) {
-                                                $options_count[$field_key] = [];
-                                            }
-                                            $options_count[$field_key][] = $itemtype . ':' . $index . ':' . $group;
-                                            if (isset($option['MA_common_field'])) {
-                                                if (!isset($options_count[$option['MA_common_field']])) {
-                                                    $options_count[$option['MA_common_field']] = [];
-                                                }
-                                                $options_count[$option['MA_common_field']][]
-                                                 = $itemtype . ':' . $index . ':' . $group;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    $options = [];
-                    $itemtype_choices = [];
-                    if (count($itemtypes) > 1) {
-                        $common_options = [];
-                        foreach ($options_count as $field => $users) {
-                            if (count($users) > 1) {
-                                $labels = [];
-                                foreach ($users as $user) {
-                                    $user      = explode(':', $user);
-                                    $itemtype  = $user[0];
-                                    $index     = $itemtype . ':' . $user[1];
-                                    $group     = implode(':', array_slice($user, 2));
-                                    if (isset($options_per_type[$itemtype][$group][$index])) {
-                                        if (
-                                            !in_array(
-                                                $options_per_type[$itemtype][$group][$index],
-                                                $labels
-                                            )
-                                        ) {
-                                            $labels[] = $options_per_type[$itemtype][$group][$index];
-                                        }
-                                    }
-                                    $common_options[$field][] = $index;
-                                }
-                                $options[$group][$field] = implode('/', $labels);
-                            }
-                        }
-                        $choose_itemtype  = true;
-                        $itemtype_choices = [-1 => Dropdown::EMPTY_VALUE];
-                        foreach ($itemtypes as $itemtype) {
-                            /** @var class-string $itemtype */
-                            $itemtype_choices[$itemtype] = $itemtype::getTypeName(Session::getPluralNumber());
-                        }
-                    } else {
-                        $options        = $options_per_type[$itemtypes[0]];
-                        $common_options  = false;
-                        $choose_itemtype = false;
-                    }
-                    $choose_field = count($options) >= 1;
-
-                    // Beware: "class='tab_cadre_fixe'" induce side effects ...
-                    echo "<table width='100%'><tr>";
-
-                    $colspan = 0;
-                    if ($choose_field) {
-                        $colspan++;
-                        echo "<td>";
-                        if ($common_options) {
-                            echo __s('Select the common field that you want to update');
-                        } else {
-                            echo __s('Select the field that you want to update');
-                        }
-                        echo "</td>";
-                        if ($choose_itemtype) {
-                            $colspan++;
-                            echo "<td rowspan='2'>" . __s('or') . "</td>";
-                        }
-                    }
-
-                    if ($choose_itemtype) {
-                        $colspan++;
-                        echo "<td>" . __s('Select the type of the item on which applying this action') . "</td>";
-                    }
-
-                    echo "</tr><tr>";
-                    // Remove empty option groups
-                    $options = array_filter($options, static fn($v) => !is_array($v) || count($v) > 0); // @phpstan-ignore function.alreadyNarrowedType (phpstan thinks there are no empty options groups but it is probably safer to keep this check in case the code evolve and it become possible)
-                    if ($choose_field) {
-                        echo "<td>";
-                        $field_rand = Dropdown::showFromArray(
-                            'id_field',
-                            $options,
-                            ['display_emptychoice' => true]
-                        );
-                        echo "</td>";
-                    }
-                    if ($choose_itemtype) {
-                        echo "<td>";
-                        $itemtype_rand = Dropdown::showFromArray(
-                            'specialize_itemtype',
-                            $itemtype_choices
-                        );
-                        echo "</td>";
-                    }
-
-                    $next_step_rand = mt_rand();
-
-                    echo "</tr></table>";
-                    echo "<span id='update_next_step$next_step_rand'>&nbsp;</span>";
-
-                    if ($choose_field) {
-                        $params                   = $ma->POST;
-                        $params['id_field']       = '__VALUE__';
-                        $params['common_options'] = $common_options;
-                        Ajax::updateItemOnSelectEvent(
-                            "dropdown_id_field$field_rand",
-                            "update_next_step$next_step_rand",
-                            $_SERVER['REQUEST_URI'],
-                            $params
-                        );
-                    }
-
-                    if ($choose_itemtype) {
-                        $params                        = $ma->POST;
-                        $params['specialize_itemtype'] = '__VALUE__';
-                        $params['common_options']      = $common_options;
-                        Ajax::updateItemOnSelectEvent(
-                            "dropdown_specialize_itemtype$itemtype_rand",
-                            "update_next_step$next_step_rand",
-                            $_SERVER['REQUEST_URI'],
-                            $params
-                        );
-                    }
-                    // Only display the form for this stage
-                    return true;
-                }
-
-                if (!isset($ma->POST['common_options'])) {
-                    throw new RuntimeException('Implementation error!');
-                }
-
-                if ($ma->POST['common_options'] == 'false') {
-                    $search_options = [$ma->POST['id_field']];
-                } elseif (isset($ma->POST['common_options'][$ma->POST['id_field']])) {
-                    $search_options = $ma->POST['common_options'][$ma->POST['id_field']];
-                } else {
-                    $search_options = [];
-                }
-
-                // TODO: ensure that all items are equivalent ...
-                $item   = null;
-                $search = null;
-                foreach ($search_options as $search_option) {
-                    $search_option = explode(':', $search_option);
-                    $so_itemtype   = $search_option[0];
-                    $so_index      = $search_option[1];
-
-                    if (!$so_item = getItemForItemtype($so_itemtype)) {
-                        continue;
-                    }
-
-                    if (Infocom::canApplyOn($so_itemtype)) {
-                        Session::checkSeveralRightsOr([$so_itemtype  => UPDATE,
-                            "infocom"  => UPDATE,
-                        ]);
-                    } else {
-                        $so_item->checkGlobal(UPDATE);
-                    }
-
-                    $itemtype_search_options = SearchOption::getOptionsForItemtype($so_itemtype);
-                    if (!isset($itemtype_search_options[$so_index])) {
-                        throw new RuntimeException();
-                    }
-
-                    $item   = $so_item;
-                    $search = $itemtype_search_options[$so_index];
-                    break; // No need to process all items a corresponding item/searchoption has been found
-                }
-
-                if ($item === null) {
-                    throw new RuntimeException();
-                }
-
-                $plugdisplay = false;
-                if (
-                    ($plug = isPluginItemType($item->getType()))
-                    // Specific for plugin which add link to core object
-                    || ($plug = isPluginItemType(getItemTypeForTable($search['table'])))
-                ) {
-                    $plugdisplay = Plugin::doOneHook(
-                        $plug['plugin'],
-                        Hooks::AUTO_MASSIVE_ACTIONS_FIELDS_DISPLAY,
-                        ['itemtype' => $item->getType(),
-                            'options'  => $search,
-                        ]
-                    );
-                }
-
-                if (
-                    empty($search["linkfield"])
-                    || ($search['table'] == 'glpi_infocoms')
-                ) {
-                    $fieldname = $search["field"];
-                } else {
-                    $fieldname = $search["linkfield"];
-                }
-
-                if (!$plugdisplay) {
-                    $options = [];
-                    $values  = [];
-                    // For ticket template or aditional options of massive actions
-                    if (isset($ma->POST['options'])) {
-                        $options = $ma->POST['options'];
-                    }
-                    switch ($item->getType()) {
-                        case Change::class:
-                            $search['condition'][] = 'is_change';
-                            break;
-                        case Problem::class:
-                            $search['condition'][] = 'is_problem';
-                            break;
-                        case Ticket::class:
-                            if ($DB->fieldExists($search['table'], 'is_incident') || $DB->fieldExists($search['table'], 'is_request')) {
-                                $search['condition'][] = [
-                                    'OR' => [
-                                        'is_incident',
-                                        'is_request',
-                                    ],
-                                ];
-                            }
-                            break;
-                    }
-                    if (isset($ma->POST['additionalvalues'])) {
-                        $values = $ma->POST['additionalvalues'];
-                    }
-                    if ($item instanceof User && $fieldname == 'entities_id') {
-                        $options['toadd'] = [-1 => __('Full structure')];
-                    }
-                    $values[$search["field"]] = '';
-                    echo $item->getValueToSelect($search, $fieldname, $values, $options);
-                }
-
-                $items_index = [];
-                foreach ($search_options as $search_option) {
-                    $search_option = explode(':', $search_option);
-                    $items_index[$search_option[0]] = $search_option[1];
-                }
-                echo Html::hidden('search_options', ['value' => $items_index]);
-                echo Html::hidden('field', ['value' => $fieldname]);
-                echo "<br>";
-
-                $submit_options = [
-                    'name'  => 'massiveaction',
-                    'class' => 'btn btn-sm btn-primary',
-                ];
-                if (isset($ma->POST['submitname']) && $ma->POST['submitname']) {
-                    $submitname = $ma->POST['submitname'];
-                } else {
-                    $submitname = _x('button', 'Post');
-                    $submit_options['icon'] = 'ti ti-device-floppy';
-                }
-                echo Html::submit($submitname, $submit_options);
-
-                return true;
-
-            case 'clone':
-                $rand = mt_rand();
-
-                echo "<table width='100%'><tr>";
-                echo "<td>";
-                echo __s('How many copies do you want to create?');
-                echo "</td><tr>";
-                echo "<td>" . Html::input("nb_copy", [
-                    'id'     => "nb_copy$rand",
-                    'value'  => 1,
-                    'type'   => 'number',
-                    'min'    => 1,
-                ]);
-                echo "</td>";
-                echo "</tr></table>";
-
-                echo "<br>";
-
-                $submit_options = [
-                    'name'  => 'massiveaction',
-                    'class' => 'btn btn-sm btn-primary',
-                ];
-                if (isset($ma->POST['submitname']) && $ma->POST['submitname']) {
-                    $submitname = $ma->POST['submitname'];
-                } else {
-                    $submitname = _x('button', 'Post');
-                    $submit_options['icon'] = 'ti ti-device-floppy';
-                }
-                echo Html::submit($submitname, $submit_options);
-
-                return true;
-            case 'create_template':
-                $rand = mt_rand();
-
-                echo "<table class='w-100'><tr>";
-                echo "<td>";
-                echo __s('Name');
-                echo "</td><tr>";
-                echo "<td>" . Html::input("template_name", ['id' => "template_name$rand"]);
-                echo "</td>";
-                echo "</tr></table>";
-
-                echo "<br>";
-
-                $submit_options = [
-                    'name'  => 'massiveaction',
-                    'class' => 'btn btn-sm btn-primary',
-                ];
-                if (isset($ma->POST['submitname']) && $ma->POST['submitname']) {
-                    $submitname = $ma->POST['submitname'];
-                } else {
-                    $submitname = _x('button', 'Post');
-                    $submit_options['icon'] = 'ti ti-device-floppy';
-                }
-                echo Html::submit($submitname, $submit_options);
-
-                return true;
-
-            case 'add_transfer_list':
-                echo _sn(
-                    "Are you sure you want to add this item to transfer list?",
-                    "Are you sure you want to add these items to transfer list?",
-                    count($ma->items, COUNT_RECURSIVE) - count($ma->items)
-                );
-                echo "<br><br>";
-                echo Html::submit(_x('button', 'Add'), [
-                    'name'  => 'massiveaction',
-                    'icon'  => 'ti ti-plus',
-                    'class' => 'btn btn-sm btn-primary',
-                ]);
-
-                return true;
-
-            case 'amend_comment':
-                echo __s("Amendment to insert");
-                echo "<br><br>";
-                Html::textarea([
-                    'name' => 'amendment',
-                ]);
-                echo("<br><br>");
-                echo Html::submit(_x('button', 'Update'), [
-                    'name'  => 'massiveaction',
-                    'icon'  => 'ti ti-device-floppy',
-                    'class' => 'btn btn-sm btn-primary',
-                ]);
-
-                return true;
-
-            case 'add_note':
-                echo __s("New Note");
-                echo "<br><br>";
-                Html::textarea([
-                    'name' => 'add_note',
-                ]);
-                echo("<br><br>");
-                echo Html::submit(_x('button', 'Add'), [
-                    'name'  => 'massiveaction',
-                    'icon'  => 'ti ti-plus',
-                    'class' => 'btn btn-sm btn-primary',
-                ]);
-
-                return true;
-        }
-        return false;
-    }
-
-
-    /**
-     * Display the progress bar.
-     */
-    public function displayProgressBar(): void
-    {
-        echo Html::getProgressBar(
-            $this->nb_done / $this->nb_items * 100,
-            $this->action_name
-        );
-        if (
-            count($this->items) > 1
-            && $this->current_itemtype !== null
-            && array_key_exists($this->current_itemtype, $this->items)
-        ) {
-            $nb_done = array_key_exists($this->current_itemtype, $this->done)
-                ? count($this->done[$this->current_itemtype])
-                : 0;
-            echo Html::getProgressBar(
-                $nb_done / count($this->items[$this->current_itemtype]) * 100,
-                $this->current_itemtype::getTypeName(Session::getPluralNumber())
-            );
-        }
-    }
-
-
     /**
      * Process the massive actions for all passed items. This a switch between different methods:
      * new system, old one and plugins ...
@@ -1334,7 +798,6 @@ class MassiveAction
         return $this->results;
     }
 
-
     /**
      * Process the specific massive actions for severl itemtypes
      * @return void
@@ -1349,7 +812,6 @@ class MassiveAction
             }
         }
     }
-
 
     /**
      * @param MassiveAction $ma
@@ -1814,7 +1276,6 @@ class MassiveAction
         }
     }
 
-
     /**
      * Set the page to redirect for specific actions. By default, call previous page.
      * This should be call once for the given action.
@@ -1827,7 +1288,6 @@ class MassiveAction
     {
         $this->redirect = (string) $redirect;
     }
-
 
     /**
      * add a message to display when action is done.
@@ -1842,7 +1302,6 @@ class MassiveAction
     {
         $this->results['messages'][] = $message;
     }
-
 
     /**
      * Set an item as done. If the delay is too long, then reload the page to continue the action.

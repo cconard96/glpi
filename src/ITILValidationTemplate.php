@@ -130,13 +130,6 @@ class ITILValidationTemplate extends AbstractITILChildTemplate
         return CommonITILValidation::dropdownValidator($options);
     }
 
-    public function displaySpecificTypeField($id, $field = [], array $options = [])
-    {
-        if ($field['name'] == 'approver') {
-            echo self::displayValidatorField($id);
-        }
-    }
-
     public function rawSearchOptions()
     {
         $tab = parent::rawSearchOptions();
@@ -151,11 +144,6 @@ class ITILValidationTemplate extends AbstractITILChildTemplate
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-stack-2-filled";
     }
 
     private function postTargets(): void

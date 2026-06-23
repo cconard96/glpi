@@ -34,11 +34,9 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Error\ErrorHandler;
 use Glpi\Inventory\Conf;
-use Glpi\Inventory\Inventory;
 use Glpi\Plugin\Hooks;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Response;
@@ -78,11 +76,6 @@ class Agent extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return _n('Agent', 'Agents', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['admin', Inventory::class, self::class];
     }
 
     public static function getLogDefaultServiceName(): string
@@ -347,49 +340,6 @@ class Agent extends CommonDBTM
         ] + $baseopts;
 
         return $tab;
-    }
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(RuleMatchedLog::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    /**
-     * Display form for agent configuration
-     *
-     * @param int $id      ID of the agent
-     * @param array<string, mixed> $options Options
-     *
-     * @return bool
-     */
-    public function showForm($id, array $options = [])
-    {
-        global $CFG_GLPI;
-
-        if (!empty($id)) {
-            $this->getFromDB($id);
-        } else {
-            $this->getEmpty();
-        }
-        $this->initForm($id, $options);
-
-        // avoid generic form to display generic version field as we have an exploded view
-        $versions = $this->fields['version'] ?? '';
-        unset($this->fields['version']);
-
-        TemplateRenderer::getInstance()->display('pages/admin/inventory/agent.html.twig', [
-            'item'           => $this,
-            'params'         => $options,
-            'itemtypes'      => array_combine($CFG_GLPI['inventory_types'], $CFG_GLPI['inventory_types']),
-            'versions_field' => $versions,
-        ]);
-        return true;
     }
 
     /**
@@ -805,11 +755,6 @@ class Agent extends CommonDBTM
         }
 
         return $data;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-robot";
     }
 
     /**

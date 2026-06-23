@@ -33,13 +33,8 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryFunction;
 use Glpi\DBAL\QuerySubQuery;
-use Glpi\RichText\RichText;
-use Glpi\RichText\UserMention;
-
-use function Safe\json_encode;
 
 /**
  * CommonITILValidation Class
@@ -63,11 +58,6 @@ abstract class CommonITILValidation extends CommonDBChild
     public const WAITING   = 2;
     public const ACCEPTED  = 3;
     public const REFUSED   = 4;
-
-    public static function getIcon()
-    {
-        return 'ti ti-thumb-up';
-    }
 
     /**
      * @return class-string<CommonITILObject>
@@ -116,7 +106,6 @@ abstract class CommonITILValidation extends CommonDBChild
         return [CREATE];
     }
 
-
     /**
      * @return int[]
      */
@@ -124,7 +113,6 @@ abstract class CommonITILValidation extends CommonDBChild
     {
         return [PURGE];
     }
-
 
     /**
      * @return int[]
@@ -277,51 +265,6 @@ abstract class CommonITILValidation extends CommonDBChild
         ]);
         return count($iterator) > 0;
     }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        /** @var CommonDBTM $item */
-        $hidetab = false;
-        // Hide if no rights on validations
-        if (!static::canView()) {
-            $hidetab = true;
-        }
-        // No right to create and no validation for current object
-        if (
-            !$hidetab
-            && !Session::haveRightsOr(static::$rightname, static::getCreateRights())
-            && !static::canValidate($item->getID())
-        ) {
-            $hidetab = true;
-        }
-
-        if (!$hidetab) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $restrict = [static::$items_id => $item->getID()];
-                // No rights for create only count asign ones
-                if (!Session::haveRightsOr(static::$rightname, static::getCreateRights())) {
-                    $restrict[] = static::getTargetCriteriaForUser(Session::getLoginUserID());
-                }
-                $nb = countElementsInTable(static::getTable(), $restrict);
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonITILObject) {
-            return false;
-        }
-
-        $validation = new static();
-        $validation->showSummary($item);
-        return true;
-    }
-
 
     public function post_getEmpty()
     {
@@ -898,65 +841,6 @@ abstract class CommonITILValidation extends CommonDBChild
     }
 
     /**
-     * Form for Followup on Massive action
-     *
-     * @return void
-     **/
-    public static function showFormMassiveAction()
-    {
-
-        global $CFG_GLPI;
-
-        $types = [
-            'User'       => User::getTypeName(1),
-            'Group_User' => __('Group user(s)'),
-            'Group'      => Group::getTypeName(1),
-        ];
-
-        $rand = Dropdown::showFromArray(
-            "validatortype",
-            $types,
-            ['display_emptychoice' => true]
-        );
-
-        $paramsmassaction = [
-            'validation_class' => static::class,
-            'validatortype'    => '__VALUE__',
-            'entity'           => $_SESSION['glpiactive_entity'],
-            'right'            => static::$itemtype == Ticket::class ? ['validate_request', 'validate_incident'] : 'validate',
-        ];
-
-        Ajax::updateItemOnSelectEvent(
-            "dropdown_validatortype$rand",
-            "show_massiveaction_field",
-            $CFG_GLPI["root_doc"]
-                                       . "/ajax/dropdownMassiveActionAddValidator.php",
-            $paramsmassaction
-        );
-
-        echo "<br><span id='show_massiveaction_field'>&nbsp;</span>\n";
-    }
-
-
-    /**
-     * @since 0.85
-     *
-     * @see CommonDBTM::showMassiveActionsSubForm()
-     **/
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'submit_validation':
-                static::showFormMassiveAction();
-                return true;
-        }
-
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
-
-    /**
      * @since 0.85
      *
      * @see CommonDBTM::processMassiveActionsForOneItemtype()
@@ -1017,323 +901,6 @@ abstract class CommonITILValidation extends CommonDBChild
         }
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
-
-
-    /**
-     * Print validations summary (list of validations of the ITIL object)
-     */
-    private function showSummary(CommonITILObject $itil): void
-    {
-        global $CFG_GLPI, $DB;
-
-        if (
-            !Session::haveRightsOr(
-                static::$rightname,
-                array_merge(
-                    static::getCreateRights(),
-                    static::getValidateRights(),
-                    static::getPurgeRights()
-                )
-            )
-        ) {
-            return;
-        }
-
-        $rand = mt_rand();
-        $validation_steps_classname = static::getValidationStepClassName();
-
-        $values = [];
-        $validation_steps_iterator = $DB->request(
-            [
-                'FROM'  => $validation_steps_classname::getTable(),
-                'WHERE' => [
-                    'itemtype' => $itil::class,
-                    'items_id' => $itil->getID(),
-                ],
-            ]
-        );
-
-        foreach ($validation_steps_iterator as $validation_step_data) {
-            $validation_step_id = $validation_step_data['id'];
-
-            $validation_step = static::getValidationStepInstance();
-            $validation_step->getFromDB($validation_step_id);
-
-            $step_name          = Dropdown::getDropdownName(ValidationStep::getTable(), $validation_step_data['validationsteps_id']);
-            $step_status        = $validation_step->getStatus();
-            $step_achievements  = $validation_step->getAchievements();
-            $step_threshold     = $validation_step->fields['minimal_required_validation_percent'];
-            $edit_dialog_params = [
-                "url"    => $CFG_GLPI['root_doc'] . '/ajax/viewsubitem.php',
-                "params" => [
-                    'type'                      => $validation_steps_classname,
-                    'parenttype'                => $itil::class,
-                    $itil::getForeignKeyField() => $itil->getID(),
-                    'id'                        => $validation_step_id,
-                ],
-            ];
-
-            $step_row_html = TemplateRenderer::getInstance()->renderFromStringTemplate(
-                <<<TWIG
-                    {% macro stacked_progressbar(achieved, bg_color_class, stripped = false) %}
-                        <div class="progress" style="width: {{ achieved }}%">
-                            <div
-                                    class="progress-bar {% if stripped %}progress-bar-striped progress-bar-animated{% endif %} {{ bg_color_class }}"
-                                    role="progressbar"
-                                    aria-valuenow="{{ achieved }}"
-                                    aria-valuemin="0"
-                                    aria-valuemax="100"
-                                    aria-label="{{ achieved|formatted_number }}%"
-                            >
-                                <span class="visually-hidden">{{ achieved|formatted_number }}%</span>
-                            </div>
-                        </div>
-                    {% endmacro %}
-                    <div class="d-flex align-items-center gap-2 mx-auto" style="max-width: 650px;">
-                        <div class="flex-shrink-0"><strong>{{ step_name }}</strong></div>
-                        <div class="flex-shrink-0">
-                            {% if step_status == constant('CommonITILValidation::ACCEPTED') %}
-                                <span class="text-green" data-bs-toogle="tooltip" title="{{ accepted_label }}">
-                                    <i class="ti ti-check"></i>
-                                </span>
-                            {% elseif step_status == constant('CommonITILValidation::REFUSED') %}
-                                <span class="text-red" data-bs-toggle="tooltip" title="{{ refused_label }}">
-                                    <i class="ti ti-ban"></i>
-                                </span>
-                            {% elseif step_status == constant('CommonITILValidation::WAITING') %}
-                                <span class="text-yellow" data-bs-toggle="tooltip" title="{{ pending_label }}">
-                                    <i class="ti ti-clock"></i>
-                                </span>
-                            {% endif %}
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="progress-stacked position-relative" data-bs-toggle="tooltip"
-                                 title="{{ progress_label|format(accepted_percent|formatted_number, step_threshold|formatted_number) }}">
-                                {{ _self.stacked_progressbar(accepted_percent, 'bg-green') }}
-                                {{ _self.stacked_progressbar(waiting_percent, 'bg-yellow', true) }}
-                                {{ _self.stacked_progressbar(refused_percent, 'bg-red') }}
-                                {# threshold  #}
-                                {# sligly move the indicator on edge case (0|100) to be visible #}
-                                {% if step_threshold == 0 %}
-                                    <div class="threshold-indicator" style="position: absolute; width: 5px; height: 100%; background-color: black; left: 0; top: 0; z-index: 10;"></div>
-                                {% elseif step_threshold == 100 %}
-                                    <div class="threshold-indicator" style="position: absolute; width: 5px; height: 100%; background-color: black; right: 0; top: 0; z-index: 10;"></div>
-                                {% else %}
-                                    <div class="threshold-indicator" style="position: absolute; width: 3px; height: 100%; background-color: black; left: {{ step_threshold }}%; top: 0; z-index: 10;"></div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <span class="ti ti-edit"
-                               role="button"
-                               title="{{ edit_button_label }}"
-                               onclick="glpi_ajax_dialog({{ edit_dialog_params|json_encode }});"
-                            >
-                                <span class="sr-only">{{ edit_button_label }}</span>
-                            </span>
-                        </div>
-                    </div>
-                TWIG,
-                [
-                    'step_id'            => $validation_step_id,
-                    'step_name'          => $step_name,
-                    'step_status'        => $step_status,
-                    'accepted_percent'   => $step_achievements[self::ACCEPTED],
-                    'refused_percent'    => $step_achievements[self::REFUSED],
-                    'waiting_percent'    => $step_achievements[self::WAITING],
-                    'step_threshold'     => $step_threshold,
-                    'edit_dialog_params' => $edit_dialog_params,
-                    'edit_button_label'  => __('Edit approval step'),
-                    'progress_label'     => __('Progress: %1$s%% of %2$s%% required'),
-                    'accepted_label'     => __('Approval step accepted'),
-                    'refused_label'      => __('Approval step refused'),
-                    'pending_label'      => __('Approval step pending'),
-                ]
-            );
-
-            $values[] = [
-                'row_class'          => 'table-light',
-                'showmassiveactions' => false,
-                'edit_colspan'       => 10,
-                'edit'               => $step_row_html,
-            ];
-
-            $validation_iterator = $DB->request([
-                'FROM'  => $this->getTable(),
-                'WHERE' => ['itils_validationsteps_id' => $validation_step_id],
-                'ORDER' => ['submission_date DESC'],
-            ]);
-
-            foreach ($validation_iterator as $row) {
-                $canedit = $this->canEdit($row["id"]);
-                $status  = sprintf(
-                    '<div class="badge fw-normal fs-4 text-wrap" style="border-color: %s;border-width: 2px;">%s</div>',
-                    htmlescape(self::getStatusColor($row['status'])),
-                    htmlescape(self::getStatus($row['status']))
-                );
-
-                $comment_submission = RichText::getEnhancedHtml($this->fields['comment_submission'], ['images_gallery' => true]);
-                $type_name   = null;
-                $target_name = null;
-                if ($row["itemtype_target"] === User::class) {
-                    $type_name   = User::getTypeName();
-                    $target_name = getUserName($row["items_id_target"]);
-                } elseif (is_a($row["itemtype_target"], CommonDBTM::class, true)) {
-                    $target = new $row["itemtype_target"]();
-                    $type_name = $target::getTypeName();
-                    if ($target->getFromDB($row["items_id_target"])) {
-                        $target_name = $target->getName();
-                    }
-                }
-                $is_answered = $row['status'] !== self::WAITING && $row['users_id_validate'] > 0;
-                $comment_validation = RichText::getEnhancedHtml($this->fields['comment_validation'] ?? '', ['images_gallery' => true]);
-
-                $doc_item = new Document_Item();
-                $docs = $doc_item->find([
-                    "itemtype"          => static::class,
-                    "items_id"           => $this->getID(),
-                    "timeline_position"  => ['>', CommonITILObject::NO_TIMELINE],
-                ]);
-
-                $document = "";
-                foreach ($docs as $docs_values) {
-                    $doc = new Document();
-                    if ($doc->getFromDB($docs_values['documents_id'])) {
-                        $document .= sprintf(
-                            '<a href="%s">%s</a><br />',
-                            htmlescape($doc->getLinkURL()),
-                            htmlescape($doc->getName())
-                        );
-                    }
-                }
-
-                $script = "";
-                if ($canedit) {
-                    $edit_title = __s('Edit');
-                    $item_id = (int) $itil->fields['id'];
-                    $row_id = (int) $row["id"];
-                    $params_json = json_encode([
-                        'type'             => static::class,
-                        'parenttype'       => static::$itemtype,
-                        static::$items_id  => $this->fields[static::$items_id],
-                        'id'               => $row["id"],
-                    ]);
-
-                    $rand_id = htmlescape($item_id . $row_id . $rand);
-
-                    $script = <<<HTML
-                        <span class="ti ti-edit" style="cursor:pointer" title="{$edit_title}"
-                              onclick="viewEditValidation{$rand_id}();"
-                              id="viewvalidation{$rand_id}">
-                        </span>
-                        <script>
-                            function viewEditValidation{$rand_id}() {
-                                glpi_ajax_dialog({
-                                    url: CFG_GLPI.root_doc + "/ajax/viewsubitem.php",
-                                    modalclass: 'modal-xl',
-                                    params: $params_json,
-                                });
-                            };
-                        </script>
-HTML;
-                }
-
-                $values[] = [
-                    'edit'                  => $script,
-                    'status'                => $status,
-                    'type_name'             => $type_name,
-                    'target_name'           => $target_name,
-                    'is_answered'           => $is_answered,
-                    'comment_submission'    => $comment_submission,
-                    'comment_validation'    => $comment_validation,
-                    'document'              => $document,
-                    'submission_date'       => $row["submission_date"],
-                    'validation_date'       => $row["validation_date"],
-                    'user'                  => getUserName($row["users_id"]),
-                ];
-
-            }
-        }
-
-        $can_input = [static::$items_id => $itil->getID()];
-        TemplateRenderer::getInstance()->display('components/itilobject/validation.html.twig', [
-            'canadd' => $this->can(-1, CREATE, $can_input),
-            'item' => $itil,
-            'itemtype' => static::$itemtype,
-            'tID' => $itil->getID(),
-            'donestatus' => array_merge($itil->getSolvedStatusArray(), $itil->getClosedStatusArray()),
-            'validation' => $this,
-            'rand' => $rand,
-            'items_id' => static::$items_id,
-        ]);
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'edit' => '',
-                'status' => _x('item', 'State'),
-                'submission_date' => __('Request date'),
-                'user' => __('Approval requester'),
-                'comment_submission' => __('Request comments'),
-                'validation_date' => __('Approval date'),
-                'type_name' => __('Requested approver type'),
-                'target_name' => __('Requested approver'),
-                'comment_validation' => __('Approval Comment'),
-                'document' => __('Documents'),
-            ],
-            'formatters' => [
-                'edit' => 'raw_html',
-                'status' => 'raw_html',
-                'submission_date' => 'date',
-                'comment_submission' => 'raw_html',
-                'validation_date' => 'date',
-                'comment_validation' => 'raw_html',
-                'document' => 'raw_html',
-            ],
-            'entries' => $values,
-            'total_number' => count($values),
-            'showmassiveactions' => false,
-        ]);
-    }
-
-
-    /**
-     * Print the validation form
-     *
-     * @param $ID        integer  ID of the item
-     * @param $options   array    options used
-     **/
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->canEdit($ID);
-        } else {
-            $options[static::$items_id] = $options['parent']->fields["id"];
-            $this->check(-1, CREATE, $options);
-        }
-
-        /** @var CommonITILObject $itil */
-        $itil = $this->getItem();
-
-        $ivs = $itil::getValidationStepInstance();
-        $ivs->getFromDB($this->fields['itils_validationsteps_id']);
-        $validationsteps_id = $ivs->fields['validationsteps_id'] ?? ValidationStep::getDefault()->getID();
-
-        $mention_options = UserMention::getMentionOptions($itil);
-
-        TemplateRenderer::getInstance()->display('components/itilobject/timeline/form_validation.html.twig', [
-            'item'                => $itil, // ItilObject
-            'subitem'             => $this, // Validation
-            'scroll'              => true,
-            'mention_options'     => $mention_options,
-            '_validationsteps_id' => $validationsteps_id,
-        ]);
-
-        return true;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -1427,7 +994,6 @@ HTML;
 
         return $tab;
     }
-
 
     /**
      * @return array
@@ -1731,63 +1297,6 @@ HTML;
         return $tab;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        if ($field === 'status') {
-            $out = '';
-            $targets = $values;
-            if (array_key_exists('status', $targets)) {
-                // single value
-                $targets = [$values];
-            }
-            foreach ($targets as $target) {
-                if (!empty($target['status'])) {
-                    $status  = \htmlescape(static::getStatus($target['status']));
-                    $bgcolor = \htmlescape(static::getStatusColor($target['status']));
-                    $content = "<div class='badge_block' style='border-color: $bgcolor'><span style='background: $bgcolor'></span>&nbsp;" . $status . "</div>";
-                    if (isset($target['itemtype_target']) && is_a($target['itemtype_target'], CommonDBTM::class, true) && isset($target['items_id_target'])) {
-                        $user = '';
-                        if (($approver = $target['itemtype_target']::getById((int) $target['items_id_target'])) !== null) {
-                            $user = $approver->getLink();
-                        }
-                        $text = "<i class='" . \htmlescape($target['itemtype_target']::getIcon()) . " me-1'></i>" . $user . '<span class="mx-1">-</span>' . $status;
-                        $content = "<div class='badge_block' style='border-color: $bgcolor'><span style='background: $bgcolor'></span>&nbsp;" . $text . "</div>";
-                    }
-                    $out .= (empty($out) ? '' : Search::LBBR) . $content;
-                }
-            }
-            return $out;
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-
-    /**
-     * @param $field
-     * @param $name              (default '')
-     * @param $values            (default '')
-     * @param $options   array
-     **/
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'status':
-                $options['value'] = $values[$field];
-                return self::dropdownStatus($name, $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-
     /**
      * @see commonDBTM::getRights()
      **/
@@ -1801,112 +1310,6 @@ HTML;
 
         return $values;
     }
-
-    /**
-     * Dropdown of validator
-     *
-     * Display (or return) html fragment with a select element plus the javascript that will trigger an ajax request to populate the options.
-     *
-     * @param $options   array of options
-     *  - prefix                  : inputs prefix
-     *                              - an empty prefix will result in having `itemtype` and `items_id` inputs
-     *                              - a `_validator` prefix will result in having `_validator[itemtype]` and `_validator[items_id]` inputs
-     *  - id                      : ID of object > 0 Update, < 0 New
-     *  - entity                  : ID of entity
-     *  - right                   : validation rights
-     *  - groups_id               : ID of preselected group when validator are users of a same group
-     *  - itemtype_target         : Validator itemtype (User or Group)
-     *  - items_id_target         : Validator id (can be an array)
-     *  - applyto
-     *
-     * @return string|int Output if $options['display'] is false, else return rand
-     **/
-    public static function dropdownValidator(array $options = [])
-    {
-        global $CFG_GLPI;
-
-        $params = [
-            'prefix'             => null,
-            'id'                 => 0,
-            'parents_id'         => null,
-            'entity'             => $_SESSION['glpiactive_entity'],
-            'right'              => static::$itemtype == Ticket::class ? ['validate_request', 'validate_incident'] : 'validate',
-            'groups_id'          => 0,
-            'itemtype_target'    => '',
-            'items_id_target'    => 0,
-            'users_id_requester' => [],
-            'display'            => true,
-            'disabled'           => false,
-            'readonly'           => false,
-            'width'              => '100%',
-            'required'           => false,
-            'rand'               => mt_rand(),
-        ];
-        $params['applyto'] = 'show_validator_field' . $params['rand'];
-
-        foreach ($options as $key => $val) {
-            $params[$key] = $val;
-        }
-        if (!is_array($params['users_id_requester'])) {
-            $params['users_id_requester'] = [$params['users_id_requester']];
-        }
-
-        $params['validation_class'] = static::class;
-
-        $validatortype = array_key_exists('groups_id', $options) && !empty($options['groups_id'])
-            ? 'Group_User'
-            : $options['itemtype_target'];
-
-        $validatortype_name = $params['prefix'] . '[validatortype]';
-
-        // Build list of available dropdown items
-        $validators = [
-            'User'       => User::getTypeName(1),
-            'Group_User' => __('Group user(s)'),
-            'Group'      => Group::getTypeName(1),
-        ];
-
-        $out = Dropdown::showFromArray($validatortype_name, $validators, [
-            'value'               => $validatortype,
-            'display_emptychoice' => true,
-            'display'             => false,
-            'disabled'            => $params['disabled'],
-            'readonly'            => $params['readonly'],
-            'rand'                => $params['rand'],
-            'width'               => $params['width'],
-            'required'            => $params['required'],
-            'aria_label'          => __('Approver type'),
-        ]);
-
-        if ($validatortype) {
-            $out .= Ajax::updateItem(
-                $params['applyto'],
-                $CFG_GLPI["root_doc"] . "/ajax/dropdownValidator.php",
-                array_merge($params, ['validatortype' => $validatortype]),
-                "",
-                false
-            );
-        }
-        $out .= Ajax::updateItemOnSelectEvent(
-            "dropdown_{$validatortype_name}{$params['rand']}",
-            $params['applyto'],
-            $CFG_GLPI["root_doc"] . "/ajax/dropdownValidator.php",
-            array_merge($params, ['validatortype' => '__VALUE__']),
-            false
-        );
-
-        if (!isset($options['applyto'])) {
-            $out .= "<br><span id='" . htmlescape($params['applyto']) . "'>&nbsp;</span>\n";
-        }
-
-        if ($params['display']) {
-            echo $out;
-            return (int) $params['rand'];
-        } else {
-            return $out;
-        }
-    }
-
 
     /**
      * Get list of users from a group which have validation rights
@@ -1948,7 +1351,6 @@ HTML;
 
         return $users;
     }
-
 
     /**
      * Compute the validation status
@@ -2042,7 +1444,6 @@ HTML;
         }
     }
 
-
     /**
      * Get the ITIL object can validation status list
      *
@@ -2054,7 +1455,6 @@ HTML;
     {
         return [self::NONE, self::ACCEPTED];
     }
-
 
     /**
      * Get the ITIL object all validation status list

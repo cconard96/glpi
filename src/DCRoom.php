@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\DCBreadcrumb;
 use Glpi\Features\DCBreadcrumbInterface;
 
@@ -54,40 +53,6 @@ class DCRoom extends CommonDBTM implements DCBreadcrumbInterface
     public static function getTypeName($nb = 0)
     {
         return _n('Server room', 'Server rooms', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', Datacenter::class, self::class];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this
-         ->addStandardTab(Rack::class, $ong, $options)
-         ->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(ManualLink::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        }
-        TemplateRenderer::getInstance()->display('pages/management/dcroom.html.twig', [
-            'item' => $this,
-        ]);
-        return true;
     }
 
     public function prepareInputForAdd($input)
@@ -301,111 +266,6 @@ class DCRoom extends CommonDBTM implements DCBreadcrumbInterface
         return $tab;
     }
 
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        switch ($item::class) {
-            case Datacenter::class:
-                $nb = 0;
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = countElementsInTable(
-                        self::getTable(),
-                        [
-                            'datacenters_id'  => $item->getID(),
-                            'is_deleted'      => 0,
-                        ]
-                    );
-                }
-                return self::createTabEntry(
-                    self::getTypeName(Session::getPluralNumber()),
-                    $nb,
-                    $item::getType()
-                );
-        }
-
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof Datacenter) {
-            return false;
-        }
-
-        self::showForDatacenter($item);
-        return true;
-    }
-
-    /**
-     * Print datacenter's roms
-     *
-     * @param Datacenter $datacenter Datacenter object
-     *
-     * @return void|bool (display) Returns false if there is a rights error.
-     **/
-    public static function showForDatacenter(Datacenter $datacenter)
-    {
-        global $DB;
-
-        $ID = $datacenter->getID();
-        $rand = mt_rand();
-
-        if (
-            !$datacenter->getFromDB($ID)
-            || !$datacenter->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $datacenter->canEdit($ID);
-
-        $rooms = $DB->request([
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                'datacenters_id' => $datacenter->getID(),
-            ],
-        ]);
-
-        if ($canedit) {
-            echo "<div class='mt-1 mb-3 text-center'>";
-            Html::showSimpleForm(
-                self::getFormURL(),
-                '_add_fromitem',
-                __('New room for this datacenter...'),
-                ['datacenters_id' => $datacenter->getID()]
-            );
-            echo "</div>";
-        }
-
-        $dcroom = new self();
-        $entries = [];
-        foreach ($rooms as $room) {
-            $dcroom->getFromResultSet($room);
-            $entries[] = [
-                'itemtype' => self::class,
-                'id' => $room['id'],
-                'name' => $dcroom->getLink(),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'name' => __('Name'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => min($_SESSION['glpilist_limit'], count($entries)),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-    }
-
     /**
      * Get already filled places
      *
@@ -457,10 +317,5 @@ class DCRoom extends CommonDBTM implements DCBreadcrumbInterface
             }
         }
         return $positions;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-building";
     }
 }

@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssetImage;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
@@ -83,67 +82,9 @@ class Software extends CommonDBTM implements TreeBrowseInterface, AssignableItem
         return _n('Software', 'Software', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
-    public static function getMenuShorcut()
-    {
-        return 's';
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (
-            !$withtemplate
-            && $item instanceof self
-            && $item->isRecursive()
-            && $item->can($item->fields['id'], UPDATE)
-        ) {
-            return self::createTabEntry(__('Merging'), icon: 'ti ti-arrow-merge');
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof self) {
-            $item->showMergeCandidates();
-        }
-        return true;
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(SoftwareVersion::class, $ong, $options);
-        $this->addStandardTab(SoftwareLicense::class, $ong, $options);
-        $this->addStandardTab(Item_SoftwareVersion::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(KnowbaseItem_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Ticket::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        $this->addStandardTab(Change_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Project::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Reservation::class, $ong, $options);
-        $this->addStandardTab(Domain_Item::class, $ong, $options);
-        $this->addStandardTab(Appliance_Item::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-        $this->addStandardTab(self::class, $ong, $options);
-
-        return $ong;
     }
 
     public function prepareInputForUpdate($input)
@@ -215,16 +156,6 @@ class Software extends CommonDBTM implements TreeBrowseInterface, AssignableItem
                 ]);
             }
         }
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/software.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
     }
 
     public function getEmpty()
@@ -919,89 +850,6 @@ class Software extends CommonDBTM implements TreeBrowseInterface, AssignableItem
     }
 
     /**
-     * Show software candidates to be merged with the current
-     *
-     * @return void
-     **/
-    public function showMergeCandidates()
-    {
-        global $DB;
-
-        $ID   = $this->getField('id');
-        $this->check($ID, UPDATE);
-
-        $iterator = $DB->request([
-            'SELECT'    => [
-                'glpi_softwares.id',
-                'glpi_softwares.name',
-                'glpi_entities.completename AS entity',
-            ],
-            'FROM'      => 'glpi_softwares',
-            'LEFT JOIN' => [
-                'glpi_entities'   => [
-                    'ON' => [
-                        'glpi_softwares'  => 'entities_id',
-                        'glpi_entities'   => 'id',
-                    ],
-                ],
-            ],
-            'WHERE'     => [
-                'glpi_softwares.id'           => ['!=', $ID],
-                'glpi_softwares.name'         => $this->fields['name'],
-                'glpi_softwares.is_deleted'   => 0,
-                'glpi_softwares.is_template'  => 0,
-            ] + getEntitiesRestrictCriteria(
-                'glpi_softwares',
-                'entities_id',
-                getSonsOf("glpi_entities", $this->fields["entities_id"]),
-                false
-            ),
-            'ORDERBY'   => 'entity',
-        ]);
-
-        $entries = [];
-        $software = new self();
-        foreach ($iterator as $data) {
-            $software->getFromDB($data["id"]);
-            $entries[] = [
-                'itemtype' => Software::class,
-                'id' => $data["id"],
-                'name' => $software->getLink(),
-                'entity' => $data["entity"],
-                'installations' => Item_SoftwareVersion::countForSoftware($data["id"]),
-                'licenses' => SoftwareLicense::countForSoftware($data["id"]),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'entity' => Entity::getTypeName(1),
-                'installations' => _n('Installation', 'Installations', Session::getPluralNumber()),
-                'licenses' => SoftwareLicense::getTypeName(Session::getPluralNumber()),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => true,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . mt_rand(),
-                'specific_actions' => [
-                    self::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'merge' => __('Merge'),
-                ],
-                'item'          => $this,
-            ],
-        ]);
-    }
-
-    /**
      * Merge software with current.
      *
      * @param array   $item array of software ID to be merged
@@ -1124,11 +972,6 @@ class Software extends CommonDBTM implements TreeBrowseInterface, AssignableItem
         return [
             'sort' => 0,
         ];
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-apps";
     }
 
     /**

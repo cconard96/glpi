@@ -144,66 +144,6 @@ class DeviceBattery extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-        $base->addHeader('devicebattery_type', _sn('Type', 'Types', 1), $super, $father);
-        $base->addHeader('voltage', sprintf(__s('%1$s (%2$s)'), __s('Voltage'), __s('mV')), $super, $father);
-        $base->addHeader('capacity', sprintf(__s('%1$s (%2$s)'), __s('Capacity'), __s('mWh')), $super, $father);
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-
-        if ($this->fields["devicebatterytypes_id"]) {
-            $row->addCell(
-                $row->getHeaderByName('devicebattery_type'),
-                htmlescape(Dropdown::getDropdownName("glpi_devicebatterytypes", $this->fields["devicebatterytypes_id"])),
-                $father
-            );
-        }
-
-        if ($this->fields["voltage"]) {
-            $row->addCell(
-                $row->getHeaderByName('voltage'),
-                htmlescape($this->fields['voltage']),
-                $father
-            );
-        }
-
-        if ($this->fields["capacity"]) {
-            $row->addCell(
-                $row->getHeaderByName('capacity'),
-                htmlescape($this->fields['capacity']),
-                $father
-            );
-        }
-        return null;
-    }
-
     public function getImportCriteria()
     {
         return [
@@ -213,10 +153,5 @@ class DeviceBattery extends CommonDevice
             'capacity'              => 'delta:10',
             'voltage'               => 'delta:10',
         ];
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-battery-2";
     }
 }

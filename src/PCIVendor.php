@@ -181,9 +181,4 @@ class PCIVendor extends CommonDropdown implements CacheableListInterface
 
         return $pciids[$vendorid . '::' . $deviceid] ?? false;
     }
-
-    public static function getIcon()
-    {
-        return "fas fa-memory";
-    }
 }

@@ -47,42 +47,6 @@ abstract class ITILTemplateHiddenField extends ITILTemplateField
         return _n('Hidden field', 'Hidden fields', $nb);
     }
 
-    public static function getIcon(): string
-    {
-        return 'ti ti-eye-off';
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        // can exists for template
-        if (
-            $item instanceof ITILTemplate
-            && Session::haveRight("itiltemplate", READ)
-        ) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(
-                    $this->getTable(),
-                    [static::$items_id => $item->getID()]
-                );
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof ITILTemplate) {
-            return false;
-        }
-
-        self::showForITILTemplate($item, $withtemplate, false);
-        return true;
-    }
-
-
     public function post_purgeItem()
     {
         global $DB;

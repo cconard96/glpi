@@ -36,7 +36,6 @@ namespace Glpi\Dashboard\Filters;
 
 use Change;
 use Glpi\Features\AssignableItem;
-use Group;
 use Group_Item;
 use Problem;
 use Ticket;
@@ -170,18 +169,5 @@ abstract class AbstractGroupFilter extends AbstractFilter
         }
 
         return $criteria;
-    }
-
-    public static function getHtml($value): string
-    {
-        return self::displayList(
-            static::getName(),
-            is_string($value) ? $value : "",
-            static::getId(),
-            Group::class,
-            [
-                'toadd' => ['mygroups' => __("My groups")],
-            ]
-        );
     }
 }

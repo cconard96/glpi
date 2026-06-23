@@ -3395,41 +3395,6 @@ class Toolbox
     }
 
     /**
-     * Get available tabs for a given item
-     *
-     * @param string          $itemtype Type of the item
-     * @param int|string|null $id       Id the item, optional
-     *
-     * @return array
-     */
-    public static function getAvailablesTabs(string $itemtype, $id = null): array
-    {
-        $item = getItemForItemtype($itemtype);
-
-        if (!$item) {
-            return [];
-        }
-
-        if (!is_null($id) && !$item->isNewID($id)) {
-            $item->getFromDB($id);
-        }
-
-        $options = [];
-        if (isset($_GET['withtemplate'])) {
-            $options['withtemplate'] = $_GET['withtemplate'];
-        }
-
-        $tabs = $item->defineAllTabs($options);
-        if (isset($tabs['no_all_tab'])) {
-            unset($tabs['no_all_tab']);
-        }
-        // Add all tab
-        $tabs[-1] = 'All';
-
-        return $tabs;
-    }
-
-    /**
      * Check if a mixed value (possibly a string) is an integer or a float
      *
      * @param mixed $value A possible float

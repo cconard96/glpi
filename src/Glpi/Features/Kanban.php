@@ -81,28 +81,4 @@ trait Kanban
         }
         return $filters;
     }
-
-    /** @see KanbanInterface::getGlobalKanbanUrl() */
-    public static function getGlobalKanbanUrl(bool $full = true): string
-    {
-        return static::getFormURL($full) . '?showglobalkanban=1';
-    }
-
-    /** @see KanbanInterface::getKanbanUrlWithID() */
-    public function getKanbanUrlWithID(int $items_id, bool $full = true): string
-    {
-        $tabs = $this->defineTabs();
-        $tab_id = null;
-        // search each value for one that contains "Kanban"
-        foreach ($tabs as $id => $tab) {
-            if (str_contains($tab, __('Kanban'))) {
-                $tab_id = $id;
-                break;
-            }
-        }
-        if (false === $tab_id || is_null($tab_id)) {
-            throw new BadRequestHttpException("Itemtype does not have a Kanban tab!");
-        }
-        return static::getFormURLWithID($items_id, $full) . "&forcetab={$tab_id}";
-    }
 }

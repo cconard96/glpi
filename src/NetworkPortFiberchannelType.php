@@ -40,9 +40,4 @@ class NetworkPortFiberchannelType extends CommonDropdown
     {
         return _n('Fiber type', 'Fiber types', $nb);
     }
-
-    public static function getFieldLabel()
-    {
-        return _n('Type', 'Types', 1);
-    }
 }

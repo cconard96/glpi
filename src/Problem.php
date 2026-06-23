@@ -33,11 +33,8 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\ContentTemplates\Parameters\CommonITILObjectParameters;
 use Glpi\ContentTemplates\Parameters\ProblemParameters;
-use Glpi\DBAL\QueryExpression;
-use Glpi\RichText\RichText;
 use Glpi\Search\DefaultSearchRequestInterface;
 
 /**
@@ -70,12 +67,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
     }
 
     #[Override]
-    public static function getSectorizedDetails(): array
-    {
-        return ['helpdesk', self::class];
-    }
-
-    #[Override]
     public function canSolve()
     {
 
@@ -92,13 +83,11 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                               ))))));
     }
 
-
     #[Override]
     public static function canView(): bool
     {
         return Session::haveRightsOr(self::$rightname, [self::READALL, self::READMY]);
     }
-
 
     #[Override]
     public function canViewItem(): bool
@@ -125,7 +114,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                               ))))));
     }
 
-
     #[Override]
     public function canCreateItem(): bool
     {
@@ -135,7 +123,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         }
         return Session::haveRight(self::$rightname, CREATE);
     }
-
 
     /**
      * @since 9.4.0
@@ -149,7 +136,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                  || $this->isAllowedStatus($this->fields['status'], self::ASSIGNED));
     }
 
-
     #[Override]
     public function pre_deleteItem()
     {
@@ -160,99 +146,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         }
         return true;
     }
-
-
-    #[Override]
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        if (static::canView()) {
-            switch ($item::class) {
-                case self::class:
-                    $ong = [];
-                    if ($item->canUpdate()) {
-                        $ong[1] = static::createTabEntry(__('Statistics'), 0, null, 'ti ti-chart-pie');
-                    }
-
-                    return $ong;
-
-                case User::class:
-                    $nb = 0;
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(
-                            ['glpi_problems', 'glpi_problems_users'],
-                            [
-                                'glpi_problems_users.problems_id'  => new QueryExpression(DBmysql::quoteName('glpi_problems.id')),
-                                'glpi_problems_users.users_id'    => $item->getID(),
-                                'glpi_problems_users.type'        => CommonITILActor::REQUESTER,
-                                'glpi_problems.is_deleted'        => 0,
-                            ] + getEntitiesRestrictCriteria(self::getTable())
-                        );
-                    }
-                    return self::createTabEntry(__('Created problems'), $nb, $item::getType());
-
-                case Group::class:
-                    $nb = 0;
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(
-                            ['glpi_problems', 'glpi_groups_problems'],
-                            [
-                                'glpi_groups_problems.problems_id' => new QueryExpression(DBmysql::quoteName('glpi_problems.id')),
-                                'glpi_groups_problems.groups_id'  => $item->getID(),
-                                'glpi_groups_problems.type'       => CommonITILActor::REQUESTER,
-                                'glpi_problems.is_deleted'        => 0,
-                            ] + getEntitiesRestrictCriteria(self::getTable())
-                        );
-                    }
-                    return self::createTabEntry(__('Created problems'), $nb, $item::getType());
-            }
-        }
-        return '';
-    }
-
-
-    #[Override]
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-
-        switch (get_class($item)) {
-            case self::class:
-                switch ($tabnum) {
-                    case 1:
-                        $item->showStats();
-                        break;
-                }
-                break;
-
-            case User::class:
-            case Group::class:
-                return self::showListForItem($item, $withtemplate);
-        }
-        return true;
-    }
-
-
-    #[Override]
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(self::class, $ong, $options);
-        $this->addStandardTab(Problem_Ticket::class, $ong, $options);
-        $this->addStandardTab(Change_Problem::class, $ong, $options);
-        $this->addStandardTab(ProblemCost::class, $ong, $options);
-        $this->addStandardTab(Itil_Project::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        if ($this->hasImpactTab()) {
-            $this->addStandardTab(Impact::class, $ong, $options);
-        }
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(KnowbaseItem_Item::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
 
     #[Override]
     public function cleanDBonPurge()
@@ -277,7 +170,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
 
         parent::cleanDBonPurge();
     }
-
 
     #[Override]
     public function post_updateItem($history = true)
@@ -322,7 +214,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         }
     }
 
-
     #[Override]
     public function prepareInputForAdd($input)
     {
@@ -364,7 +255,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         $input = parent::prepareInputForUpdate($input);
         return $input;
     }
-
 
     #[Override]
     public function post_addItem()
@@ -415,7 +305,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
     #[Override]
     public static function getDefaultSearchRequest(): array
     {
-
         $search = ['criteria' => [0 => ['field'      => 12,
             'searchtype' => 'equals',
             'value'      => 'notold',
@@ -427,7 +316,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
 
         return $search;
     }
-
 
     #[Override]
     public function getSpecificMassiveActions($checkitem = null)
@@ -458,7 +346,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
 
         return $actions;
     }
-
 
     #[Override]
     public function rawSearchOptions()
@@ -588,7 +475,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
 
         return $tab;
     }
-
 
     /**
      * @param class-string<CommonDBTM> $itemtype
@@ -743,7 +629,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-
     /**
      * Get the ITIL object closed status list
      *
@@ -758,7 +643,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         $tab = [self::CLOSED];
         return $tab;
     }
-
 
     /**
      * Get the ITIL object solved or observe status list
@@ -800,589 +684,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         $tab = [self::ACCEPTED, self::ASSIGNED, self::PLANNED];
 
         return $tab;
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param int $start
-     * @param string $status             (default 'proces)
-     * @param bool $showgroupproblems  (true by default)
-     *
-     * @return void
-     **/
-    public static function showCentralList($start, $status = "process", $showgroupproblems = true)
-    {
-        global $CFG_GLPI, $DB;
-
-        if (!static::canView()) {
-            return;
-        }
-
-        $WHERE = [
-            'is_deleted' => 0,
-        ];
-        $search_users_id = [
-            'glpi_problems_users.users_id'   => Session::getLoginUserID(),
-            'glpi_problems_users.type'       => CommonITILActor::REQUESTER,
-        ];
-        $search_assign = [
-            'glpi_problems_users.users_id'   => Session::getLoginUserID(),
-            'glpi_problems_users.type'       => CommonITILActor::ASSIGN,
-        ];
-
-        if ($showgroupproblems) {
-            $search_users_id  = [0];
-            $search_assign = [0];
-
-            if (count($_SESSION['glpigroups'])) {
-                $search_users_id = [
-                    'glpi_groups_problems.groups_id' => $_SESSION['glpigroups'],
-                    'glpi_groups_problems.type'      => CommonITILActor::REQUESTER,
-                ];
-                $search_assign = [
-                    'glpi_groups_problems.groups_id' => $_SESSION['glpigroups'],
-                    'glpi_groups_problems.type'      => CommonITILActor::ASSIGN,
-                ];
-            }
-        }
-
-        switch ($status) {
-            case "waiting": // on affiche les problemes en attente
-                $WHERE = array_merge(
-                    $WHERE,
-                    $search_assign,
-                    ['status' => self::WAITING]
-                );
-                break;
-
-            case "process": // on affiche les problemes planifi??s ou assign??s au user
-                $WHERE = array_merge(
-                    $WHERE,
-                    $search_assign,
-                    ['status' => [self::PLANNED, self::ASSIGNED]]
-                );
-                break;
-
-            default:
-                $WHERE = array_merge(
-                    $WHERE,
-                    $search_users_id,
-                    [
-                        'status' => [
-                            self::INCOMING,
-                            self::ACCEPTED,
-                            self::PLANNED,
-                            self::ASSIGNED,
-                            self::WAITING,
-                        ],
-                    ]
-                );
-                $WHERE['NOT'] = $search_assign;
-        }
-
-        $criteria = [
-            'SELECT'          => ['glpi_problems.id'],
-            'DISTINCT'        => true,
-            'FROM'            => 'glpi_problems',
-            'LEFT JOIN'       => [
-                'glpi_problems_users'   => [
-                    'ON' => [
-                        'glpi_problems_users'   => 'problems_id',
-                        'glpi_problems'         => 'id',
-                    ],
-                ],
-                'glpi_groups_problems'  => [
-                    'ON' => [
-                        'glpi_groups_problems'  => 'problems_id',
-                        'glpi_problems'         => 'id',
-                    ],
-                ],
-            ],
-            'WHERE'           => $WHERE + getEntitiesRestrictCriteria('glpi_problems'),
-            'ORDERBY'         => 'date_mod DESC',
-        ];
-        $iterator = $DB->request($criteria);
-
-        $total_row_count = count($iterator);
-        $displayed_row_count = min((int) $_SESSION['glpidisplay_count_on_home'], $total_row_count);
-
-        if ($total_row_count > 0) {
-            $options  = [
-                'criteria' => [],
-                'reset'    => 'reset',
-            ];
-            if ($showgroupproblems) {
-                switch ($status) {
-                    case "waiting":
-                        $options['criteria'][0]['field']      = 12; // status
-                        $options['criteria'][0]['searchtype'] = 'equals';
-                        $options['criteria'][0]['value']      = self::WAITING;
-                        $options['criteria'][0]['link']       = 'AND';
-
-                        $options['criteria'][1]['field']      = 8; // groups_id_assign
-                        $options['criteria'][1]['searchtype'] = 'equals';
-                        $options['criteria'][1]['value']      = 'mygroups';
-                        $options['criteria'][1]['link']       = 'AND';
-
-                        $main_header = "<a href=\"" . htmlescape($CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options)) . "\">"
-                         . Html::makeTitle(__('Problems on pending status'), $displayed_row_count, $total_row_count) . "</a>";
-                        break;
-
-                    case "process":
-                        $options['criteria'][0]['field']      = 12; // status
-                        $options['criteria'][0]['searchtype'] = 'equals';
-                        $options['criteria'][0]['value']      = 'process';
-                        $options['criteria'][0]['link']       = 'AND';
-
-                        $options['criteria'][1]['field']      = 8; // groups_id_assign
-                        $options['criteria'][1]['searchtype'] = 'equals';
-                        $options['criteria'][1]['value']      = 'mygroups';
-                        $options['criteria'][1]['link']       = 'AND';
-
-                        $main_header = "<a href=\"" . htmlescape($CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options)) . "\">"
-                         . Html::makeTitle(__('Problems to be processed'), $displayed_row_count, $total_row_count) . "</a>";
-                        break;
-
-                    default:
-                        $options['criteria'][0]['field']      = 12; // status
-                        $options['criteria'][0]['searchtype'] = 'equals';
-                        $options['criteria'][0]['value']      = 'notold';
-                        $options['criteria'][0]['link']       = 'AND';
-
-                        $options['criteria'][1]['field']      = 71; // groups_id
-                        $options['criteria'][1]['searchtype'] = 'equals';
-                        $options['criteria'][1]['value']      = 'mygroups';
-                        $options['criteria'][1]['link']       = 'AND';
-
-                        $main_header = "<a href=\"" . htmlescape($CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options)) . "\">"
-                         . Html::makeTitle(__('Your problems in progress'), $displayed_row_count, $total_row_count) . "</a>";
-                }
-            } else {
-                switch ($status) {
-                    case "waiting":
-                        $options['criteria'][0]['field']      = 12; // status
-                        $options['criteria'][0]['searchtype'] = 'equals';
-                        $options['criteria'][0]['value']      = self::WAITING;
-                        $options['criteria'][0]['link']       = 'AND';
-
-                        $options['criteria'][1]['field']      = 5; // users_id_assign
-                        $options['criteria'][1]['searchtype'] = 'equals';
-                        $options['criteria'][1]['value']      = Session::getLoginUserID();
-                        $options['criteria'][1]['link']       = 'AND';
-
-                        $main_header = "<a href=\"" . htmlescape($CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options)) . "\">"
-                         . Html::makeTitle(__('Problems on pending status'), $displayed_row_count, $total_row_count) . "</a>";
-                        break;
-
-                    case "process":
-                        $options['criteria'][0]['field']      = 5; // users_id_assign
-                        $options['criteria'][0]['searchtype'] = 'equals';
-                        $options['criteria'][0]['value']      = Session::getLoginUserID();
-                        $options['criteria'][0]['link']       = 'AND';
-
-                        $options['criteria'][1]['field']      = 12; // status
-                        $options['criteria'][1]['searchtype'] = 'equals';
-                        $options['criteria'][1]['value']      = 'process';
-                        $options['criteria'][1]['link']       = 'AND';
-
-                        $main_header = "<a href=\"" . htmlescape($CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options)) . "\">"
-                         . Html::makeTitle(__('Problems to be processed'), $displayed_row_count, $total_row_count) . "</a>";
-                        break;
-
-                    default:
-                        $options['criteria'][0]['field']      = 4; // users_id
-                        $options['criteria'][0]['searchtype'] = 'equals';
-                        $options['criteria'][0]['value']      = Session::getLoginUserID();
-                        $options['criteria'][0]['link']       = 'AND';
-
-                        $options['criteria'][1]['field']      = 12; // status
-                        $options['criteria'][1]['searchtype'] = 'equals';
-                        $options['criteria'][1]['value']      = 'notold';
-                        $options['criteria'][1]['link']       = 'AND';
-
-                        $main_header = "<a href=\"" . htmlescape($CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options)) . "\">"
-                        . Html::makeTitle(__('Your problems in progress'), $displayed_row_count, $total_row_count) . "</a>";
-                }
-            }
-
-            $twig_params = [
-                'class'        => 'table table-borderless table-striped table-hover card-table',
-                'header_rows'  => [
-                    [
-                        [
-                            'colspan'   => 3,
-                            'content'   => $main_header,
-                        ],
-                    ],
-                ],
-                'rows'         => [],
-            ];
-
-            $i = 0;
-            if ($displayed_row_count > 0) {
-                $twig_params['header_rows'][] = [
-                    [
-                        'content'   => __('ID'),
-                        'style'     => 'width: 75px',
-                    ],
-                    [
-                        'content'   => _n('Requester', 'Requesters', 1),
-                        'style'     => 'width: 20%',
-                    ],
-                    __('Description'),
-                ];
-                foreach ($iterator as $data) {
-                    $problem = new self();
-                    $rand = mt_rand();
-                    $row = [
-                        'values' => [],
-                    ];
-
-                    if ($problem->getFromDBwithData($data['id'])) {
-                        $bgcolor = $_SESSION["glpipriority_" . $problem->fields["priority"]];
-                        $name = sprintf(__('%1$s: %2$s'), __('ID'), $problem->fields["id"]);
-                        $row['values'][] = [
-                            'class' => 'badge_block',
-                            'content' => "<span style='background: " . htmlescape($bgcolor) . "'></span>&nbsp;" . htmlescape($name),
-                        ];
-
-                        $requesters = [];
-                        if (
-                            isset($problem->users[CommonITILActor::REQUESTER])
-                            && count($problem->users[CommonITILActor::REQUESTER])
-                        ) {
-                            foreach ($problem->users[CommonITILActor::REQUESTER] as $d) {
-                                if ($d["users_id"] > 0) {
-                                    $name = '<i class="fs-4 ti ti-user text-muted me-1"></i>'
-                                        . htmlescape(getUserName($d["users_id"]));
-                                    $requesters[] = $name;
-                                } else {
-                                    $requesters[] = '<i class="fs-4 ti ti-mail text-muted me-1"></i>'
-                                        . htmlescape($d['alternative_email']);
-                                }
-                            }
-                        }
-
-                        if (
-                            isset($problem->groups[CommonITILActor::REQUESTER])
-                            && count($problem->groups[CommonITILActor::REQUESTER])
-                        ) {
-                            foreach ($problem->groups[CommonITILActor::REQUESTER] as $d) {
-                                $requesters[] = '<i class="fs-4 ti ti-users text-muted me-1"></i>'
-                                    . htmlescape(Dropdown::getDropdownName("glpi_groups", $d["groups_id"]));
-                            }
-                        }
-                        $row['values'][] = implode('<br>', $requesters);
-
-                        $link = "<a id='problem" . $problem->getID() . $rand . "' href='"
-                            . htmlescape(Problem::getFormURLWithID($problem->fields["id"]));
-                        $link .= "'>";
-                        $link .= "<span class='b'>" . htmlescape($problem->fields["name"]) . "</span></a>";
-                        $link = sprintf(
-                            __s('%1$s %2$s'),
-                            $link,
-                            Html::showToolTip(
-                                RichText::getEnhancedHtml($problem->fields['content']),
-                                ['applyto' => 'problem' . $problem->fields["id"] . $rand,
-                                    'display' => false,
-                                ]
-                            )
-                        );
-
-                        $row['values'][] = $link;
-                    } else {
-                        $row['class'] = 'tab_bg_2';
-                        $row['values'] = [
-                            [
-                                'colspan' => 6,
-                                'content' => "<i>" . __s('No problem in progress.') . "</i>",
-                            ],
-                        ];
-                    }
-                    $twig_params['rows'][] = $row;
-
-                    $i++;
-                    if ($i == $displayed_row_count) {
-                        break;
-                    }
-                }
-            }
-            TemplateRenderer::getInstance()->display('components/table.html.twig', $twig_params);
-        }
-    }
-
-
-    /**
-     * Get problems count
-     *
-     * @since 0.84
-     *
-     * @param bool $foruser only for current login user as requester
-     * @param bool $display if false, return html
-     * @return ($display is true ? void : string)
-     **/
-    public static function showCentralCount(bool $foruser = false, bool $display = true)
-    {
-        global $CFG_GLPI, $DB;
-
-        // show a tab with count of jobs in the central and give link
-        if (!static::canView()) {
-            if (!$display) {
-                return '';
-            }
-            return;
-        }
-        if (!Session::haveRight(self::$rightname, self::READALL)) {
-            $foruser = true;
-        }
-
-        $table = self::getTable();
-        $criteria = [
-            'SELECT' => [
-                'status',
-                'COUNT'  => '* AS COUNT',
-            ],
-            'FROM'   => $table,
-            'WHERE'  => getEntitiesRestrictCriteria($table),
-            'GROUP'  => 'status',
-        ];
-
-        if ($foruser) {
-            $criteria['LEFT JOIN'] = [
-                'glpi_problems_users' => [
-                    'ON' => [
-                        'glpi_problems_users'   => 'problems_id',
-                        $table                  => 'id', [
-                            'AND' => [
-                                'glpi_problems_users.type' => CommonITILActor::REQUESTER,
-                            ],
-                        ],
-                    ],
-                ],
-            ];
-            $WHERE = ['glpi_problems_users.users_id' => Session::getLoginUserID()];
-
-            if (
-                isset($_SESSION["glpigroups"])
-                && count($_SESSION["glpigroups"])
-            ) {
-                $criteria['LEFT JOIN']['glpi_groups_problems'] = [
-                    'ON' => [
-                        'glpi_groups_problems'  => 'problems_id',
-                        $table                  => 'id', [
-                            'AND' => [
-                                'glpi_groups_problems.type' => CommonITILActor::REQUESTER,
-                            ],
-                        ],
-                    ],
-                ];
-                $WHERE['glpi_groups_problems.groups_id'] = $_SESSION['glpigroups'];
-            }
-            $criteria['WHERE'][] = ['OR' => $WHERE];
-        }
-
-        $deleted_criteria = $criteria;
-        $criteria['WHERE']['glpi_problems.is_deleted'] = 0;
-        $deleted_criteria['WHERE']['glpi_problems.is_deleted'] = 1;
-        $iterator = $DB->request($criteria);
-        $deleted_iterator = $DB->request($deleted_criteria);
-
-        $status = [];
-        foreach (self::getAllStatusArray() as $key => $val) {
-            $status[$key] = 0;
-        }
-
-        foreach ($iterator as $data) {
-            $status[$data["status"]] = $data["COUNT"];
-        }
-
-        $number_deleted = 0;
-        foreach ($deleted_iterator as $data) {
-            $number_deleted += $data["COUNT"];
-        }
-
-        $options = [];
-        $options['criteria'][0]['field']      = 12;
-        $options['criteria'][0]['searchtype'] = 'equals';
-        $options['criteria'][0]['value']      = 'process';
-        $options['criteria'][0]['link']       = 'AND';
-        $options['reset']                     = 'reset';
-
-        $twig_params = [
-            'title'     => [
-                'link'   => $CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options),
-                'text'   => self::getTypeName(Session::getPluralNumber()),
-                'icon'   => self::getIcon(),
-            ],
-            'items'     => [],
-        ];
-
-        foreach ($status as $key => $val) {
-            $options['criteria'][0]['value'] = $key;
-            $twig_params['items'][] = [
-                'link'   => $CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options),
-                'text'   => self::getStatus($key),
-                'icon'   => self::getStatusClass($key),
-                'count'  => $val,
-            ];
-        }
-
-        $options['criteria'][0]['value'] = 'all';
-        $options['is_deleted']  = 1;
-        $twig_params['items'][] = [
-            'link'   => $CFG_GLPI["root_doc"] . "/front/problem.php?" . Toolbox::append_params($options),
-            'text'   => __('Deleted'),
-            'icon'   => 'ti ti-trash bg-red-lt',
-            'count'  => $number_deleted,
-        ];
-
-        $output = TemplateRenderer::getInstance()->render('central/lists/itemtype_count.html.twig', $twig_params);
-        if ($display) {
-            echo $output;
-        } else {
-            return $output;
-        }
-    }
-
-
-    /**
-     * @since 0.84
-     * @param int $ID
-     * @param string $forcetab
-     * @return void
-     */
-    public static function showVeryShort($ID, $forcetab = '')
-    {
-        // Prints a job in short form
-        // Should be called in a <table>-segment
-        // Print links or not in case of user view
-        // Make new job object and fill it from database, if success, print it
-        $viewusers = User::canView();
-
-        $problem   = new self();
-        $rand      = mt_rand();
-        if ($problem->getFromDBwithData($ID)) {
-            $bgcolor = htmlescape($_SESSION["glpipriority_" . $problem->fields["priority"]]);
-            $name    = htmlescape(sprintf(__('%1$s: %2$s'), __('ID'), $problem->fields["id"]));
-            echo "<tr class='tab_bg_2'>";
-            echo "<td>
-            <div class='badge_block' style='border-color: $bgcolor'>
-               <span style='background: $bgcolor'></span>&nbsp;$name
-            </div>
-         </td>";
-            echo "<td class='center'>";
-
-            if (
-                isset($problem->users[CommonITILActor::REQUESTER])
-                && count($problem->users[CommonITILActor::REQUESTER])
-            ) {
-                foreach ($problem->users[CommonITILActor::REQUESTER] as $d) {
-                    $user = new User();
-                    if ($d["users_id"] > 0 && $user->getFromDB($d["users_id"])) {
-                        $name = "<span class='b'>" . htmlescape($user->getName()) . "</span>";
-                        if ($viewusers) {
-                            $name = sprintf(
-                                __s('%1$s %2$s'),
-                                $name,
-                                Html::showToolTip(
-                                    $user->getInfoCard(),
-                                    [
-                                        'link'    => $user->getLinkURL(),
-                                        'display' => false,
-                                    ]
-                                )
-                            );
-                        }
-                        echo $name;
-                    } else {
-                        echo htmlescape($d['alternative_email']) . "&nbsp;";
-                    }
-                    echo "<br>";
-                }
-            }
-
-            if (
-                isset($problem->groups[CommonITILActor::REQUESTER])
-                && count($problem->groups[CommonITILActor::REQUESTER])
-            ) {
-                foreach ($problem->groups[CommonITILActor::REQUESTER] as $d) {
-                    echo htmlescape(Dropdown::getDropdownName("glpi_groups", $d["groups_id"]));
-                    echo "<br>";
-                }
-            }
-
-            echo "</td>";
-
-            echo "<td>";
-            $link = "<a id='problem" . $problem->getID() . $rand . "' href='"
-                  . htmlescape(Problem::getFormURLWithID($problem->getID()));
-            if ($forcetab != '') {
-                $link .= "&amp;forcetab=" . htmlescape($forcetab);
-            }
-            $link .= "'>";
-            $link .= "<span class='b'>" . htmlescape($problem->fields["name"]) . "</span></a>";
-            $link = printf(
-                __s('%1$s %2$s'),
-                $link,
-                Html::showToolTip(
-                    RichText::getEnhancedHtml($problem->fields['content']),
-                    ['applyto' => 'problem' . $problem->fields["id"] . $rand,
-                        'display' => false,
-                    ]
-                )
-            );
-
-            echo "</td>";
-
-            // Finish Line
-            echo "</tr>";
-        } else {
-            echo "<tr class='tab_bg_2'>";
-            echo "<td colspan='6' ><i>" . __s('No problem in progress.') . "</i></td></tr>";
-        }
-    }
-
-    /**
-     * Display problems for an item
-     *
-     * Will also display problems of linked items
-     *
-     * @param CommonDBTM $item
-     * @param int    $withtemplate
-     *
-     * @return void|false
-     **/
-    public static function showListForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        if (!Session::haveRightsOr(self::$rightname, [self::READALL])) {
-            return false;
-        }
-
-        if ($item->isNewID($item->getID())) {
-            return false;
-        }
-
-        $options = [
-            'metacriteria' => [],
-        ];
-
-        switch (get_class($item)) {
-            case Group::class:
-                // Mini search engine
-                /** @var Group $item */
-                if ($item->haveChildren()) {
-                    $tree = (int) Session::getSavedOption(self::class, 'tree', 0);
-                    TemplateRenderer::getInstance()->display('components/form/item_itilobject_group.html.twig', [
-                        'tree' => $tree,
-                    ]);
-                } else {
-                    $tree = 0;
-                }
-                break;
-        }
-        Item_Problem::showListForItem($item, $withtemplate, $options);
     }
 
     /**
@@ -1547,13 +848,6 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                 ],
             ],
         ]);
-    }
-
-
-    #[Override]
-    public static function getIcon()
-    {
-        return "ti ti-alert-triangle";
     }
 
     #[Override]

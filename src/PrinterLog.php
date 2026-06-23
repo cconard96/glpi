@@ -33,9 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\Asset;
-use Glpi\Dashboard\Widget;
 use Safe\DateTime;
 
 use function Safe\strtotime;
@@ -52,38 +50,6 @@ class PrinterLog extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return __('Page counters');
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-chart-line';
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        global $CFG_GLPI;
-
-        $array_ret = [];
-
-        /** @var Printer|Asset $item */
-        if (in_array($item::class, $CFG_GLPI['printer_types'])) {
-            $cnt = countElementsInTable([static::getTable()], [static::$items_id => $item->getField('id')]);
-            $array_ret[] = self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $cnt, $item::getType());
-        }
-        return $array_ret;
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        global $CFG_GLPI;
-
-        /** @var Printer|Asset $item */
-        if (in_array($item::class, $CFG_GLPI['printer_types']) && $item->getID() > 0) {
-            $printerlog = new self();
-            $printerlog->showMetrics($item);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -192,171 +158,6 @@ class PrinterLog extends CommonDBChild
     }
 
     /**
-     * Display form for agent
-     *
-     * @param Printer|Asset $printer Printer instance
-     *
-     * @return void
-     */
-    public function showMetrics(Printer|Asset $printer)
-    {
-        $printers = array_map(
-            fn($id) => Printer::getById($id),
-            array_reduce(array_merge(
-                explode(',', $_GET['compare_printers'] ?? ''),
-                [$printer->getID()]
-            ), fn($acc, $id) => !empty($id) && !in_array($id, $acc, false) ? array_merge($acc, [$id]) : $acc, [])
-        );
-        $compare_printer_stat = $_GET['compare_printer_stat'] ?? 'total_pages';
-        $is_comparison = count($printers) > 1;
-
-        $raw_metrics = [];
-        $format = $_GET['date_format'] ?? 'dynamic';
-        if (isset($_GET['date_interval'])) {
-            $raw_metrics = self::getMetrics(
-                $printers,
-                interval: $_GET['date_interval'],
-                format: $format,
-            );
-        } elseif (isset($_GET['date_start']) && isset($_GET['date_end'])) {
-            $raw_metrics = self::getMetrics(
-                $printers,
-                start_date: new DateTime($_GET['date_start']),
-                end_date: new DateTime($_GET['date_end']),
-                format: $format,
-            );
-        } else {
-            $raw_metrics = self::getMetrics(
-                $printers,
-                format: $format,
-            );
-        }
-
-        // build graph data
-        $params = [
-            'label'         => static::getTypeName(),
-            'icon'          => Printer::getIcon(),
-            'apply_filters' => [],
-        ];
-
-        $series = [];
-        $labels = [];
-
-        // Formatter to display the date (months names) in the correct language
-        // Dates will be displayed as "d MMM YYYY":
-        // d = short day number (1, 12, ...)
-        // MMM = short month name (jan, feb, ...)
-        // YYYY = full year (2021, 2022, ...)
-        // Note that PHP use ISO 8601 Date Output here which is different from
-        // the "Constants for PHP Date Output" used in others functions
-        // See https://framework.zend.com/manual/1.12/en/zend.date.constants.html#zend.date.constants.selfdefinedformats
-        $fmt = new IntlDateFormatter(
-            $_SESSION['glpilanguage'] ?? 'en_GB',
-            IntlDateFormatter::NONE,
-            IntlDateFormatter::NONE,
-            null,
-            null,
-            'd MMM YYYY'
-        );
-
-        // Adds missing dates to the labels array and null values to the series data array
-        // for comparison printers if the date is not present in the metrics array.
-        foreach ($raw_metrics as $printer_id => $metrics) {
-            foreach ($metrics as $metric) {
-                if (!in_array($metric['date'], $labels)) {
-                    $labels[] = $metric['date'];
-                    if ($is_comparison) {
-                        foreach ($printers as $printer) {
-                            $series[$printer->getID()]['data'][] = null;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Sort the labels array
-        sort($labels);
-
-        // Loops through the raw metrics and creates a series array for each printer or metric.
-        // If $is_comparison is true, it sets the name and data for the comparison printer.
-        // Otherwise, it sets the name and data for each metric key with a positive value.
-        foreach ($raw_metrics as $printer_id => $metrics) {
-            if ($is_comparison) {
-                $series[$printer_id]['name'] = Printer::getById($printer_id)->fields['name'];
-            }
-
-            foreach ($metrics as $metric) {
-                if ($is_comparison) {
-                    $series[$printer_id]['data'][array_search($metric['date'], $labels, false)] = $metric[$compare_printer_stat];
-                } else {
-                    foreach ($metric as $key => $value) {
-                        $label = static::getLabelFor($key);
-                        if ($label) {
-                            $series[$key]['name'] = $label;
-                            $series[$key]['data'][] = $value;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Loops through the series and replace null values with the previous value
-        if ($is_comparison) {
-            foreach ($series as $key => $data) {
-                $previous_value = null;
-                foreach ($data['data'] as $k => $value) {
-                    if ($value === null) {
-                        $series[$key]['data'][$k] = $previous_value;
-                    } else {
-                        $previous_value = $value;
-                    }
-                }
-            }
-        }
-        // If the metric has a value of 0 for all dates, remove it from the data set
-        foreach ($series as $key => $value) {
-            if (array_sum($value['data']) == 0) {
-                unset($series[$key]);
-            }
-        }
-        $bar_conf = [
-            'data'  => [
-                'labels' => array_map(fn($date) => $fmt->format(new DateTime($date)), $labels), // Format the labels array
-                'series' => array_values($series),
-            ],
-            'label' => $params['label'],
-            'icon'  => $params['icon'],
-            'color' => '#ffffff',
-            'distributed' => false,
-            'show_points' => true,
-            'line_width'  => 2,
-        ];
-
-        // display the printer graph buttons component
-        TemplateRenderer::getInstance()->display('components/printer_graph_buttons.html.twig', [
-            'start_date' => $_GET['date_start'] ?? '',
-            'end_date'   => $_GET['date_end'] ?? '',
-            'interval'   => $_GET['date_interval'] ?? 'P1Y',
-            'format'     => $format,
-            'export_url' => '/front/printerlogcsv.php?' . Toolbox::append_params([
-                'id' => array_map(fn($printer) => $printer->getID(), $printers),
-                'start' => $_GET['date_start'] ?? '',
-                'end'   => $_GET['date_end'] ?? '',
-                'interval'   => $_GET['date_interval'] ?? 'P1Y',
-                'format'     => $format,
-                'statistic' => $compare_printer_stat,
-            ]),
-            'compare_printers' => array_map(fn($printer) => $printer->getID(), $printers),
-            'compare_printer_stat' => $compare_printer_stat,
-        ]);
-
-        // display graph
-        echo "<div class='dashboard printer_barchart pt-2' data-testid='pages_barchart'>";
-        echo Widget::multipleAreas($bar_conf);
-        echo "</div>";
-    }
-
-    /**
      * Get the label for a given column of glpi_printerlogs.
      * To be used when displaying the printed pages graph.
      *
@@ -366,33 +167,20 @@ class PrinterLog extends CommonDBChild
      */
     public static function getLabelFor($key): ?string
     {
-        switch ($key) {
-            case 'total_pages':
-                return __('Total pages');
-            case 'bw_pages':
-                return __('Black & White pages');
-            case 'color_pages':
-                return __('Color pages');
-            case 'scanned':
-                return __('Scans');
-            case 'rv_pages':
-                return __('Recto/Verso pages');
-            case 'prints':
-                return __('Prints');
-            case 'bw_prints':
-                return __('Black & White prints');
-            case 'color_prints':
-                return __('Color prints');
-            case 'copies':
-                return __('Copies');
-            case 'bw_copies':
-                return __('Black & White copies');
-            case 'color_copies':
-                return __('Color copies');
-            case 'faxed':
-                return __('Fax');
-        }
-
-        return null;
+        return match ($key) {
+            'total_pages' => __('Total pages'),
+            'bw_pages' => __('Black & White pages'),
+            'color_pages' => __('Color pages'),
+            'scanned' => __('Scans'),
+            'rv_pages' => __('Recto/Verso pages'),
+            'prints' => __('Prints'),
+            'bw_prints' => __('Black & White prints'),
+            'color_prints' => __('Color prints'),
+            'copies' => __('Copies'),
+            'bw_copies' => __('Black & White copies'),
+            'color_copies' => __('Color copies'),
+            'faxed' => __('Fax'),
+            default => null,
+        };
     }
 }

@@ -106,66 +106,6 @@ class DeviceDrive extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($itemtype) {
-            case 'Computer':
-                Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                $base->addHeader('devicedrive_writer', __s('Writing ability'), $super, $father);
-                $base->addHeader('devicedrive_speed', __s('Speed'), $super, $father);
-                InterfaceType::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                break;
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($item::class) {
-            case 'Computer':
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                if ($this->fields["is_writer"]) {
-                    $row->addCell(
-                        $row->getHeaderByName('devicedrive_writer'),
-                        htmlescape(Dropdown::getYesNo($this->fields["is_writer"])),
-                        $father
-                    );
-                }
-
-                if ($this->fields["speed"]) {
-                    $row->addCell(
-                        $row->getHeaderByName('devicedrive_speed'),
-                        htmlescape($this->fields["speed"]),
-                        $father
-                    );
-                }
-
-                InterfaceType::getHTMLTableCellsForItem($row, $this, null, $options);
-        }
-        return null;
-    }
-
     public function getImportCriteria()
     {
         return [
@@ -173,10 +113,5 @@ class DeviceDrive extends CommonDevice
             'manufacturers_id'  => 'equal',
             'interfacetypes_id' => 'equal',
         ];
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-server-2";
     }
 }

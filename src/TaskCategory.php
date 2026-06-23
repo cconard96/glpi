@@ -90,11 +90,6 @@ class TaskCategory extends CommonTreeDropdown
         return _n('Task category', 'Task categories', $nb);
     }
 
-    public static function getIcon()
-    {
-        return "ti ti-tags";
-    }
-
     public function getCloneRelations(): array
     {
         return [];

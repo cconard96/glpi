@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 
@@ -58,23 +57,6 @@ class DomainRecord extends CommonDBChild implements AssignableItemInterface
         return _n('Domain record', 'Domains records', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', Domain::class, self::class];
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if ($item::class === Domain::class) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb =  self::countForDomain($item);
-            }
-            return self::createTabEntry(_n('Record', 'Records', Session::getPluralNumber()), $nb, $item::class);
-        }
-        return '';
-    }
-
     /**
      * @param Domain $item
      *
@@ -88,14 +70,6 @@ class DomainRecord extends CommonDBChild implements AssignableItemInterface
                 "domains_id"   => $item->getID(),
             ]
         );
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === Domain::class) {
-            self::showForDomain($item);
-        }
-        return true;
     }
 
     public function rawSearchOptions()
@@ -269,20 +243,6 @@ class DomainRecord extends CommonDBChild implements AssignableItemInterface
          );
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Item_Ticket::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     /**
      * Prepare input for add and update
      *
@@ -381,160 +341,6 @@ class DomainRecord extends CommonDBChild implements AssignableItemInterface
         }
     }
 
-    public function showForm($ID, array $options = [])
-    {
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        }
-        $domain = new Domain();
-        $domain->getFromDB($this->fields['domains_id']);
-
-        TemplateRenderer::getInstance()->display('pages/management/domainrecord.html.twig', [
-            'item' => $this,
-            'domain' => $domain,
-        ]);
-        return true;
-    }
-
-    /**
-     * Show records for a domain
-     *
-     * @param Domain $domain Domain object
-     *
-     * @return void|bool (display) Returns false if there is a rights error.
-     **/
-    public static function showForDomain(Domain $domain)
-    {
-        global $DB;
-
-        $instID = $domain->fields['id'];
-        if (!$domain->can($instID, READ)) {
-            return false;
-        }
-        $canedit = $domain->can($instID, UPDATE)
-                 || count($_SESSION['glpiactiveprofile']['managed_domainrecordtypes']);
-        $rand    = mt_rand();
-
-        $iterator = $DB->request([
-            'SELECT'    => 'record.*',
-            'FROM'      => self::getTable() . ' AS record',
-            'WHERE'     => ['domains_id' => $instID],
-            'LEFT JOIN' => [
-                DomainRecordType::getTable() . ' AS rtype'  => [
-                    'ON'  => [
-                        'rtype'  => 'id',
-                        'record' => 'domainrecordtypes_id',
-                    ],
-                ],
-            ],
-            'ORDER'     => ['rtype.name ASC', 'record.name ASC'],
-        ]);
-
-        if ($canedit) {
-            $twig_params = [
-                'domains_id' => $instID,
-                'domain_record' => new self(),
-                'condition' => [
-                    'NOT' => [
-                        'domains_id'   => ['>', 0],
-                        'NOT'          => ['domains_id' => null],
-                    ],
-                ],
-                'label' => __('Link a record'),
-                'add_btn_msg' => _x('button', 'Add'),
-                'add_new_btn_msg' => sprintf(__("New %s for this item"), self::getTypeName(1)),
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                {% import 'components/form/fields_macros.html.twig' as fields %}
-                {% import 'components/form/basic_inputs_macros.html.twig' as inputs %}
-                {% set rand = random() %}
-                <div class="mb-3">
-                    <form name="domain_form{{ rand }}" id="domain_form{{ rand }}" method="post"
-                          action="{{ 'Domain'|itemtype_form_path }}" data-submit-once>
-                        {{ inputs.hidden('_glpi_csrf_token', csrf_token()) }}
-                        {{ inputs.hidden('domains_id', domains_id) }}
-
-                        <div class="d-flex">
-                            {{ fields.dropdownField('DomainRecord', 'domainrecords_id', 0, label, {
-                                'condition': condition
-                            }) }}
-                            {{ fields.htmlField('', inputs.submit('addrecord', add_btn_msg, 1, {'icon': 'ti ti-link'}), null, {
-                                no_label: true,
-                                mb: '',
-                                wrapper_class: 'ms-2'
-                            }) }}
-                        </div>
-                    </form>
-                    <hr class="mt-2 mb-n2">
-                    <div id="new_record_form" class="d-none">
-                        {{ include('pages/management/domainrecord.html.twig', {
-                            item: domain_record,
-                            domains_id: domains_id,
-                            no_header: true,
-                        }, with_context = false) }}
-                    </div>
-                    <div class="mt-4 text-center">
-                        <button type="button" class="btn btn-primary" id="add_new_record_btn{{ rand }}">
-                            <i class="ti ti-plus"></i>
-                            <span>{{ add_new_btn_msg }}</span>
-                        </button>
-                        <script>
-                            $('#add_new_record_btn{{ rand }}').on('click', function() {
-                                $('#new_record_form').removeClass('d-none');
-                                $(this).addClass('d-none');
-                            });
-                        </script>
-                    </div>
-                </div>
-TWIG, $twig_params);
-        }
-
-        $entries = [];
-        foreach ($iterator as $data) {
-            $name = self::getDisplayName($domain, $data['name']);
-            if ($_SESSION["glpiis_ids_visible"] || $name === '') {
-                $name .= " (" . $data["id"] . ")";
-            }
-
-            $entries[] = [
-                'itemtype' => self::class,
-                'row_class' => isset($data['is_deleted']) && $data['is_deleted'] ? 'table-danger' : '',
-                'id'       => $data['id'],
-                'type'     => Dropdown::getDropdownName(DomainRecordType::getTable(), $data['domainrecordtypes_id']),
-                'name'     => sprintf(
-                    '<a href="%s">%s</a>',
-                    htmlescape(DomainRecord::getFormURLWithID($data['id'])),
-                    htmlescape($name)
-                ),
-                'ttl'      => $data['ttl'],
-                'data'     => $data['data'],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'type' => _n('Type', 'Types', 1),
-                'name' => __('Name'),
-                'ttl' => __('TTL'),
-                'data' => _n('Target', 'Targets', 1),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-    }
-
     /**
      * @param Domain $domain
      * @param string $name
@@ -556,10 +362,5 @@ TWIG, $twig_params);
             $name_txt = '@';
         }
         return $name_txt;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-file-search";
     }
 }

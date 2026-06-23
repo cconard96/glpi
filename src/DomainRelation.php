@@ -59,17 +59,6 @@ class DomainRelation extends CommonDropdown
         return _n('Domain relation', 'Domains relations', $nb);
     }
 
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Domain_Item::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     /**
      * @return array
      */

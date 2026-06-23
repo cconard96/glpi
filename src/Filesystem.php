@@ -43,9 +43,4 @@ class Filesystem extends CommonDropdown
     {
         return _n('File system', 'File systems', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-folder";
-    }
 }

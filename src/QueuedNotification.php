@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\RichText\RichText;
@@ -53,12 +52,6 @@ class QueuedNotification extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return __('Notification queue');
-    }
-
-    #[Override]
-    public static function getSectorizedDetails(): array
-    {
-        return ['admin', self::class];
     }
 
     #[Override]
@@ -733,38 +726,6 @@ class QueuedNotification extends CommonDBTM
         return ($vol > 0 ? 1 : 0);
     }
 
-    #[Override]
-    public function showForm($ID, array $options = [])
-    {
-        if (!Session::haveRight("queuednotification", READ)) {
-            return false;
-        }
-        $this->check($ID, READ);
-        $options['canedit'] = false;
-
-        $item = getItemForItemtype($this->fields['itemtype']);
-        if ($item === false) {
-            return false;
-        }
-
-        if ($item instanceof CommonDBTM) {
-            $item->getFromDB($this->fields['items_id']);
-        }
-
-        $target = NotificationTarget::getInstanceByType($item::class);
-
-        TemplateRenderer::getInstance()->display('pages/setup/notification/queued_notification.html.twig', [
-            'item' => $this,
-            'params' => $options,
-            'parent' => $item,
-            'additional_headers' => self::getSpecificValueToDisplay('headers', $this->fields),
-            'undisclose_body' => $target instanceof NotificationTarget
-                && !$target->canNotificationContentBeDisclosed((string) $this->fields['event']),
-        ]);
-
-        return true;
-    }
-
     /**
      * @param string $string
      * @return string
@@ -796,11 +757,5 @@ class QueuedNotification extends CommonDBTM
             }
         }
         return $newstring;
-    }
-
-    #[Override]
-    public static function getIcon()
-    {
-        return "ti ti-notification";
     }
 }

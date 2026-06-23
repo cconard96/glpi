@@ -44,18 +44,15 @@ class ProblemCost extends CommonITILCost
     public static $itemtype = Problem::class;
     public static $items_id  = 'problems_id';
 
-
     public static function canCreate(): bool
     {
         return Session::haveRight('problem', UPDATE);
     }
 
-
     public static function canView(): bool
     {
         return Session::haveRightsOr('problem', [Problem::READALL, Problem::READMY]);
     }
-
 
     public static function canUpdate(): bool
     {

@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 class Item_Plug extends CommonDBRelation
 {
     public static $itemtype_1 = 'itemtype';
@@ -48,122 +46,6 @@ class Item_Plug extends CommonDBRelation
     public static function getTypeName($nb = 0)
     {
         return _n('Plug', 'Plugs', $nb);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        $nb = 0;
-        if ($_SESSION['glpishow_count_on_tabs']) {
-            /** @var CommonDBTM $item */
-            $nb = $item::class === Plug::class
-                ? countElementsInTable(self::getTable(), ['plugs_id' => $item->getID()])
-                : countElementsInTable(self::getTable(), ['itemtype' => $item::class, 'items_id' => $item->getID()]);
-        }
-        return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        return self::showItems($item);
-    }
-
-    /**
-     * Print plugs
-     *
-     * @param CommonDBTM $item
-     *
-     * @return bool
-     */
-    public static function showItems(CommonDBTM $item): bool
-    {
-        global $DB;
-
-        $ID = $item->getID();
-        $rand = mt_rand();
-
-        if (
-            !$item->getFromDB($ID)
-            || !$item->can($ID, READ)
-        ) {
-            return false;
-        }
-        $canedit = $item->canEdit($ID);
-
-        $items = $DB->request([
-            'SELECT' => ['id', 'plugs_id', 'number_plugs'],
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                static::$itemtype_1 => $item::class,
-                static::$items_id_1 => $item->getID(),
-            ],
-        ]);
-
-        if ($canedit) {
-            $rand = mt_rand();
-            echo "\n<form id='form_device_add$rand' name='form_device_add$rand'
-               action='" . htmlescape(Toolbox::getItemTypeFormURL(self::class)) . "' method='post'>\n";
-            echo "\t<input type='hidden' name='" . htmlescape(static::$items_id_1) . "' value='$ID'>\n";
-            echo "\t<input type='hidden' name='itemtype' value='" . htmlescape($item::class) . "'>\n";
-            echo "<table class='tab_cadre_fixe'><tr class='tab_bg_1'><td>";
-            echo "<label class='col-form-label' for='dropdown_plugs_id$rand'>" . __s('Add a new plug') . "</label></td><td>";
-            Plug::dropdown([
-                'name'   => "plugs_id",
-                'rand'   => $rand,
-            ]);
-            echo "</td><td>";
-            echo "<label class='col-form-label' for='number_plugs'>" . __s('Number');
-            echo "</td><td>";
-            echo Html::input(
-                'number_plugs',
-                [
-                    'id'     => 'number_plugs',
-                    'type'   => 'number',
-                    'min'    => 1,
-                    'required' => true,
-                ]
-            );
-            echo "</td><td>";
-            echo "<input type='submit' class='btn btn-primary' name='add' value='" . _sx('button', 'Add') . "'>";
-            echo "</td></tr></table>";
-            Html::closeForm();
-        }
-
-        $entries = [];
-        foreach ($items as $row) {
-            $plug = new Plug();
-            $plug->getFromDB($row['plugs_id']);
-            $entries[] = [
-                'itemtype' => self::class,
-                'id' => $row['id'],
-                'plugs_id' => $plug->getLink(),
-                'number_plugs' => $row['number_plugs'],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'plugs_id' => __('Name'),
-                'number_plugs' => __('Number'),
-            ],
-            'formatters' => [
-                'plugs_id' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => min($_SESSION['glpilist_limit'], count($entries)),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-
-        return true;
     }
 
     public function prepareInputForAdd($input)

@@ -90,9 +90,4 @@ class ProjectState extends CommonDropdown
 
         return $tab;
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-label";
-    }
 }

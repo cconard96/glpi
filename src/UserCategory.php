@@ -40,9 +40,4 @@ class UserCategory extends CommonDropdown
     {
         return _n('User category', 'User categories', $nb);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-user-cog";
-    }
 }

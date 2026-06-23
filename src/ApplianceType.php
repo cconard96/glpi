@@ -39,9 +39,4 @@ class ApplianceType extends CommonDropdown
     {
         return _n('Appliance type', 'Appliance types', $nb);
     }
-
-    public static function getIcon()
-    {
-        return Appliance::getIcon();
-    }
 }

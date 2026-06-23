@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Error\ErrorHandler;
@@ -48,7 +47,6 @@ class SavedSearch_Alert extends CommonDBChild
     public static $itemtype = SavedSearch::class;
     public static $items_id = 'savedsearches_id';
     public $dohistory       = true;
-    protected $displaylist  = false;
 
     public const OP_LESS     = 0;
     public const OP_LESSEQ   = 1;
@@ -60,173 +58,6 @@ class SavedSearch_Alert extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return _n('Saved search alert', 'Saved searches alerts', $nb);
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-bell';
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        // can exists for template
-        if (
-            ($item instanceof SavedSearch)
-            && SavedSearch::canView()
-        ) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(
-                    $this->getTable(),
-                    ['savedsearches_id' => $item->getID()]
-                );
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof SavedSearch) {
-            return false;
-        }
-
-        self::showForSavedSearch($item, $withtemplate);
-        return true;
-    }
-
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $search = new SavedSearch();
-        if ($ID > 0) {
-            $this->check($ID, READ);
-            $search->getFromDB($this->fields['savedsearches_id']);
-        } else {
-            $this->check(-1, CREATE, $options);
-            $search->getFromDB($options['savedsearches_id']);
-        }
-
-        $count = null;
-        try {
-            if ($data = $search->execute()) {
-                $count = $data['data']['totalcount'];
-            }
-        } catch (RuntimeException $e) {
-            ErrorHandler::logCaughtException($e);
-            ErrorHandler::displayCaughtExceptionMessage($e);
-        }
-
-        TemplateRenderer::getInstance()->display('pages/tools/savedsearch/alert.html.twig', [
-            'item' => $this,
-            'params' => $options,
-            'search_link' => $search->getLink(),
-            'count' => $count,
-            'operators' => self::getOperators(),
-        ]);
-
-        return true;
-    }
-
-    /**
-     * Print the searches alerts
-     *
-     * @param SavedSearch $search       Object instance
-     * @param int     $withtemplate Template or basic item (default '')
-     *
-     * @return void
-     **/
-    public static function showForSavedSearch(SavedSearch $search, $withtemplate = 0)
-    {
-        global $DB;
-
-        $ID = $search->getID();
-
-        if (
-            !$search->getFromDB($ID)
-            || !$search->can($ID, READ)
-        ) {
-            return;
-        }
-        $start       = (int) ($_GET["start"] ?? 0);
-        $sort        = $_GET["sort"] ?? "";
-        $order       = strtoupper($_GET["order"] ?? "");
-        if (strlen($sort) == 0) {
-            $sort = "name";
-        }
-        if (strlen($order) == 0) {
-            $order = "ASC";
-        }
-
-        $notifications = $DB->request([
-            'FROM'   => Notification::getTable(),
-            'WHERE'  => [
-                'itemtype'  => self::getType(),
-                'event'     => 'alert' . ($search->getField('is_private') ? '' : '_' . $search->getID()),
-            ],
-        ]);
-
-        $total_count = countElementsInTable(self::getTable(), ['savedsearches_id' => $ID]);
-        $iterator = $DB->request([
-            'FROM'   => self::getTable(),
-            'WHERE'  => ['savedsearches_id' => $ID],
-            'ORDER'  => ["$sort $order"],
-            'START'  => $start,
-            'LIMIT'  => $_SESSION['glpilist_limit'],
-        ]);
-
-        $alert = new self();
-        $entries = [];
-        foreach ($iterator as $data) {
-            $alert->getFromDB($data['id']);
-            $entries[] = [
-                'name' => $alert->getLink(),
-                'operator' => self::getOperators($data['operator']),
-                'value' => $data['value'],
-                'is_active' => Dropdown::getYesNo($data['is_active']),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('pages/tools/savedsearch/alert_list_notification.html.twig', [
-            'notifications' => $notifications,
-            'search' => $search,
-            'params' => [
-                'canedit' => $search->canEdit($ID),
-                'withtemplate' => $withtemplate,
-            ],
-        ]);
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'start' => $start,
-            'sort' => $sort,
-            'order' => $order,
-            'is_tab' => true,
-            'filters' => [],
-            'nofilter' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'operator' => __('Operator'),
-                'value' => __('Value'),
-                'is_active' => __('Active'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => $total_count,
-            'filtered_number' => $total_count,
-            'showmassiveactions' => false,
-        ]);
     }
 
     /**

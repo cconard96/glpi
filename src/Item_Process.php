@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * Process Class
  **/
@@ -50,145 +48,6 @@ class Item_Process extends CommonDBChild
     {
         return _n('Process', 'Processes', $nb);
     }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            throw new RuntimeException("Only CommonDBTM items are supported");
-        }
-
-        if ($item::canView()) {
-            $nb = countElementsInTable(
-                self::getTable(),
-                [
-                    'items_id'     => $item->getID(),
-                    'itemtype'     => $item->getType(),
-                ]
-            );
-            if ($nb == 0) {
-                return '';
-            }
-
-            if (!$_SESSION['glpishow_count_on_tabs']) {
-                $nb = 0;
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showForItem($item, $withtemplate);
-        return true;
-    }
-
-
-    /**
-     * @param CommonDBTM $item
-     * @param int $withtemplate
-     *
-     * @return void
-     */
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        global $DB;
-
-        $itemtype = $item->getType();
-        $items_id = $item->getField('id');
-
-        $start       = intval($_GET["start"] ?? 0);
-        $sort        = $_GET["sort"] ?? "";
-        $order       = strtoupper($_GET["order"] ?? "");
-        $filters     = $_GET['filters'] ?? [];
-        $is_filtered = count($filters) > 0;
-        $sql_filters = self::convertFiltersValuesToSqlCriteria($filters);
-
-        if (strlen($sort) == 0) {
-            $sort = "pid";
-        }
-        if (strlen($order) == 0) {
-            $order = "ASC";
-        }
-
-        $all_data = $DB->request([
-            'FROM' => self::getTable(),
-            'WHERE' => [
-                'items_id' => $items_id,
-                'itemtype' => $itemtype,
-            ],
-        ]);
-        $all_data = iterator_to_array($all_data);
-        $filtered_data = $DB->request([
-            'FROM' => self::getTable(),
-            'WHERE' => [
-                'items_id' => $items_id,
-                'itemtype' => $itemtype,
-            ] + $sql_filters,
-            'LIMIT' => $_SESSION['glpilist_limit'],
-            'START' => $start,
-            'ORDER' => "$sort $order",
-        ]);
-
-        $total_number = count($all_data);
-        $filtered_number = count(getAllDataFromTable(self::getTable(), [
-            'items_id' => $items_id,
-            'itemtype' => $itemtype,
-        ] + $sql_filters));
-
-        $processes = [];
-        foreach ($filtered_data as $process) {
-            $process['virtualmemory'] *= 1024; // size in KiB in DB
-            $processes[$process['id']] = $process;
-        }
-
-        $users = array_unique(array_column($all_data, 'user'));
-        $users = array_combine($users, $users);
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'start' => $start,
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => $_SESSION['glpilist_limit'],
-            'href' => $item::getFormURLWithID($items_id),
-            'additional_params' => $is_filtered ? http_build_query([
-                'filters' => $filters,
-            ]) : "",
-            'is_tab' => true,
-            'items_id' => $items_id,
-            'filters' => $filters,
-            'columns' => [
-                'pid'           => __("PID"),
-                'cmd'           => __("Command"),
-                'cpuusage'      => __("CPU Usage"),
-                'memusage'      => __("Memory Usage"),
-                'started'       => __("Started at"),
-                'tty'           => __("TTY"),
-                'user'          => _n("User", "Users", 1),
-                'virtualmemory' => __("Virtual memory"),
-            ],
-            'columns_values' => [
-                'user' => $users,
-            ],
-            'formatters' => [
-                'cmd'           => 'maintext',
-                'cpuusage'      => 'progressmin',
-                'memusage'      => 'progressmin',
-                'started'       => 'datetime',
-                'user'          => 'array',
-                'virtualmemory' => 'bytesize',
-            ],
-            'entries' => $processes,
-            'total_number' => $total_number,
-            'filtered_number' => $filtered_number,
-        ]);
-    }
-
 
     public static function convertFiltersValuesToSqlCriteria(array $filters = []): array
     {
@@ -225,11 +84,5 @@ class Item_Process extends CommonDBChild
         }
 
         return $sql_filters;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-bolt";
     }
 }

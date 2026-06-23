@@ -92,55 +92,6 @@ class DeviceSoundCard extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($itemtype) {
-            case Computer::class:
-                Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                $base->addHeader('devicesoundcard_type', _sn('Type', 'Types', 1), $super, $father);
-                break;
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        $cell = null;
-        switch ($item::class) {
-            case 'Computer':
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                if ($this->fields["type"]) {
-                    $cell = $row->addCell(
-                        $row->getHeaderByName('devicesoundcard_type'),
-                        htmlescape($this->fields["type"]),
-                        $father
-                    );
-                }
-        }
-        return $cell;
-    }
-
     /**
      * @param class-string<CommonDBTM> $itemtype
      * @param array $main_joinparams

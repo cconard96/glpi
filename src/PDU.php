@@ -74,35 +74,10 @@ class PDU extends CommonDBTM implements AssignableItemInterface, DCBreadcrumbInt
         return _n('PDU', 'PDUs', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['assets', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'inventory';
     }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(Item_Plug::class, $ong, $options)
-         ->addStandardTab(Item_Devices::class, $ong, $options)
-         ->addStandardTab(NetworkPort::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        ;
-        return $ong;
-    }
-
 
     public function rawSearchOptions()
     {
@@ -288,19 +263,12 @@ class PDU extends CommonDBTM implements AssignableItemInterface, DCBreadcrumbInt
 
     public function cleanDBonPurge()
     {
-
         $this->deleteChildrenAndRelationsFromDb(
             [
                 Item_Plug::class,
                 PDU_Rack::class,
             ]
         );
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-plug";
     }
 
     public function prepareInputForAdd($input)

@@ -58,18 +58,15 @@ class BlacklistedMailContent extends CommonDropdown
         return __('Blacklisted mail content');
     }
 
-
     public static function canCreate(): bool
     {
         return static::canUpdate();
     }
 
-
     public static function canPurge(): bool
     {
         return static::canUpdate();
     }
-
 
     public function getAdditionalFields()
     {
@@ -83,7 +80,6 @@ class BlacklistedMailContent extends CommonDropdown
         ],
         ];
     }
-
 
     public function rawSearchOptions()
     {
@@ -99,11 +95,6 @@ class BlacklistedMailContent extends CommonDropdown
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-mail-x";
     }
 
     public function getCloneRelations(): array

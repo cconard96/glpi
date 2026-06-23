@@ -63,15 +63,9 @@ class NotImportedEmail extends CommonDBTM
         return $forbidden;
     }
 
-
     public static function getTypeName($nb = 0)
     {
         return _n('Refused email', 'Refused emails', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', MailCollector::class, self::class];
     }
 
     public function getSpecificMassiveActions($checkitem = null)
@@ -86,19 +80,6 @@ class NotImportedEmail extends CommonDBTM
             $actions[$prefix . 'import_email'] = _sx('button', 'Import');
         }
         return $actions;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'import_email':
-                Entity::dropdown();
-                echo "<br><br>";
-                echo Html::submit(_x('button', 'Import'), ['name' => 'massiveaction']);
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(
@@ -128,7 +109,6 @@ class NotImportedEmail extends CommonDBTM
         }
         parent::processMassiveActionsForOneItemtype($ma, $item, $ids);
     }
-
 
     public function rawSearchOptions()
     {
@@ -208,7 +188,6 @@ class NotImportedEmail extends CommonDBTM
         return $tab;
     }
 
-
     /**
      * @return void
      */
@@ -218,7 +197,6 @@ class NotImportedEmail extends CommonDBTM
 
         $DB->delete('glpi_notimportedemails', [new QueryExpression('true')]);
     }
-
 
     /**
      * @param int $reason_id
@@ -231,7 +209,6 @@ class NotImportedEmail extends CommonDBTM
         $tab = self::getAllReasons();
         return $tab[$reason_id] ?? NOT_AVAILABLE;
     }
-
 
     /**
      * Get All possible reasons array
@@ -247,57 +224,5 @@ class NotImportedEmail extends CommonDBTM
             self::FAILED_OPERATION  => __('Failed operation'),
             self::NOT_ENOUGH_RIGHTS => __('Not enough rights'),
         ];
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param $field
-     * @param $values
-     * @param $options   array
-     **/
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'reason':
-                return htmlescape(self::getReason($values[$field]));
-
-            case 'messageid':
-                $clean = ['<' => '',
-                    '>' => '',
-                ];
-                return htmlescape(strtr($values[$field], $clean));
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param $field
-     * @param $name               (default '')
-     * @param $values             (default '')
-     * @param $options      array
-     **/
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'reason':
-                $options['value'] = $values[$field];
-                return Dropdown::showFromArray($name, self::getAllReasons(), $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 }

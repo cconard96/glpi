@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Features\AssetImage;
@@ -83,11 +82,6 @@ class SoftwareLicense extends CommonTreeDropdown implements AssignableItemInterf
     public static function getTypeName($nb = 0)
     {
         return _n('License', 'Licenses', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
     }
 
     public function pre_updateInDB()
@@ -233,60 +227,6 @@ class SoftwareLicense extends CommonTreeDropdown implements AssignableItemInterf
             return $soft->getName();
         }
         return '';
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(SoftwareLicense::class, $ong, $options);
-        $this->addStandardTab(Item_SoftwareLicense::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(KnowbaseItem_Item::class, $ong, $options);
-        $this->addStandardTab(Item_Ticket::class, $ong, $options);
-        $this->addStandardTab(Item_Problem::class, $ong, $options);
-        $this->addStandardTab(Change_Item::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Certificate_Item::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $softwares_id = $options['softwares_id'] ?? -1;
-
-        if ($ID < 0) {
-            // Create item
-            $this->fields['softwares_id'] = $softwares_id;
-            $this->fields['number']       = 1;
-            $soft                         = new Software();
-            if (
-                $soft->getFromDB($softwares_id)
-                && in_array($_SESSION['glpiactive_entity'], getAncestorsOf(
-                    'glpi_entities',
-                    $soft->getEntityID()
-                ))
-            ) {
-                $options['entities_id'] = $soft->getEntityID();
-            }
-        } elseif ($this->fields['number'] == 0) {
-            //fix licenses stored with number = 0
-            $this->fields['number'] = 1;
-        }
-
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/management/softwarelicense.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-            'licences_assigned' => Item_SoftwareLicense::countForLicense($this->getID())
-                + SoftwareLicense_User::countForLicense($this->getID()),
-        ]);
-
-        return true;
     }
 
     public function rawSearchOptions()
@@ -841,30 +781,6 @@ class SoftwareLicense extends CommonTreeDropdown implements AssignableItemInterf
     }
 
     /**
-     * Get number of bought licenses of a version
-     *
-     * @param int $softwareversions_id   version ID
-     * @param int|''|array<int> $entity  Entity to search for licenses in (default = all active entities)
-     *                               (default '')
-     *
-     * @return int number of installations
-     */
-    public static function countForVersion($softwareversions_id, $entity = '')
-    {
-        global $DB;
-
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => 'glpi_softwarelicenses',
-            'WHERE'  => [
-                'softwareversions_id_buy'  => $softwareversions_id,
-            ] + getEntitiesRestrictCriteria('glpi_softwarelicenses', '', $entity),
-        ])->current();
-
-        return $result['cpt'];
-    }
-
-    /**
      * Get number of licenses of a software
      *
      * @param int $softwares_id software ID
@@ -943,207 +859,6 @@ class SoftwareLicense extends CommonTreeDropdown implements AssignableItemInterf
     }
 
     /**
-     * Show Licenses of a software
-     *
-     * @param Software $software Software object
-     *
-     * @return void
-     **/
-    public static function showForSoftware(Software $software)
-    {
-        global $DB;
-
-        $softwares_id  = $software->getField('id');
-        $license       = new self();
-
-        if (!$software->can($softwares_id, READ)) {
-            return;
-        }
-
-        $columns = [
-            'name'      => __('Name'),
-            'entity'    => Entity::getTypeName(1),
-            'serial'    => __('Serial number'),
-            'number'    => _x('quantity', 'Number'),
-            '_affected' => [
-                'label' => __('Affected items'),
-                'nosort' => true,
-            ],
-            'typename'  => _n('Type', 'Types', 1),
-            'buyname'   => __('Purchase version'),
-            'usename'   => __('Version in use'),
-            'expire'    => __('Expiration'),
-            'statename' => __('Status'),
-        ];
-        if (!$software->isRecursive()) {
-            unset($columns['entity']);
-        }
-
-        $start = (int) ($_GET['start'] ?? 0);
-        $order = ($_GET['order'] ?? 'ASC') === 'DESC' ? 'DESC' : 'ASC';
-
-        if (!empty($_GET["sort"]) && isset($columns[$_GET["sort"]])) {
-            $sort = $_GET["sort"];
-        } else {
-            $sort = 'name';
-        }
-
-        // Right type is enough. Can add a License on a software we have Read access
-        $canedit             = Software::canUpdate();
-
-        // Total Number of events
-        $number = countElementsInTable(
-            "glpi_softwarelicenses",
-            [
-                'glpi_softwarelicenses.softwares_id' => $softwares_id,
-                'glpi_softwarelicenses.is_template'  => 0,
-            ] + getEntitiesRestrictCriteria('glpi_softwarelicenses', '', '', true)
-        );
-
-        if ($canedit) {
-            $twig_params = [
-                'btn_msg' => _x('button', 'Add a license'),
-                'softwares_id' => $softwares_id,
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div class="text-center mb-3">
-                    <a class="btn btn-primary" href="{{ 'SoftwareLicense'|itemtype_form_path }}?softwares_id={{ softwares_id }}">{{ btn_msg }}</a>
-                </div>
-TWIG, $twig_params);
-        }
-
-        $iterator = $DB->request([
-            'SELECT'    => [
-                'glpi_softwarelicenses.*',
-                'buyvers.name AS buyname',
-                'usevers.name AS usename',
-                'glpi_entities.completename AS entity',
-                'glpi_softwarelicensetypes.name AS typename',
-                'glpi_states.name AS statename',
-            ],
-            'FROM'      => 'glpi_softwarelicenses',
-            'LEFT JOIN' => [
-                'glpi_softwareversions AS buyvers'  => [
-                    'ON' => [
-                        'glpi_softwarelicenses' => 'softwareversions_id_buy',
-                        'buyvers'               => 'id',
-                    ],
-                ],
-                'glpi_softwareversions AS usevers'  => [
-                    'ON' => [
-                        'glpi_softwarelicenses' => 'softwareversions_id_use',
-                        'usevers'               => 'id',
-                    ],
-                ],
-                'glpi_entities'                     => [
-                    'ON' => [
-                        'glpi_entities'         => 'id',
-                        'glpi_softwarelicenses' => 'entities_id',
-                    ],
-                ],
-                'glpi_softwarelicensetypes'         => [
-                    'ON' => [
-                        'glpi_softwarelicensetypes'   => 'id',
-                        'glpi_softwarelicenses'       => 'softwarelicensetypes_id',
-                    ],
-                ],
-                'glpi_states'                       => [
-                    'ON' => [
-                        'glpi_softwarelicenses' => 'states_id',
-                        'glpi_states'           => 'id',
-                    ],
-                ],
-            ],
-            'WHERE'     => [
-                'glpi_softwarelicenses.softwares_id'   => $softwares_id,
-                'glpi_softwarelicenses.is_template'    => 0,
-            ] + getEntitiesRestrictCriteria('glpi_softwarelicenses', '', '', true),
-            'ORDERBY'   => "$sort $order",
-            'START'     => $start,
-            'LIMIT'     => (int) $_SESSION['glpilist_limit'],
-        ]);
-
-        $tot_assoc = 0;
-        $tot       = 0;
-        $entries   = [];
-        foreach ($iterator as $data) {
-            $license->getFromResultSet($data);
-            $expired = true;
-            if (
-                is_null($data['expire'])
-                || ($data['expire'] > date('Y-m-d'))
-            ) {
-                $expired = false;
-            }
-            $nb_assoc   = Item_SoftwareLicense::countForLicense($data['id']);
-            $nb_assoc  += SoftwareLicense_User::countForLicense($data['id']);
-            $tot_assoc += $nb_assoc;
-
-            if ($data['number'] < 0) {
-                // One unlimited license, total is unlimited
-                $tot = -1;
-            } elseif ($tot >= 0) {
-                // Expired licenses do not count
-                if (!$expired) {
-                    // Not unlimited, add the current number
-                    $tot += $data['number'];
-                }
-            }
-            $entries[] = [
-                'itemtype' => self::class,
-                'id'       => $data['id'],
-                'row_class' => $expired ? 'table-danger' : '',
-                'name' => $license->getLink(['complete' => true, 'comments' => true]),
-                'entity' => $data['entity'],
-                'serial' => $data['serial'],
-                'number' => ($data['number'] > 0) ? $data['number'] : __('Unlimited'),
-                '_affected' => '<span class="' . ($data['is_valid'] ? 'text-green' : 'text-red') . '">' . $nb_assoc . '</span>',
-                'typename' => $data['typename'],
-                'buyname' => $data['buyname'],
-                'usename' => $data['usename'],
-                'expire' => $data['expire'],
-                'statename' => $data['statename'],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'start' => $start,
-            'limit' => $_SESSION["glpilist_limit"],
-            'sort' => $sort,
-            'order' => $order,
-            'nofilter' => true,
-            'columns' => $columns,
-            'formatters' => [
-                'name' => 'raw_html',
-                '_affected' => 'raw_html',
-                'expire' => 'date',
-            ],
-            'footers' => [
-                ['', __('Total'), (($tot > 0) ? $tot . "" : __('Unlimited')), $tot_assoc, '', '', '', '', ''],
-            ],
-            'footer_class' => 'fw-bold',
-            'entries' => $entries,
-            'total_number' => $number,
-            'filtered_number' => $number,
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . mt_rand(),
-                'extraparams' => [
-                    'options' => [
-                        'glpi_softwareversions.name' => [
-                            'condition' => ["glpi_softwareversions.softwares_id" => $softwares_id],
-                        ],
-                        'glpi_softwarelicenses.name' => ['itemlink_as_string' => true],
-                    ],
-                ],
-            ],
-        ]);
-    }
-
-    /**
      * Get fields to display in the unicity error message
      *
      * @return array
@@ -1156,59 +871,5 @@ TWIG, $twig_params);
             'entities_id'  => Entity::getTypeName(1),
             'softwares_id' => _n('Software', 'Software', 1),
         ];
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            $nb = 0;
-            switch (get_class($item)) {
-                case Software::class:
-                    if (!self::canView()) {
-                        return '';
-                    }
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = self::countForSoftware($item->getID());
-                    }
-                    return self::createTabEntry(
-                        self::getTypeName(Session::getPluralNumber()),
-                        (($nb >= 0) ? $nb : '&infin;'),
-                        $item::class
-                    );
-
-                case self::class:
-                    if (!self::canView()) {
-                        return '';
-                    }
-                    if ($_SESSION['glpishow_count_on_tabs']) {
-                        $nb = countElementsInTable(
-                            static::getTable(),
-                            ['softwarelicenses_id' => $item->getID()]
-                        );
-                    }
-                    return self::createTabEntry(
-                        self::getTypeName(Session::getPluralNumber()),
-                        (($nb >= 0) ? $nb : '&infin;'),
-                        $item::class
-                    );
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item::class === Software::class && self::canView()) {
-            self::showForSoftware($item);
-        } elseif ($item::class === self::class && self::canView()) {
-            $item->showChildren();
-            return true;
-        }
-        return true;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-key";
     }
 }

@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 
@@ -63,11 +62,6 @@ class CalendarSegment extends CommonDBChild
     public static function getTypeName($nb = 0)
     {
         return _n('Time range', 'Time ranges', $nb);
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-calendar-time';
     }
 
     public function prepareInputForAdd($input)
@@ -358,108 +352,5 @@ class CalendarSegment extends CommonDBChild
             ],
         ])->current();
         return $result['cpt'] > 0;
-    }
-
-    /**
-     * Show segments of a calendar
-     *
-     * @param $calendar Calendar object
-     *
-     * @return void
-     **/
-    public static function showForCalendar(Calendar $calendar)
-    {
-        global $DB;
-
-        $ID = $calendar->getField('id');
-        if (!$calendar->can($ID, READ)) {
-            return;
-        }
-
-        $canedit = $calendar->can($ID, UPDATE);
-        $rand    = mt_rand();
-
-        $iterator = $DB->request([
-            'SELECT' => ['id', 'day', 'begin', 'end'],
-            'FROM'   => 'glpi_calendarsegments',
-            'WHERE'  => [
-                'calendars_id' => $ID,
-            ],
-            'ORDER'  => [
-                'day',
-                'begin',
-                'end',
-            ],
-        ]);
-
-        $daysofweek = Toolbox::getDaysOfWeekArray();
-        if ($canedit) {
-            $segment = new self();
-            $options[self::$items_id] = $ID;
-            $segment->check(-1, CREATE, $options);
-            TemplateRenderer::getInstance()->display('pages/setup/calendarsegment.html.twig', [
-                'item' => $segment,
-                'calendars_id' => $ID,
-                'days_of_week' => $daysofweek,
-                'begin' => date('H') . ":00",
-                'end' => ((int) date('H') + 1) . ":00",
-                'params' => [
-                    'canedit' => true,
-                ],
-                'no_header' => true,
-            ]);
-        }
-
-        $entries = [];
-        foreach ($iterator as $data) {
-            $entries[] = [
-                'itemtype' => self::class,
-                'id'    => $data['id'],
-                'day'   => $daysofweek[$data['day']],
-                'begin' => $data['begin'],
-                'end'   => $data['end'],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'day' => _n('Day', 'Days', 1),
-                'begin' => __('Start'),
-                'end' => __('End'),
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => min($_SESSION['glpilist_limit'], count($entries)),
-                'specific_actions' => ['purge' => _x('button', 'Delete permanently')],
-                'container'     => 'mass' . self::class . $rand,
-            ],
-        ]);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$withtemplate) {
-            $nb = 0;
-            if ($item instanceof Calendar) {
-                if ($_SESSION['glpishow_count_on_tabs']) {
-                    $nb = countElementsInTable(static::getTable(), ['calendars_id' => $item->getID()]);
-                }
-                return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-            }
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof Calendar) {
-            self::showForCalendar($item);
-        }
-        return true;
     }
 }

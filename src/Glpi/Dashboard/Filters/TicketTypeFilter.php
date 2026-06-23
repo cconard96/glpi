@@ -84,18 +84,4 @@ class TicketTypeFilter extends AbstractFilter
         }
         return $criteria;
     }
-
-    public static function getHtml($value): string
-    {
-        return self::displayList(
-            self::getName(),
-            is_string($value) ? $value : "",
-            'tickettype',
-            Ticket::class,
-            [
-                'condition' => ['id' => -1],
-                'toadd'     => Ticket::getTypes(),
-            ]
-        );
-    }
 }

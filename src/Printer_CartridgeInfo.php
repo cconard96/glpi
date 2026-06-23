@@ -33,11 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\Inventory\Asset\Cartridge;
-
-use function Safe\preg_match;
-
 class Printer_CartridgeInfo extends CommonDBChild
 {
     public static $itemtype = Printer::class;
@@ -71,92 +66,6 @@ class Printer_CartridgeInfo extends CommonDBChild
         }
 
         return $info;
-    }
-
-    /**
-     * @param Printer $printer
-     *
-     * @return void
-     */
-    public function showForPrinter(Printer $printer)
-    {
-        $info = $this->getInfoForPrinter($printer);
-
-        $asset = new Cartridge($printer);
-        $tags = $asset->knownTags();
-        $entries = [];
-
-        foreach ($info as $row) {
-            $property   = $row['property'];
-            $value      = $row['value'];
-
-            preg_match("/^toner(\w+.*$)/", $property, $matches);
-            $bar_color = $matches[1] ?? 'green';
-            $text_color = ($bar_color === "black") ? 'white' : 'black';
-
-            if (str_contains($value, 'pages')) {
-                $pages = str_replace('pages', '', $value);
-                $value = sprintf(
-                    _x('%1$s remaining page', '%1$s remaining pages', $pages),
-                    $pages
-                );
-            } elseif ($value === 'OK') {
-                $value = __('OK');
-            }
-
-            if (is_numeric($value)) {
-                $progressbar_data = [
-                    'percent'           => $value,
-                    'percent_text'      => $value,
-                    'background-color'  => htmlescape($bar_color),
-                    'text-color'        => $text_color,
-                    'text'              => '',
-                ];
-
-
-                $out = <<<HTML
-                    <span class='text-nowrap'>
-                    {$progressbar_data['text']}
-                    </span>
-                    <div class="progress" style="height: 16px">
-                        <div class="progress-bar progress-bar-striped" role="progressbar"
-                            style="width: {$progressbar_data['percent']}%; background-color:
-                            {$progressbar_data['background-color']}; color: {$progressbar_data['text-color']};"
-                            aria-valuenow="{$progressbar_data['percent']}"
-                            aria-valuemin="0" aria-valuemax="100">
-                            {$progressbar_data['percent_text']}%
-                        </div>
-
-                    </div>
-HTML;
-            } else {
-                $out = htmlescape($value);
-            }
-            $entries[] = [
-                'property' => $tags[$property]['name'] ?? $property,
-                'value'    => $out,
-            ];
-        }
-
-        if (count($entries)) {
-            TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-                'is_tab' => true,
-                'nofilter' => true,
-                'nosort' => true,
-                'super_header' => self::getTypeName(Session::getPluralNumber()),
-                'columns' => [
-                    'property' => __('Property'),
-                    'value' => __('Value'),
-                ],
-                'formatters' => [
-                    'value' => 'raw_html',
-                ],
-                'entries' => $entries,
-                'total_number' => count($entries),
-                'filtered_number' => count($entries),
-                'showmassiveactions' => false,
-            ]);
-        }
     }
 
     /**
@@ -208,75 +117,5 @@ HTML;
         ];
 
         return $tab;
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-    /**
-     * Create a badge for a specific type of cartridge information
-     *
-     * @param array $data
-     * @param string $type
-     * @return string|null
-     */
-    private static function createCartridgeInformationBadge(array $data, string $type): ?string
-    {
-        $color_aliases = [
-            'magenta'   => 'purple',
-        ];
-        $color_translations = [
-            'black'         => __('Black'),
-            'cyan'          => __('Cyan'),
-            'magenta'       => __('Magenta'),
-            'yellow'        => __('Yellow'),
-        ];
-
-        if (isset($data['property'], $data['value']) && str_starts_with($data['property'], $type)) {
-            $color = str_replace($type, '', $data['property']);
-            $twig_params = [
-                'color_translated' => $color_translations[$color] ?? ucwords($color),
-                'color' => $color_aliases[$color] ?? $color,
-                'status' => is_numeric($data['value']) ? $data['value'] . '%' : $data['value'],
-            ];
-            // language=Twig
-            return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <span class="badge bg-{{ color }} text-{{ color }}-fg fw-bold">
-                    {{ color_translated }} : {{ status }}
-                </span>
-TWIG, $twig_params);
-        }
-
-        return null;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        $printer = new Printer();
-        if (str_starts_with($field, '_virtual_')) {
-            $type = preg_match('/_virtual_(.*)_percent/', $field, $matches) ? $matches[1] : '';
-            $raw_data = $options['raw_data']['Printer_' . $printer->getSearchOptionIDByField('field', $field)] ?? [];
-            // Filter to keep only numeric keys (actual data entries, not metadata like 'count')
-            $data_entries = array_filter($raw_data, static fn($key) => is_int($key), ARRAY_FILTER_USE_KEY);
-            $badges = array_filter(array_map(
-                static fn($data) => self::createCartridgeInformationBadge($data, $type),
-                $data_entries
-            ));
-
-            if ($badges) {
-                // language=Twig
-                return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                    <div class="d-flex flex-wrap gap-1">
-                        {% for badge in badges %}
-                            {{ badge|raw }}
-                        {% endfor %}
-                    </div>
-TWIG, ['badges' => $badges]);
-            }
-        }
-
-        return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 }

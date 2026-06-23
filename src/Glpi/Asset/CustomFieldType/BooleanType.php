@@ -34,7 +34,6 @@
 
 namespace Glpi\Asset\CustomFieldType;
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\CustomFieldOption\BooleanOption;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
@@ -45,25 +44,6 @@ class BooleanType extends AbstractType
     public static function getName(): string
     {
         return __('Yes/No');
-    }
-
-    public function getFormInput(string $name, mixed $value, ?string $label = null, bool $for_default = false): string
-    {
-        $twig_params = [
-            'name' => $name,
-            'value' => $value ?? $this->custom_field->fields['default_value'],
-            'label' => $label ?? $this->custom_field->getFriendlyName(),
-            'field_options' => $this->getOptionValues($for_default),
-        ];
-        // language=Twig
-        return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {% if field_options.display_as_slider %}
-                {{ fields.sliderField(name, value, label, field_options) }}
-            {% else %}
-                {{ fields.dropdownYesNo(name, value, label, field_options) }}
-            {% endif %}
-TWIG, $twig_params);
     }
 
     public function normalizeValue(mixed $value): ?bool

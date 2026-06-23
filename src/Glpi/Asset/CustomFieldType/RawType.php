@@ -60,9 +60,4 @@ class RawType extends AbstractType
             new ProfileRestrictOption($this->custom_field, 'hidden', __('Hidden for these profiles'), false),
         ];
     }
-
-    public function getFormInput(string $name, mixed $value, ?string $label = null, bool $for_default = false): string
-    {
-        return '';
-    }
 }

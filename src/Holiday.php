@@ -168,9 +168,4 @@ class Holiday extends CommonDropdown
         $calendar_holiday = new Calendar_Holiday();
         $calendar_holiday->invalidateHolidayCache($this->fields['id']);
     }
-
-    public static function getIcon()
-    {
-        return "ti ti-calendar-off";
-    }
 }

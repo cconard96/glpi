@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * Wi-Fi instantitation of NetworkPort
  * @since 0.84
@@ -50,41 +48,6 @@ class NetworkPortWifi extends NetworkPortInstantiation
     public function getNetworkCardInterestingFields()
     {
         return ['link.mac' => 'mac'];
-    }
-
-    /**
-     * @param NetworkPort $netport NetworkPort object :the port that owns this instantiation
-     *                               (useful for instance to get network port attributes)
-     * @param array $options array of options given to NetworkPort::showForm
-     * @param array $recursiveItems list of the items on which this port is attached
-     *
-     * @return void
-     */
-    public function showInstantiationForm(NetworkPort $netport, $options, $recursiveItems)
-    {
-        if (!$options['several']) {
-            $this->showNetworkCardField($netport, $options, $recursiveItems);
-            $twig_params = [
-                'item' => $this,
-                'netport' => $netport,
-                'params' => $options,
-                'wifinetworks_id' => $this->fields['wifinetworks_id'],
-                'wifinetworks_label' => WifiNetwork::getTypeName(1),
-                'mode_label' => __('Wifi mode'),
-                'modes' => WifiNetwork::getWifiCardModes(),
-                'version_label' => __('Wifi protocol version'),
-                'versions' => WifiNetwork::getWifiCardVersion(),
-            ];
-            // language=Twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {{ fields.dropdownField('WifiNetwork', 'wifinetworks_id', wifinetworks_id, wifinetworks_label) }}
-            {{ fields.dropdownArrayField('mode', item.fields['mode'], modes, mode_label) }}
-            {{ fields.dropdownArrayField('version', item.fields['version'], versions, version_label) }}
-            {% do call([item, 'showMacField'], [netport, params]) %}
-TWIG, $twig_params);
-
-        }
     }
 
     public function rawSearchOptions()
@@ -135,41 +98,6 @@ TWIG, $twig_params);
         ];
 
         return $tab;
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'mode':
-                $tab = WifiNetwork::getWifiCardModes();
-                return htmlescape($tab[$values[$field]] ?? NOT_AVAILABLE);
-
-            case 'version':
-                $tab = WifiNetwork::getWifiCardVersion();
-                return htmlescape($tab[$values[$field]] ?? NOT_AVAILABLE);
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'mode':
-                $options['value'] = $values[$field];
-                return Dropdown::showFromArray($name, WifiNetwork::getWifiCardModes(), $options);
-
-            case 'version':
-                $options['value'] = $values[$field];
-                return Dropdown::showFromArray($name, WifiNetwork::getWifiCardVersion(), $options);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
     /**

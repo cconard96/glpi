@@ -33,12 +33,10 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\CalDAV\Contracts\CalDAVCompatibleItemInterface;
 use Glpi\CalDAV\Traits\VobjectConverterTrait;
 use Glpi\Features\Clonable;
 use Glpi\Features\PlanningEvent;
-use Glpi\RichText\RichText;
 use Ramsey\Uuid\Uuid;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Component\VTodo;
@@ -74,11 +72,6 @@ class Reminder extends CommonDBVisible implements
             return _n('Reminder', 'Reminders', $nb);
         }
         return _n('Personal reminder', 'Personal reminders', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['tools', self::class];
     }
 
     public static function canCreate(): bool
@@ -447,149 +440,10 @@ class Reminder extends CommonDBVisible implements
         return $tab;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'state':
-                return htmlescape(Planning::getState($values[$field]));
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-
-        switch ($field) {
-            case 'state':
-                return Planning::dropdownState($name, $values[$field], false);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (self::canView()) {
-            $nb = 0;
-            switch (get_class($item)) {
-                case Reminder::class:
-                    if (Session::haveRight('reminder_public', CREATE)) {
-                        if ($_SESSION['glpishow_count_on_tabs']) {
-                            $nb = $item->countVisibilities();
-                        }
-                        return [1 => self::createTabEntry(_n(
-                            'Target',
-                            'Targets',
-                            Session::getPluralNumber()
-                        ), $nb, $item::getType(), 'ti ti-target-arrow'),
-                        ];
-                    }
-            }
-        }
-        return '';
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(Reminder::class, $ong, $options);
-        $this->addStandardTab(ReminderTranslation::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof self) {
-            return $item->showVisibility();
-        }
-        return false;
-    }
-
     public function post_getEmpty()
     {
         $this->fields["name"] = __('New note');
         $this->trait_post_getEmpty();
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        $rand = mt_rand();
-
-        $canedit = $this->can($ID, UPDATE);
-        $options['canedit'] = $canedit;
-        if (($options['from_planning_ajax'] ?? false) || ($options['from_planning_edit_ajax'] ?? false)) {
-            $options['no_header'] = true;
-        }
-        $active_recall = ($ID && $this->fields["is_planned"] && PlanningRecall::isAvailable());
-
-        TemplateRenderer::getInstance()->display('pages/tools/reminder.html.twig', [
-            'item' => $this,
-            'id' => $ID,
-            'params' => $options,
-            'rand' => $rand,
-            'active_recall' => $active_recall,
-            'no_header' => $options['no_header'] ?? false,
-        ]);
-
-        return true;
-    }
-
-    /**
-     * @param array $val
-     * @param int $who
-     * @param string $type
-     * @param bool $complete
-     *
-     * @return string
-     */
-    public static function displayPlanningItem(array $val, $who, $type = "", $complete = false)
-    {
-        global $CFG_GLPI;
-
-        $img      = "rdv_private.png"; // default icon for reminder
-
-        if ((int) $val["users_id"] !== Session::getLoginUserID()) {
-            $img      = "rdv_public.png";
-        }
-
-        $planning_recall = '';
-        if (isset($val['reminders_id'])) {
-            $pr = new PlanningRecall();
-            if (
-                $pr->getFromDBForItemAndUser(
-                    $val['itemtype'],
-                    $val['reminders_id'],
-                    Session::getLoginUserID()
-                )
-            ) {
-                $planning_recall = $pr->fields['when'];
-            }
-        }
-
-        $parent = getItemForItemtype($val['itemtype']);
-        $parent->getFromDB($val[$parent::getForeignKeyField()]);
-
-        return TemplateRenderer::getInstance()->render('pages/tools/reminder_planning.html.twig', [
-            'val' => $val,
-            'rand' => mt_rand(),
-            'user_name' => getUserName($val["users_id"]),
-            'planning_img' => $CFG_GLPI["root_doc"] . "/pics/" . $img,
-            'planning_recall' => $planning_recall,
-            'complete' => $complete,
-            'parent_link' => $parent->getLink(['icon' => true, 'forceid' => true]),
-            'parent_entity_badge' => Entity::badgeCompletenameById($parent->getEntityID()),
-        ]);
     }
 
     final public static function getListCriteria(): array
@@ -684,143 +538,6 @@ class Reminder extends CommonDBVisible implements
         $data = $DB->request($public_criteria);
         $row = $data->current();
         return $row['total_rows'];
-    }
-
-    /**
-     * Show list for central view
-     *
-     * @param bool $personal display reminders created by me?
-     * @param bool $display if false return html
-     *
-     * @return string|void
-     * @phpstan-return ($display is true ? void : string)
-     **/
-    public static function showListForCentral(bool $personal = true, bool $display = true)
-    {
-        global $CFG_GLPI, $DB;
-
-        $criteria = self::getListCriteria();
-        $personal_criteria = $criteria['personal'];
-        $public_criteria = $criteria['public'];
-
-        // Only standard interface users have personal reminders
-        $can_see_personal = Session::getCurrentInterface() === 'central';
-        $can_see_public = (bool) Session::haveRight(self::$rightname, READ);
-
-        $personal_reminders = [];
-        $public_reminders = [];
-
-        if ($personal && $can_see_personal) {
-            $iterator = $DB->request($personal_criteria);
-            foreach ($iterator as $data) {
-                $personal_reminders[] = $data;
-            }
-        }
-        if ($can_see_public) {
-            $iterator = $DB->request($public_criteria);
-            foreach ($iterator as $data) {
-                $public_reminders[] = $data;
-            }
-
-            // Remove all reminders from the personal list that are already in the public list (Check by id)
-            foreach ($public_reminders as $key => $public_reminder) {
-                foreach ($personal_reminders as $key2 => $personal_reminder) {
-                    if ($personal_reminder['id'] === $public_reminder['id']) {
-                        unset($personal_reminders[$key2]);
-                    }
-                }
-            }
-        }
-
-        if ($personal) {
-            $title = '<a href="' . htmlescape($CFG_GLPI["root_doc"]) . '/front/reminder.php">'
-                . _sn('Personal reminder', 'Personal reminders', Session::getPluralNumber())
-                . '</a>';
-        } else {
-            if (Session::getCurrentInterface() !== 'helpdesk') {
-                $title = '<a href="' . htmlescape($CFG_GLPI["root_doc"]) . '/front/reminder.php">'
-                    . _sn('Public reminder', 'Public reminders', Session::getPluralNumber())
-                    . '</a>';
-            } else {
-                $title = _sn('Public reminder', 'Public reminders', Session::getPluralNumber());
-            }
-        }
-
-        $reminders = $personal ? $personal_reminders : $public_reminders;
-        $nb = count($reminders);
-        $add_link = '';
-
-        if (
-            ($personal && self::canCreate())
-            || (!$personal && Session::haveRight(self::$rightname, CREATE))
-        ) {
-            $add_link = self::getFormURL();
-        }
-        $rows = [];
-
-        if ($nb) {
-            $rand = mt_rand();
-
-            foreach ($reminders as $data) {
-                $row = [
-                    'values' => [],
-                ];
-                $name = $data['name'];
-
-                if (!empty($data['transname'])) {
-                    $name = $data['transname'];
-                }
-                $link = sprintf(
-                    '<a id="content_reminder_%s" href="%s">%s</a>',
-                    htmlescape($data["id"] . $rand),
-                    htmlescape(self::getFormURLWithID($data["id"])),
-                    htmlescape($name)
-                );
-                $text = $data["text"];
-                if (!empty($data['transtext'])) {
-                    $text = $data['transtext'];
-                }
-                $tooltip = Html::showToolTip(
-                    RichText::getEnhancedHtml($text),
-                    [
-                        'applyto' => "content_reminder_" . $data["id"] . $rand,
-                        'display' => false,
-                    ]
-                );
-                $row['values'][] = sprintf(__s('%1$s %2$s'), $link, $tooltip);
-
-                if ($data["is_planned"]) {
-                    $tab      = explode(" ", $data["begin"]);
-                    $date_url = $tab[0];
-                    $planning_text = sprintf(
-                        __('From %1$s to %2$s'),
-                        Html::convDateTime($data["begin"]),
-                        Html::convDateTime($data["end"])
-                    );
-                    $row['values'][] = sprintf(
-                        '<a href="%s" class="pointer float-end" title="%s"><i class="ti ti-bell"></i><span class="sr-only">%s</span></a>',
-                        htmlescape(sprintf('%s/front/planning.php?date=%s&type=day', $CFG_GLPI['root_doc'], $date_url)),
-                        htmlescape($planning_text),
-                        __s('Planning')
-                    );
-                } else {
-                    $row['values'][] = '';
-                }
-                $rows[] = $row;
-            }
-        }
-
-        $output = TemplateRenderer::getInstance()->render('central/lists/table.html.twig', [
-            'title' => $title,
-            'add_link' => $add_link,
-            'rows' => $rows,
-        ]);
-
-        if ($display) {
-            echo $output;
-        } else {
-            return $output;
-        }
     }
 
     public function getRights($interface = 'central')
@@ -924,10 +641,5 @@ class Reminder extends CommonDBVisible implements
         }
 
         return $input;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-note";
     }
 }

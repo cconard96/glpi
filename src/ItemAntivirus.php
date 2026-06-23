@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  * @since 11.0
  */
@@ -45,54 +43,9 @@ class ItemAntivirus extends CommonDBChild
     public static $items_id = 'items_id';
     public $dohistory       = true;
 
-
-
     public static function getTypeName($nb = 0)
     {
         return _n('Antivirus', 'Antiviruses', $nb);
-    }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            throw new RuntimeException("Only CommonDBTM items are supported");
-        }
-
-        // can exists for template
-        if ($item::canView()) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(
-                    self::getTable(),
-                    ['itemtype' => $item->getType(), 'items_id' => $item->getID(), 'is_deleted' => 0 ]
-                );
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showForItem($item, $withtemplate);
-        return true;
-    }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Lock::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function rawSearchOptions()
@@ -144,7 +97,6 @@ class ItemAntivirus extends CommonDBChild
 
         return $tab;
     }
-
 
     /**
      * @return array
@@ -251,122 +203,6 @@ class ItemAntivirus extends CommonDBChild
         return $tab;
     }
 
-    public function showForm($ID, array $options = [])
-    {
-        if (isset($options['parent'])) {
-            $options['itemtype'] = $options['parent']::class;
-            $options['items_id'] = $options['parent']->getID();
-        }
-
-        if ($ID > 0) {
-            $asset = getItemForItemtype($this->fields['itemtype']);
-            $this->check($ID, READ);
-            $asset->getFromDB($this->fields['items_id']);
-        } else {
-            $asset = getItemForItemtype($options['itemtype']);
-            $this->check(-1, CREATE, $options);
-            $asset->getFromDB($options['items_id']);
-        }
-
-        $options['canedit'] = $asset->can($asset->getID(), UPDATE);
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('components/form/item_antivirus.html.twig', [
-            'item'   => $this,
-            'asset'  => $asset,
-            'params' => $options,
-        ]);
-
-        return true;
-    }
-
-
-    /**
-     * Print the items antiviruses
-     *
-     * @param CommonDBTM $asset         Asset
-     * @param int    $withtemplate Template or basic item (default 0)
-     *
-     * @return void
-     **/
-    private static function showForItem(CommonDBTM $asset, $withtemplate = 0)
-    {
-        global $DB;
-
-        $ID = $asset->fields['id'];
-        $itemtype = $asset->getType();
-
-        if (
-            !$asset->getFromDB($ID)
-            || !$asset->can($ID, READ)
-        ) {
-            return;
-        }
-        $canedit = $asset->canEdit($ID);
-
-        $result = $DB->request(
-            [
-                'FROM'  => ItemAntivirus::getTable(),
-                'WHERE' => [
-                    'itemtype' => $itemtype,
-                    'items_id' => $ID,
-                    'is_deleted'   => 0,
-                ],
-            ]
-        );
-
-        TemplateRenderer::getInstance()->display('components/form/viewsubitem.html.twig', [
-            'type' => self::class,
-            'parenttype' => $itemtype,
-            'items_id' => $asset::getForeignKeyField(),
-            'id' => $ID,
-            'cancreate' => ($canedit && !(!empty($withtemplate) && ($withtemplate == 2))),
-            'add_new_label' => __('Add an antivirus'),
-            'ajax_form_submit' => true,
-            'reload_tab' => true,
-        ]);
-
-        $antivirus = new self();
-        $entries = [];
-        foreach ($result as $data) {
-            $antivirus->getFromDB($data['id']);
-            $manufacturer = new Manufacturer();
-            $manufacturer->getFromDB($data['manufacturers_id']);
-            $entries[] = [
-                'name'          => $antivirus->getLink(),
-                'is_dynamic'    => Dropdown::getYesNo($data['is_active']),
-                'manufacturers_id' => $manufacturer->getLink(),
-                'antivirus_version' => $data['antivirus_version'],
-                'signature_version' => $data['signature_version'],
-                'is_active'     => Dropdown::getYesNo($data['is_active']),
-                'is_uptodate'   => Dropdown::getYesNo($data['is_uptodate']),
-                'date_expiration' => $data['date_expiration'],
-            ];
-        }
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'is_dynamic' => __('Automatic inventory'),
-                'manufacturers_id' => Manufacturer::getTypeName(1),
-                'antivirus_version' => __('Antivirus version'),
-                'signature_version' => __('Signature database version'),
-                'is_active' => __('Active'),
-                'is_uptodate' => __('Up to date'),
-                'date_expiration' => __('Expiration date'),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-                'manufacturers_id' => 'raw_html',
-                'date_expiration' => 'date',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-        ]);
-    }
-
     public function prepareInputForAdd($input)
     {
         $input = parent::prepareInputForAdd($input);
@@ -387,11 +223,5 @@ class ItemAntivirus extends CommonDBChild
         }
 
         return $input;
-    }
-
-
-    public static function getIcon()
-    {
-        return "ti ti-virus-search";
     }
 }

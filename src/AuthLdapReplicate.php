@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  *  Class used to manage LDAP replicate config
  */
@@ -93,21 +91,5 @@ class AuthLdapReplicate extends CommonDBTM
         }
 
         return $input;
-    }
-
-    /**
-     * Form to add a replicate to a ldap server
-     *
-     * @param string  $target    target page for add new replicate
-     * @param int $master_id master ldap server ID
-     *
-     * @return void
-     */
-    public static function addNewReplicateForm($target, $master_id)
-    {
-        TemplateRenderer::getInstance()->display('pages/setup/authentication/ldap_replicate.html.twig', [
-            'target' => $target,
-            'authldaps_id' => $master_id,
-        ]);
     }
 }

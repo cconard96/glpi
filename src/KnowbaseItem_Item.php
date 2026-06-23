@@ -33,8 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-
 /**
  *  Class KnowbaseItem_Item
  *
@@ -57,133 +55,6 @@ class KnowbaseItem_Item extends CommonDBRelation
     public static function getTypeName($nb = 0)
     {
         return _n('Knowledge base item', 'Knowledge base items', $nb);
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (static::canView() && $item instanceof CommonDBTM) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = self::getCountForItem($item);
-            }
-
-            if ($item::class === KnowbaseItem::class) {
-                $type_name = _n('Associated element', 'Associated elements', Session::getPluralNumber());
-            } else {
-                $type_name = __('Knowledge base');
-            }
-
-            return self::createTabEntry($type_name, $nb, $item::class);
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-        self::showForItem($item, $withtemplate);
-        return true;
-    }
-
-    /**
-     * Show linked items of a knowbase item
-     *
-     * @param CommonDBTM $item
-     * @param int $withtemplate withtemplate param (default 0)
-     *
-     * @return void
-     */
-    public static function showForItem(CommonDBTM $item, $withtemplate = 0)
-    {
-        $item_id = $item->getID();
-
-        if (isset($_GET["start"])) {
-            $start = (int) $_GET["start"];
-        } else {
-            $start = 0;
-        }
-
-        $canedit = $item->can($item_id, UPDATE);
-
-        // Total Number of KB items
-        $number = self::getCountForItem($item);
-
-        $ok_state = true;
-        if ($item instanceof CommonITILObject) {
-            $ok_state = !in_array($item->fields['status'], array_merge(
-                $item->getClosedStatusArray(),
-                $item->getSolvedStatusArray()
-            ), true);
-        }
-
-        $rand = mt_rand();
-        if ($canedit && $ok_state) {
-            if ($item::class !== KnowbaseItem::class) {
-                $visibility = KnowbaseItem::getVisibilityCriteria();
-                $condition = (isset($visibility['WHERE']) && count($visibility['WHERE'])) ? $visibility['WHERE'] : [];
-            }
-            $used_knowbase_items = self::getItems($item, 0, 0, true);
-            TemplateRenderer::getInstance()->display('pages/tools/kb/knowbaseitem_item.html.twig', [
-                'item' => $item,
-                'visibility_condition' => $condition ?? [],
-                'used_knowbase_items' => $used_knowbase_items ?? [],
-            ]);
-        }
-
-        $linked_items = self::getItems($item, $start, $_SESSION['glpilist_limit']);
-        $entries = [];
-        foreach ($linked_items as $data) {
-            $linked_item = null;
-            if ($item::class === KnowbaseItem::class) {
-                $linked_item = getItemForItemtype($data['itemtype']);
-                $linked_item->getFromDB($data['items_id']);
-            } else {
-                $linked_item = getItemForItemtype(KnowbaseItem::getType());
-                $linked_item->getFromDB($data['knowbaseitems_id']);
-            }
-            $type = $linked_item::getTypeName(1);
-            if (isset($linked_item->fields['is_template']) && $linked_item->fields['is_template'] == 1) {
-                $type .= ' (' . __('template') . ')';
-            }
-
-            $entries[] = [
-                'itemtype'      => self::class,
-                'id'            => $data['id'],
-                'type'          => $type,
-                'item'          => $linked_item->getLink(),
-                'date_creation' => $linked_item->fields['date_creation'],
-                'date_mod'      => $linked_item->fields['date_mod'],
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'start' => $start,
-            'limit' => $_SESSION['glpilist_limit'],
-            'is_tab' => true,
-            'nofilter' => true,
-            'nosort' => true,
-            'columns' => [
-                'type' => _n('Type', 'Types', 1),
-                'item' => _n('Item', 'Items', 1),
-                'date_creation' => __('Creation date'),
-                'date_mod' => __('Update date'),
-            ],
-            'formatters' => [
-                'item' => 'raw_html',
-                'date_creation' => 'datetime',
-                'date_mod' => 'datetime',
-            ],
-            'entries' => $entries,
-            'total_number' => $number,
-            'filtered_number' => $number,
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
     }
 
     /**
@@ -300,50 +171,6 @@ class KnowbaseItem_Item extends CommonDBRelation
         }
 
         parent::getMassiveActionsForItemtype($actions, $itemtype, $is_deleted, $checkitem);
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-link';
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'items_id':
-                if (!empty($values['itemtype'])) {
-                    $options['name']  = $name;
-                    $options['value'] = $values[$field];
-                    return Dropdown::show($values['itemtype'], $options);
-                }
-                break;
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'items_id':
-                if (isset($values['itemtype']) && is_a($values['itemtype'], CommonDBTM::class, true)) {
-                    if ($values[$field] > 0) {
-                        $item = new $values['itemtype']();
-                        $item->getFromDB($values[$field]);
-                        return "<a href='" . htmlescape($item->getLinkURL()) . "'>" . htmlescape($item->fields['name']) . "</a>";
-                    }
-                }
-                return ' ';
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 
     private static function getCountForItem(CommonDBTM $item): int

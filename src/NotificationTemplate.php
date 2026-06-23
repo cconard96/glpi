@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\Clonable;
 use Glpi\RichText\RichText;
 
@@ -79,18 +78,6 @@ class NotificationTemplate extends CommonDBTM
     }
 
     #[Override]
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', Notification::class, self::class];
-    }
-
-    #[Override]
-    public static function getIcon()
-    {
-        return 'ti ti-template';
-    }
-
-    #[Override]
     public static function canCreate(): bool
     {
         return static::canUpdate();
@@ -102,19 +89,6 @@ class NotificationTemplate extends CommonDBTM
         return static::canUpdate();
     }
 
-    #[Override]
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(NotificationTemplateTranslation::class, $ong, $options);
-        $this->addStandardTab(Notification_NotificationTemplate::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     /**
      * Reset already computed templates
      *
@@ -123,19 +97,6 @@ class NotificationTemplate extends CommonDBTM
     public function resetComputedTemplates()
     {
         $this->templates_by_languages = [];
-    }
-
-    #[Override]
-    public function showForm($ID, array $options = [])
-    {
-        if (!Config::canUpdate()) {
-            return false;
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/notification/template.html.twig', [
-            'item' => $this,
-        ]);
-        return true;
     }
 
     #[Override]
@@ -176,44 +137,6 @@ class NotificationTemplate extends CommonDBTM
         ];
 
         return $tab;
-    }
-
-    /**
-     * Display templates available for an itemtype
-     *
-     * @param string                   $name     dropdown name
-     * @param class-string<CommonDBTM> $itemtype templates for this itemtype only
-     * @param int                      $value    default value
-     *
-     * @return void
-     */
-    public static function dropdownTemplates($name, $itemtype, $value = 0)
-    {
-        self::dropdown([
-            'name'       => $name,
-            'value'     => $value,
-            'comment'   => 1,
-            'condition' => ['itemtype' => $itemtype],
-        ]);
-    }
-
-    /**
-     * @param array{sendprivate?: bool} $options
-     * @return 0|1
-     *
-     * @return int
-     */
-    public function getAdditionnalProcessOption($options)
-    {
-        //Additionnal option can be given for template processing
-        //For the moment, only option to see private tasks & followups is available
-        if (
-            !empty($options)
-            && isset($options['sendprivate'])
-        ) {
-            return 1;
-        }
-        return 0;
     }
 
     /**
@@ -662,7 +585,6 @@ class NotificationTemplate extends CommonDBTM
     #[Override]
     public function cleanDBonPurge()
     {
-
         $this->deleteChildrenAndRelationsFromDb(
             [
                 Notification_NotificationTemplate::class,

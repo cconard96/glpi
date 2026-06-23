@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Features\AssetImage;
@@ -76,19 +75,6 @@ class ConsumableItem extends CommonDBTM implements AssignableItemInterface
     public static function getTypeName($nb = 0)
     {
         return _n('Consumable model', 'Consumable models', $nb);
-    }
-
-    public static function getMenuName()
-    {
-        return Consumable::getTypeName(Session::getPluralNumber());
-    }
-
-    public static function getAdditionalMenuLinks()
-    {
-        if (static::canView()) {
-            return ['summary' => '/front/consumableitem.php?synthese=yes'];
-        }
-        return false;
     }
 
     public function getPostAdditionalInfosForName()
@@ -140,20 +126,6 @@ class ConsumableItem extends CommonDBTM implements AssignableItemInterface
                 10
             );
         }
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Consumable::class, $ong, $options);
-        $this->addStandardTab(Infocom::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public function rawSearchOptions()
@@ -470,20 +442,5 @@ class ConsumableItem extends CommonDBTM implements AssignableItemInterface
     public function getEvents()
     {
         return ['alert' => __('Send alarms on consumables')];
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/assets/consumableitem.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
-    }
-
-    public static function getIcon()
-    {
-        return Consumable::getIcon();
     }
 }

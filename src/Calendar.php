@@ -62,7 +62,6 @@ class Calendar extends CommonDropdown
         ];
     }
 
-
     /**
      * @since 0.84
      **/
@@ -74,23 +73,10 @@ class Calendar extends CommonDropdown
         return $forbidden;
     }
 
-
     public static function getTypeName($nb = 0)
     {
         return _n('Calendar', 'Calendars', $nb);
     }
-
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = parent::defineTabs($options);
-        $this->addStandardTab(CalendarSegment::class, $ong, $options);
-        $this->addStandardTab(Calendar_Holiday::class, $ong, $options);
-
-        return $ong;
-    }
-
 
     public function getSpecificMassiveActions($checkitem = null)
     {
@@ -104,28 +90,6 @@ class Calendar extends CommonDropdown
         }
         return $actions;
     }
-
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'duplicate':
-                Entity::dropdown();
-                echo "<br><br>";
-                echo Html::submit(_x('button', 'Duplicate'), ['name' => 'massiveaction']) . "</span>";
-                return true;
-
-            case 'addholiday':
-                Holiday::dropdown();
-                echo "<br><br>";
-                echo Html::submit(_x('button', 'Add'), ['name' => 'massiveaction']) . "</span>";
-                return true;
-        }
-
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
 
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
@@ -731,10 +695,5 @@ class Calendar extends CommonDropdown
     public static function getDayNumberInWeek($date)
     {
         return (int) date('w', $date);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-calendar";
     }
 }

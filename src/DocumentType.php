@@ -114,89 +114,6 @@ class DocumentType extends CommonDropdown
         return $tab;
     }
 
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        global $CFG_GLPI;
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'icon':
-                if (!empty($values[$field])) {
-                    return "&nbsp;<img style='vertical-align:middle;' alt='' src='"
-                      . htmlescape($CFG_GLPI["typedoc_icon_dir"] . "/" . $values[$field]) . "'>";
-                }
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-
-    /**
-     * @since 0.84
-     *
-     * @param $field
-     * @param $name               (default '')
-     * @param $values             (default '')
-     * @param $options      array
-     **/
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'icon':
-                return Dropdown::dropdownIcons($name, $values[$field], '', false);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-
-    /**
-     * @since 0.85
-     *
-     * @param array $options list of options with theses possible keys:
-     *                        - bool 'display', echo the generated html or return it
-     *
-     * @return void|string
-     */
-    public static function showAvailableTypesLink($options = [])
-    {
-        global $CFG_GLPI;
-
-        $p = [
-            'display' => true,
-            'rand'    => mt_rand(),
-        ];
-
-        //merge default options with options parameter
-        $p = array_merge($p, $options);
-
-        $display = "&nbsp;";
-        $display .= "<a href='#' data-bs-toggle='modal' data-bs-target='#documenttypelist_" . htmlescape($p['rand']) . "' class='fa fa-info pointer' title='" . __s('Help') . "' >";
-        $display .= "<span class='sr-only'>" . __s('Help') . "></span>";
-        $display .= "</a>";
-        $display .= Ajax::createIframeModalWindow(
-            "documenttypelist_{$p['rand']}",
-            $CFG_GLPI["root_doc"] . "/front/documenttype.list.php",
-            [
-                'title'   => static::getTypeName(Session::getPluralNumber()),
-                'display' => false,
-            ]
-        );
-
-        if ($p['display']) {
-            echo $display;
-        } else {
-            return $display;
-        }
-    }
-
     /**
      * Return pattern that can be used to validate that name of an uploaded file matches accepted extensions.
      *
@@ -232,11 +149,6 @@ class DocumentType extends CommonDropdown
         }
 
         return self::$uploadable_patterns;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-file";
     }
 
     #[Override]

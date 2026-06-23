@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\CalDAV\Contracts\CalDAVCompatibleItemInterface;
 use Glpi\CalDAV\Traits\VobjectConverterTrait;
 use Glpi\DBAL\QueryExpression;
@@ -57,21 +56,6 @@ class PlanningExternalEvent extends CommonDBTM implements CalDAVCompatibleItemIn
     public static function getTypeName($nb = 0)
     {
         return _n('External event', 'External events', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['helpdesk', Planning::class, self::class];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
     }
 
     public static function canUpdate(): bool
@@ -135,64 +119,6 @@ class PlanningExternalEvent extends CommonDBTM implements CalDAVCompatibleItemIn
     public function post_getFromDB()
     {
         $this->fields['users_id_guests'] = importArrayFromDB($this->fields['users_id_guests']);
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        $options['canedit'] = $this->can($ID, UPDATE);
-        $rand       = mt_rand();
-        $rand_plan  = mt_rand();
-        $rand_rrule = mt_rand();
-
-        if (
-            ($options['from_planning_ajax'] ?? false)
-            || ($options['from_planning_edit_ajax'] ?? false)
-        ) {
-            $options['no_header'] = true;
-            $options['in_modal']  = true;
-        } else {
-            $options['in_modal']  = false;
-        }
-
-        $is_ajax  = isset($options['from_planning_edit_ajax']) && $options['from_planning_edit_ajax'];
-        $is_rrule = ($this->fields['rrule'] ?? '') !== '';
-
-        // set event for another user
-        if (isset($options['res_itemtype'], $options['res_items_id']) && strtolower($options['res_itemtype']) === "user") {
-            $this->fields['users_id'] =  $options['res_items_id'];
-        }
-
-        if ($is_ajax && $is_rrule) {
-            $options['candel'] = false;
-            $options['addbuttons'] = [];
-            if ($this->can(-1, CREATE)) {
-                $options['addbuttons']['save_instance'] = [
-                    'text'  => __("Detach instance"),
-                    'icon'  => 'ti ti-unlink',
-                    'title' => __("Detach this instance from the series to create an independent event"),
-                ];
-            }
-            if ($this->can($ID, PURGE)) {
-                $options['addbuttons']['purge'] = [
-                    'text' => __("Delete serie"),
-                    'icon' => 'ti ti-trash',
-                ];
-                $options['addbuttons']['purge_instance'] = [
-                    'text' => __("Delete instance"),
-                    'icon' => 'ti ti-trash',
-                ];
-            }
-        }
-
-        TemplateRenderer::getInstance()->display('pages/assistance/planning/external_event.html.twig', [
-            'item' => $this,
-            'rand' => $rand,
-            'rand_plan' => $rand_plan,
-            'rand_rrule' => $rand_rrule,
-            'params' => $options,
-        ]);
-        return true;
     }
 
     public function getRights($interface = 'central')

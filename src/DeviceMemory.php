@@ -143,64 +143,6 @@ class DeviceMemory extends CommonDevice
         return $this->prepareInputForAddOrUpdate($input);
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($itemtype) {
-            case 'Computer':
-                Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                $base->addHeader('devicememory_type', _sn('Type', 'Types', 1), $super, $father);
-                $base->addHeader('devicememory_frequency', sprintf(__s('%1$s (%2$s)'), __s('Frequency'), __s('MHz')), $super, $father);
-                break;
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($item->getType()) {
-            case 'Computer':
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                if ($this->fields["devicememorytypes_id"]) {
-                    $row->addCell(
-                        $row->getHeaderByName('devicememory_type'),
-                        htmlescape(Dropdown::getDropdownName("glpi_devicememorytypes", $this->fields["devicememorytypes_id"])),
-                        $father
-                    );
-                }
-
-                if (!empty($this->fields["frequence"])) {
-                    $row->addCell(
-                        $row->getHeaderByName('devicememory_frequency'),
-                        htmlescape($this->fields["frequence"]),
-                        $father
-                    );
-                }
-                break;
-        }
-        return null;
-    }
-
     public function getImportCriteria()
     {
         return [
@@ -281,10 +223,5 @@ class DeviceMemory extends CommonDevice
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "fas fa-memory";
     }
 }

@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\AssignableItem;
 use Glpi\Features\AssignableItemInterface;
 use Glpi\Features\Clonable;
@@ -82,35 +81,6 @@ class DatabaseInstance extends CommonDBTM implements AssignableItemInterface, St
         return _n('Database instance', 'Database instances', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', Database::class, self::class];
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong)
-         ->addImpactTab($ong, $options)
-         ->addStandardTab(DatabaseInstance::class, $ong, $options)
-         ->addStandardTab(Database::class, $ong, $options)
-         ->addStandardTab(Infocom::class, $ong, $options)
-         ->addStandardTab(Contract_Item::class, $ong, $options)
-         ->addStandardTab(Document_Item::class, $ong, $options)
-         ->addStandardTab(KnowbaseItem_Item::class, $ong, $options)
-         ->addStandardTab(Item_Ticket::class, $ong, $options)
-         ->addStandardTab(Item_Problem::class, $ong, $options)
-         ->addStandardTab(Change_Item::class, $ong, $options)
-         ->addStandardTab(ManualLink::class, $ong, $options)
-         ->addStandardTab(Certificate_Item::class, $ong, $options)
-         ->addStandardTab(Lock::class, $ong, $options)
-         ->addStandardTab(Notepad::class, $ong, $options)
-         ->addStandardTab(Domain_Item::class, $ong, $options)
-         ->addStandardTab(Appliance_Item::class, $ong, $options)
-         ->addStandardTab(Log::class, $ong, $options);
-        return $ong;
-    }
-
     public function getDatabases(): array
     {
         global $DB;
@@ -129,18 +99,6 @@ class DatabaseInstance extends CommonDBTM implements AssignableItemInterface, St
         }
 
         return $dbs;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        TemplateRenderer::getInstance()->display('pages/management/databaseinstance.html.twig', [
-            'item' => $this,
-            'params' => [
-                'canedit' => $this->canUpdateItem(),
-            ],
-        ]);
-
-        return true;
     }
 
     public function prepareInputForAdd($input)
@@ -338,33 +296,6 @@ class DatabaseInstance extends CommonDBTM implements AssignableItemInterface, St
         return $tab;
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-
-        switch ($field) {
-            case 'items_id':
-                $itemtype = $values[str_replace('items_id', 'itemtype', $field)] ?? null;
-                if ($itemtype !== null && class_exists($itemtype) && is_a($itemtype, CommonDBTM::class, true)) {
-                    if ($values[$field] > 0) {
-                        $item = new $itemtype();
-                        if ($item->getFromDB($values[$field])) {
-                            return "<a href='" . htmlescape($item->getLinkURL()) . "'>" . htmlescape($item->fields['name']) . "</a>";
-                        } else {
-                            return ' ';
-                        }
-                    }
-                } else {
-                    return ' ';
-                }
-                break;
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
     /**
      * Get item types that can be linked to a database
      *
@@ -405,108 +336,5 @@ class DatabaseInstance extends CommonDBTM implements AssignableItemInterface, St
     public function pre_purgeInventory()
     {
         return true;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if (
-            ($item instanceof CommonDBTM)
-            && self::canView()
-            && in_array($item->getType(), self::getTypes(true))
-        ) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = countElementsInTable(self::getTable(), ['itemtype' => $item->getType(), 'items_id' => $item->fields['id']]);
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if (!$item instanceof CommonDBTM) {
-            return false;
-        }
-
-        switch ($item->getType()) {
-            default:
-                if (in_array($item->getType(), self::getTypes())) {
-                    self::showInstances($item, $withtemplate);
-                }
-        }
-        return true;
-    }
-
-    /**
-     * @param CommonDBTM $item
-     * @param int $withtemplate
-     *
-     * @return void
-     */
-    public static function showInstances(CommonDBTM $item, $withtemplate)
-    {
-        global $DB;
-
-        $instances = $DB->request([
-            'SELECT' => 'id',
-            'FROM'   => self::getTable(),
-            'WHERE'  => [
-                'itemtype' => $item->getType(),
-                'items_id' => $item->fields['id'],
-            ],
-        ]);
-
-        $entries = [];
-        $item = new self();
-        foreach ($instances as $row) {
-            $item->getFromDB($row['id']);
-            $databases = $item->getDatabases();
-            $databasetype = new DatabaseInstanceType();
-            $databasetype_name = '';
-            if ($item->fields['databaseinstancetypes_id'] > 0 && $databasetype->getFromDB($item->fields['databaseinstancetypes_id'])) {
-                $databasetype_name = $databasetype->fields['name'];
-            }
-            $manufacturer = new Manufacturer();
-            $manufacturer_name = '';
-            if ($item->fields['manufacturers_id'] > 0 && $manufacturer->getFromDB($item->fields['manufacturers_id'])) {
-                $manufacturer_name = $manufacturer->fields['name'];
-            }
-
-            $entries[] = [
-                'itemtype' => self::class,
-                'id'       => $item->getID(),
-                'row_class' => $item->isDeleted() ? 'table-danger' : '',
-                'name'     => $item->getLink(),
-                'database_count' => sprintf(_n('%1$d database', '%1$d databases', count($databases)), count($databases)),
-                'version' => $item->fields['version'],
-                'databaseinstancetypes_id' => $databasetype_name,
-                'manufacturers_id' => $manufacturer_name,
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'name' => __('Name'),
-                'database_count' => Database::getTypeName(1),
-                'version' => _n('Version', 'Versions', 1),
-                'databaseinstancetypes_id' => DatabaseInstanceType::getTypeName(1),
-                'manufacturers_id' => Manufacturer::getTypeName(1),
-            ],
-            'formatters' => [
-                'name' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => false,
-        ]);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-database-import";
     }
 }

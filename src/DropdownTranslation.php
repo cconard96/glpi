@@ -33,9 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\RichText\RichText;
-
 /**
  * DropdownTranslation Class
  *
@@ -54,11 +51,6 @@ class DropdownTranslation extends CommonDBChild
         return _n('Translation', 'Translations', $nb);
     }
 
-    public static function getIcon()
-    {
-        return 'ti ti-language';
-    }
-
     /**
      * Forbidden massives actions
      **/
@@ -67,26 +59,6 @@ class DropdownTranslation extends CommonDBChild
         $forbidden   = parent::getForbiddenStandardMassiveAction();
         $forbidden[] = 'update';
         return $forbidden;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        if ($item instanceof CommonDropdown && $item->maybeTranslated()) {
-            $nb = 0;
-            if ($_SESSION['glpishow_count_on_tabs']) {
-                $nb = self::getNumberOfTranslationsForItem($item);
-            }
-            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::class);
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof CommonDropdown && $item->maybeTranslated()) {
-            self::showTranslations($item);
-        }
-        return true;
     }
 
     public function prepareInputForAdd($input)
@@ -328,138 +300,6 @@ class DropdownTranslation extends CommonDBChild
             $input2['items_id'] = $tmp['id'];
             $this->generateCompletename($input2, $add);
         }
-    }
-
-    /**
-     * Display all translated field for a dropdown
-     *
-     * @param CommonDropdown $item  A Dropdown item
-     *
-     * @return void
-     */
-    public static function showTranslations(CommonDropdown $item)
-    {
-        global $DB;
-
-        $rand    = mt_rand();
-        $canedit = $item->can($item->getID(), UPDATE);
-
-        if ($canedit) {
-            $twig_params = [
-                'itemtype' => $item::class,
-                'items_id' => $item->getID(),
-                'item_fk' => $item->getForeignKeyField(),
-                'rand' => $rand,
-                'btn_msg' => __('Add a new translation'),
-            ];
-            // language=twig
-            echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div id="viewtranslation{{ rand }}"></div>
-                <script>
-                    function viewEditTranslation{{ rand }}(translations_id = -1) {
-                        $('button[name="new_translation"]').toggleClass('d-none', translations_id <= 0);
-                        $('#viewtranslation{{ rand }}').load(
-                            CFG_GLPI['root_doc'] + '/ajax/viewsubitem.php',
-                            {
-                                type: 'DropdownTranslation',
-                                parenttype: '{{ itemtype|e('js') }}',
-                                {{ item_fk }}: {{ items_id }},
-                                id: translations_id
-                            }
-                        );
-                    }
-                    $(() => {
-                        $('#datatable_translations{{ rand }}').on('click', 'tr.cursor-pointer', function() {
-                            viewEditTranslation{{ rand }}($(this).data('id'));
-                        });
-                    });
-                </script>
-                <div class="text-center mb-3">
-                    <button name="new_translation" class="btn btn-primary" type="button" onclick="viewEditTranslation{{ rand }}()">
-                        {{ btn_msg }}
-                    </button>
-                </div>
-TWIG, $twig_params);
-        }
-
-        $iterator = $DB->request([
-            'FROM'   => getTableForItemType(self::class),
-            'WHERE'  => [
-                'itemtype'  => $item->getType(),
-                'items_id'  => $item->getID(),
-                'field'     => ['<>', 'completename'],
-            ],
-            'ORDER'  => ['language ASC'],
-        ]);
-
-        $entries = [];
-        foreach ($iterator as $data) {
-            $searchOption = $item->getSearchOptionByField('field', $data['field']);
-            $matching_field = $item->getAdditionalField($data['field']);
-            $entry = [
-                'itemtype' => self::class,
-                'id'       => $data['id'],
-                'row_class' => $canedit ? 'cursor-pointer' : '',
-                'language' => Dropdown::getLanguageName($data['language']),
-                'field'    => $searchOption['name'],
-            ];
-            if (($matching_field['type'] ?? null) === 'tinymce') {
-                $entry['value'] = '<div class="rich_text_container">' . RichText::getSafeHtml($data['value']) . '</div>';
-            } else {
-                $entry['value'] = htmlescape($data['value']);
-            }
-            $entries[] = $entry;
-        }
-
-        TemplateRenderer::getInstance()->display('components/datatable.html.twig', [
-            'datatable_id' => 'datatable_translations' . $rand,
-            'is_tab' => true,
-            'nofilter' => true,
-            'columns' => [
-                'language' => __('Language'),
-                'field'    => _n('Field', 'Fields', 1),
-                'value'    => __('Value'),
-            ],
-            'formatters' => [
-                'value' => 'raw_html',
-            ],
-            'entries' => $entries,
-            'total_number' => count($entries),
-            'filtered_number' => count($entries),
-            'showmassiveactions' => $canedit,
-            'massiveactionparams' => [
-                'num_displayed' => count($entries),
-                'container'     => 'mass' . static::class . $rand,
-            ],
-        ]);
-    }
-
-    public function showForm($ID = -1, array $options = [])
-    {
-        if (!isset($options['parent']) || !($options['parent'] instanceof CommonDropdown)) {
-            // parent is mandatory
-            trigger_error('Parent item must be defined in `$options["parent"]`.', E_USER_WARNING);
-            return false;
-        }
-        $item = $options['parent'];
-
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        } else {
-            $options['itemtype'] = get_class($item);
-            $options['items_id'] = $item->getID();
-
-            $this->check(-1, CREATE, $options);
-        }
-
-        TemplateRenderer::getInstance()->display('pages/setup/dropdowntranslation.html.twig', [
-            'parent_item' => $item,
-            'item' => $this,
-            'search_option' => !$item->isNewItem() ? $item->getSearchOptionByField('field', $this->fields['field']) : [],
-            'matching_field' => $item->getAdditionalField($this->fields['field']),
-            'no_header' => true,
-        ]);
-        return true;
     }
 
     /**

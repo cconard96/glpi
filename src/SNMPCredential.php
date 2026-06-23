@@ -33,9 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
-use Glpi\Inventory\Inventory;
-
 /**
  * SNMP credentials
  */
@@ -53,11 +50,6 @@ class SNMPCredential extends CommonDBTM
     public static function getTypeName($nb = 0)
     {
         return _n('SNMP credential', 'SNMP credentials', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['admin', Inventory::class, self::class];
     }
 
     /**
@@ -107,36 +99,6 @@ class SNMPCredential extends CommonDBTM
         ];
 
         return $tab;
-    }
-
-    public function defineTabs($options = [])
-    {
-
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        // warning and no form if can't read keyfile,
-        // only version 3 is impacted but it's better to always show the warning & forbid form display
-        $glpi_encryption_key = new GLPIKey();
-        if ($glpi_encryption_key->hasReadErrors()) {
-            $glpi_encryption_key->showReadErrors();
-
-            return false;
-        }
-
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('components/form/snmpcredential.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-
-        return true;
     }
 
     /**
@@ -272,10 +234,5 @@ class SNMPCredential extends CommonDBTM
             return false;
         }
         return $this->prepareInputs($input);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-key";
     }
 }

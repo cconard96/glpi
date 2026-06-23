@@ -39,9 +39,4 @@ class DatabaseInstanceCategory extends CommonDropdown
     {
         return _n('Database instance category', 'Database instance categories', $nb);
     }
-
-    public static function getFieldLabel()
-    {
-        return _n('Category', 'Categories', 1);
-    }
 }

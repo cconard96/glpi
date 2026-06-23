@@ -95,52 +95,6 @@ class DevicePowerSupply extends CommonDevice
         return $tab;
     }
 
-    public static function getHTMLTableHeader(
-        $itemtype,
-        HTMLTableBase $base,
-        ?HTMLTableSuperHeader $super = null,
-        ?HTMLTableHeader $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($itemtype) {
-            case 'Computer':
-                Manufacturer::getHTMLTableHeader(self::class, $base, $super, $father, $options);
-                $base->addHeader('power', __s('Power'), $super, $father);
-                break;
-        }
-    }
-
-    public function getHTMLTableCellForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        array $options = []
-    ) {
-        $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
-
-        if ($column == $father) {
-            return $father;
-        }
-
-        switch ($item->getType()) {
-            case 'Computer':
-                Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
-                if ($this->fields["power"]) {
-                    $row->addCell(
-                        $row->getHeaderByName('power'),
-                        htmlescape($this->fields["power"])
-                    );
-                }
-        }
-        return null;
-    }
-
     /**
      * @param class-string<CommonDBTM> $itemtype
      * @param array $main_joinparams
@@ -192,10 +146,5 @@ class DevicePowerSupply extends CommonDevice
         ];
 
         return $tab;
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-bolt";
     }
 }

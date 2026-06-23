@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Search\SearchOption;
 
 use function Safe\preg_replace;
@@ -224,20 +223,6 @@ abstract class ITILTemplate extends CommonDropdown
         ];
 
         return $fields;
-    }
-
-    public function displaySpecificTypeField($ID, $field = [], array $options = [])
-    {
-        $itil_itemtype = static::getITILObjectClass();
-        switch ($field['name']) {
-            case 'allowed_statuses':
-                $itil_itemtype::dropdownStatus([
-                    'name'      => $field['name'],
-                    'values'    => $this->fields[$field['name']] ?? [],
-                    'multiple'  => true,
-                ]);
-                break;
-        }
     }
 
     /**
@@ -440,69 +425,6 @@ abstract class ITILTemplate extends CommonDropdown
         return $tab;
     }
 
-
-    public function defineTabs($options = [])
-    {
-        $ong          = [];
-        $this->addDefaultFormTab($ong);
-        $itiltype = static::getITILObjectClass();
-        $this->addStandardTab($itiltype . 'TemplateMandatoryField', $ong, $options);
-        $this->addStandardTab($itiltype . 'TemplatePredefinedField', $ong, $options);
-        $this->addStandardTab($itiltype . 'TemplateHiddenField', $ong, $options);
-        $this->addStandardTab($itiltype . 'TemplateReadonlyField', $ong, $options);
-        $this->addStandardTab($itiltype . 'Template', $ong, $options);
-        $this->addStandardTab(ITILCategory::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof ITILTemplate && $tabnum === 1) {
-            return $item->showCentralPreview($item);
-        }
-        return false;
-    }
-
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-
-        if (Session::haveRight(static::$rightname, READ)) {
-            switch ($item->getType()) {
-                case 'TicketTemplate':
-                case 'ChangeTemplate':
-                case 'ProblemTemplate':
-                    return [1 => static::createTabEntry(
-                        __('Preview'),
-                        icon: "ti ti-file-search"
-                    )];
-            }
-        }
-        return '';
-    }
-
-
-    /**
-     * Get mandatory mark if field is mandatory
-     *
-     * @param string $field
-     * @param bool $force force display based on global config (false by default)
-     *
-     * @return string to display
-     */
-    public function getMandatoryMark($field, $force = false)
-    {
-
-        if ($force || $this->isMandatoryField($field)) {
-            return "<span class='required'>*</span>";
-        }
-        return '';
-    }
-
-
     /**
      * Is it a hidden field?
      *
@@ -572,29 +494,6 @@ abstract class ITILTemplate extends CommonDropdown
         return false;
     }
 
-
-    /**
-     * Print preview for ITIL template
-     *
-     * @param ITILTemplate $tt object
-     *
-     * @return bool
-     */
-    public static function showCentralPreview(ITILTemplate $tt): bool
-    {
-
-        if (!$tt->getID()) {
-            return false;
-        }
-        if ($tt->getFromDBWithData($tt->getID())) {
-            $itil_object = getItemForItemtype(static::getITILObjectClass());
-            return $itil_object->showForm(0, ['template_preview' => $tt->getID()]);
-        }
-
-        return false;
-    }
-
-
     public function getSpecificMassiveActions($checkitem = null)
     {
         $isadmin = static::canUpdate();
@@ -610,21 +509,6 @@ abstract class ITILTemplate extends CommonDropdown
 
         return $actions;
     }
-
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-
-        switch ($ma->getAction()) {
-            case 'merge':
-                echo "&nbsp;" . htmlescape($_SESSION['glpiactive_entity_shortname']);
-                echo "<br><br>" . Html::submit(_x('button', 'Merge'), ['name' => 'massiveaction']);
-                return true;
-        }
-
-        return parent::showMassiveActionsSubForm($ma);
-    }
-
 
     public static function processMassiveActionsForOneItemtype(
         MassiveAction $ma,
@@ -865,12 +749,6 @@ abstract class ITILTemplate extends CommonDropdown
         return $forbidden;
     }
 
-
-    public static function getIcon()
-    {
-        return "ti ti-stack-2-filled";
-    }
-
     public function prepareInputForAdd($input)
     {
         $input = parent::prepareInputForAdd($input);
@@ -925,28 +803,6 @@ abstract class ITILTemplate extends CommonDropdown
                 static::getForeignKeyField() => $templates_id,
             ]
         );
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-
-        if (!$this->isNewID($ID)) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $this->check(-1, CREATE);
-        }
-
-        $fields = $this->getAdditionalFields();
-
-        echo TemplateRenderer::getInstance()->render('components/itilobject/itiltemplate.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-            'additional_fields' => $fields,
-            'affected_item_count' => static::countAffectedItems($ID),
-        ]);
-
-        return true;
     }
 
     /**

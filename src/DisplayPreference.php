@@ -33,22 +33,15 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Plugin\Hooks;
 use Glpi\Search\SearchOption;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class DisplayPreference extends CommonDBTM
 {
-    // From CommonGLPI
-    public $taborientation          = 'horizontal';
-    public $get_item_to_display_tab = false;
 
     // From CommonDBTM
     public $auto_message_on_action  = false;
-
-    protected $displaylist          = false;
-
 
     public static $rightname = 'search_config';
 
@@ -158,19 +151,6 @@ class DisplayPreference extends CommonDBTM
         ])->current();
         $input['rank'] = $result['maxrank'] + 1;
         return $input;
-    }
-
-    public static function showMassiveActionsSubForm(MassiveAction $ma)
-    {
-        switch ($ma->getAction()) {
-            case 'reset_to_default':
-                $msg = __s('This will reset the columns to the defaults for a new installation.');
-                $msg2 = __s('This will only work for types from GLPI itself or enabled plugins that support this action.');
-                echo '<div class="alert alert-info">' . $msg . '<br>' . $msg2 . '</div>';
-                echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
-                return true;
-        }
-        return parent::showMassiveActionsSubForm($ma);
     }
 
     public static function processMassiveActionsForOneItemtype(
@@ -452,109 +432,6 @@ class DisplayPreference extends CommonDBTM
     }
 
     /**
-     * @param string $itemtype The itemtype
-     * @param bool $global True if global config, false if personal config
-     * @return void|false
-     */
-    private function showConfigForm(string $itemtype, bool $global, string $interface = 'central')
-    {
-        global $DB;
-
-        if (class_exists($itemtype)) {
-            $searchopt = Search::getCleanedOptions($itemtype);
-            $available_itemtype = true;
-        } else {
-            $searchopt = [];
-            $available_itemtype = false;
-        }
-        if (!is_array($searchopt)) {
-            return false;
-        }
-
-        $IDuser = $global ? 0 : Session::getLoginUserID();
-
-        $has_personal = false;
-        if (!$global) {
-            $iterator = $DB->request([
-                'COUNT' => 'cpt',
-                'FROM' => $this->getTable(),
-                'WHERE' => [
-                    'itemtype' => $itemtype,
-                    'users_id' => $IDuser,
-                ],
-                'ORDER' => 'rank',
-            ]);
-            $has_personal = $iterator->current()['cpt'] > 0;
-        }
-
-        // Get fixed columns
-        $fixed_columns = SearchOption::getDefaultToView($itemtype);
-        $group  = '';
-        $already_added = self::getForTypeUser($itemtype, $IDuser, $interface);
-        $available_to_add = [];
-        foreach ($searchopt as $key => $val) {
-            if (!is_array($val)) {
-                $group = $val;
-            } elseif (count($val) === 1) {
-                $group = $val['name'];
-            } elseif (
-                !in_array($key, $fixed_columns)
-                && (!isset($val['nodisplay']) || !$val['nodisplay'])
-            ) {
-                $available_to_add[$group][$key] = $val["name"];
-            }
-        }
-        $entries = [];
-        foreach ($fixed_columns as $val) {
-            if (!isset($searchopt[$val])) {
-                continue;
-            }
-            $entries[] = [
-                'id'   => $val,
-                'name' => $searchopt[$val]['name'],
-                'group' => $this->nameOfGroupForItemInSearchopt($searchopt, $val),
-                'fixed' => true,
-            ];
-        }
-        foreach ($already_added as $val) {
-            if (!isset($searchopt[$val])) {
-                continue;
-            }
-            $entries[] = [
-                'id'   => $val,
-                'name' => $searchopt[$val]['name'],
-                'group' => $this->nameOfGroupForItemInSearchopt($searchopt, $val),
-            ];
-        }
-
-        TemplateRenderer::getInstance()->display('components/search/displaypreference_config.html.twig', [
-            'itemtype' => $itemtype,
-            'users_id' => $IDuser,
-            'available_to_add' => $available_to_add,
-            'entries' => $entries,
-            'has_personal' => $has_personal,
-            'is_global' => $global,
-            'can_edit' => $global
-                ? Session::haveRight(self::$rightname, self::GENERAL)
-                : Session::haveRight(self::$rightname, self::PERSONAL),
-            'available_itemtype' => $available_itemtype,
-            'interface' => $interface,
-        ]);
-    }
-
-    /**
-     * Print the search config form
-     *
-     * @param string $itemtype  item type
-     *
-     * @return null|false (display) Returns false if there is a rights error.
-     **/
-    public function showFormPerso($itemtype)
-    {
-        return $this->showConfigForm($itemtype, false);
-    }
-
-    /**
      * Return the group name of an element in the searchopt array
      *
      * The group names are located before the items that belong to it, and are the only string keys, every item's key are integer.
@@ -584,162 +461,9 @@ class DisplayPreference extends CommonDBTM
         return "";
     }
 
-    /**
-     * Print the search config form
-     *
-     * @param class-string<CommonDBTM> $itemtype  item type
-     *
-     * @return null|false (display) Returns false if there is a rights error.
-     **/
-    public function showFormGlobal($itemtype)
-    {
-        return $this->showConfigForm($itemtype, true);
-    }
-
-    /**
-     * @param class-string<CommonDBTM> $itemtype
-     *
-     * @return void
-     */
-    public function showFormHelpdesk($itemtype): void
-    {
-        $this->showConfigForm($itemtype, true, 'helpdesk');
-    }
-
     public function isNewItem()
     {
         // For tab management : force isNewItem
-        return false;
-    }
-
-    /**
-     * show defined display preferences for a user
-     *
-     * @param int $users_id  ID
-     *
-     * @return void
-     */
-    public static function showForUser($users_id)
-    {
-        global $DB;
-
-        $iterator = $DB->request([
-            'SELECT'  => ['itemtype'],
-            'COUNT'   => 'nb',
-            'FROM'    => self::getTable(),
-            'WHERE'   => [
-                'users_id'  => $users_id,
-            ],
-            'GROUPBY' => 'itemtype',
-        ]);
-
-        $specific_actions = [];
-        if ($users_id > 0) {
-            $specific_actions[ self::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'delete_for_user'] = _x('button', 'Delete permanently');
-        } else {
-            $specific_actions[ self::class . MassiveAction::CLASS_ACTION_SEPARATOR . 'reset_to_default'] = _x('button', 'Reset to default');
-        }
-        $rand = mt_rand();
-        $massiveactionparams = [
-            'width'            => 400,
-            'height'           => 200,
-            'container'        => 'mass' . self::class . $rand,
-            'specific_actions' => $specific_actions,
-            'extraparams'      => ['massive_action_fields' => ['users_id']],
-        ];
-
-        TemplateRenderer::getInstance()->display('components/search/displaypreference_list.html.twig', [
-            'massiveactionparams' => $massiveactionparams,
-            'users_id' => $users_id,
-            'preferences' => $iterator,
-            'rand' => $rand,
-        ]);
-    }
-
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addStandardTab(self::class, $ong, $options);
-        $ong['no_all_tab'] = true;
-        return $ong;
-    }
-
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
-    {
-        switch ($item->getType()) {
-            case 'Preference':
-                if (Session::haveRight(self::$rightname, self::PERSONAL)) {
-                    return self::createTabEntry(text: __('Personal View'), icon: 'ti ti-columns-3');
-                }
-                break;
-
-            case self::class:
-                $forced_tab = $_REQUEST['forcetab'] ?? null;
-                $allow_tab_switch = !isset($_REQUEST['no_switch']) || !$_REQUEST['no_switch'];
-                $global_only = $forced_tab === 'DisplayPreference$1' && !$allow_tab_switch;
-                $personal_only = $forced_tab === 'DisplayPreference$2' && !$allow_tab_switch;
-                $ong = [];
-                $has_general = Session::haveRight(self::$rightname, self::GENERAL);
-                $ong[1] = $personal_only ? null : self::createTabEntry(__('Global View'));
-                if (Session::haveRight(self::$rightname, self::PERSONAL)) {
-                    $ong[2] = $global_only ? null : self::createTabEntry(__('Personal View'));
-                }
-
-                $itemtype = $_GET["itemtype"] ?? null;
-                if (
-                    $has_general
-                    && is_a($itemtype, CommonDBTM::class, true)
-                    && $itemtype::supportHelpdeskDisplayPreferences()
-                ) {
-                    $ong[3] = self::createTabEntry(__('Helpdesk View'));
-                }
-
-                return $ong;
-
-            case Config::class:
-                return self::createTabEntry(self::getTypeName(1), 0, self::class, 'ti ti-columns-3');
-        }
-        return '';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        switch ($item->getType()) {
-            case 'Preference':
-                self::showForUser(Session::getLoginUserID());
-                return true;
-
-            case self::class:
-                /** @var DisplayPreference $item */
-                switch ($tabnum) {
-                    case 1:
-                        $item->showFormGlobal($_GET["displaytype"]);
-                        return true;
-
-                    case 2:
-                        Session::checkRight(self::$rightname, self::PERSONAL);
-                        $item->showFormPerso($_GET["displaytype"]);
-                        return true;
-
-                    case 3:
-                        Session::checkRight(self::$rightname, self::GENERAL);
-                        $itemtype = $_GET["displaytype"] ?? null;
-                        if (
-                            !is_a($itemtype, CommonDBTM::class, true)
-                            || !$itemtype::supportHelpdeskDisplayPreferences()
-                        ) {
-                            return false;
-                        }
-
-                        $item->showFormHelpdesk($itemtype);
-                        return true;
-                }
-                break;
-
-            case Config::class:
-                self::showForUser(0);
-                return true;
-        }
         return false;
     }
 

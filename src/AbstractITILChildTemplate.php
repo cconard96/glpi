@@ -43,27 +43,6 @@ use Glpi\ContentTemplates\TemplateManager;
  */
 abstract class AbstractITILChildTemplate extends CommonDropdown
 {
-    public function showForm($ID, array $options = [])
-    {
-        if (!parent::showForm($ID, $options)) {
-            return false;
-        }
-
-        // Add autocompletion for ticket properties (twig templates)
-        $parameters = ParametersPreset::getForAbstractTemplates();
-        Html::activateUserTemplateAutocompletion(
-            'textarea[name=content]',
-            TemplateManager::computeParameters($parameters)
-        );
-
-        // Add related documentation
-        Html::addTemplateDocumentationLinkJS(
-            'textarea[name=content]',
-            ParametersPreset::ITIL_CHILD_TEMPLATE
-        );
-
-        return true;
-    }
 
     public function prepareInputForAdd($input)
     {

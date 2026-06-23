@@ -35,7 +35,6 @@
 namespace Glpi\Asset\CustomFieldType;
 
 use CommonDBTM;
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\CustomFieldOption\BooleanOption;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
@@ -91,31 +90,6 @@ class DropdownType extends AbstractType
             $value = $value[0] ?? '';
         }
         return $value;
-    }
-
-    public function getFormInput(string $name, mixed $value, ?string $label = null, bool $for_default = false): string
-    {
-        $twig_params = [
-            'itemtype' => $this->custom_field->fields['itemtype'],
-            'name' => $name,
-            'value' => $value ?? $this->custom_field->fields['default_value'],
-            'label' => $label ?? $this->custom_field->getFriendlyName(),
-            'field_options' => $this->getOptionValues($for_default),
-        ];
-        if ($for_default) {
-            $twig_params['field_options']['full_width'] = false;
-            if ($twig_params['value'] === '') {
-                $twig_params['value'] = null;
-            }
-        }
-        // language=Twig
-        return TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% import 'components/form/fields_macros.html.twig' as fields %}
-            {{ fields.dropdownField(itemtype, name, value, label, field_options|merge({
-                values: value|default({}),
-                entity: session('glpiactiveentities'),
-            })) }}
-TWIG, $twig_params);
     }
 
     public function getSearchOption(): ?array

@@ -42,37 +42,6 @@ final class ValidatorSubstitute extends CommonDBTM
         return _n('Authorized substitute', 'Authorized substitutes', $nb);
     }
 
-    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
-    {
-        if ($item instanceof Preference) {
-            $user = User::getById(Session::getLoginUserID());
-            if ($user instanceof User) {
-                $nb = $_SESSION['glpishow_count_on_tabs'] ? count($user->getSubstitutes()) : 0;
-                return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb, $item::getType());
-            }
-        }
-
-        return '';
-    }
-
-    public static function getIcon()
-    {
-        return 'ti ti-replace-user';
-    }
-
-    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
-    {
-        if ($item instanceof Preference) {
-            $user = User::getById(Session::getLoginUserID());
-            if ($user instanceof User) {
-                $substitute = new ValidatorSubstitute();
-                return $substitute->showForUser($user);
-            }
-        }
-
-        return false;
-    }
-
     public static function canView(): bool
     {
         return true;
@@ -132,28 +101,6 @@ final class ValidatorSubstitute extends CommonDBTM
             return false;
         }
         return $this->fields['users_id'] == Session::getLoginUserID();
-    }
-
-    public function showForUser(User $user): bool
-    {
-        if ($user->isNewItem()) {
-            return false;
-        }
-
-        $can_edit = ($user->fields['id'] == Session::getLoginUserID());
-        if (!$can_edit) {
-            return false;
-        }
-
-        TemplateRenderer::getInstance()->display('pages/admin/user.substitute.html.twig', [
-            'item'        => $this,
-            'user'        => $user,
-            'substitutes' => $user->getSubstitutes(),
-            'delegators'  => $user->getDelegators(),
-            'canedit'     => $can_edit,
-        ]);
-
-        return true;
     }
 
     public function prepareInputForUpdate($input): array

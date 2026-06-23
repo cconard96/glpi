@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QueryExpression;
 use Glpi\DBAL\QueryFunction;
 use Glpi\Features\Clonable;
@@ -77,11 +76,6 @@ class Contract extends CommonDBTM implements StateInterface
         return _n('Contract', 'Contracts', $nb);
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['management', self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'financial';
@@ -115,24 +109,6 @@ class Contract extends CommonDBTM implements StateInterface
         $alert->cleanDBonItemDelete(static::class, $this->fields['id']);
     }
 
-    public function defineTabs($options = [])
-    {
-        $ong = [];
-        $this->addDefaultFormTab($ong);
-        $this->addImpactTab($ong, $options);
-        $this->addStandardTab(ContractCost::class, $ong, $options);
-        $this->addStandardTab(Contract_Supplier::class, $ong, $options);
-        $this->addStandardTab(Contract_Item::class, $ong, $options);
-        $this->addStandardTab(Document_Item::class, $ong, $options);
-        $this->addStandardTab(ManualLink::class, $ong, $options);
-        $this->addStandardTab(Notepad::class, $ong, $options);
-        $this->addStandardTab(KnowbaseItem_Item::class, $ong, $options);
-        $this->addStandardTab(Ticket_Contract::class, $ong, $options);
-        $this->addStandardTab(Log::class, $ong, $options);
-
-        return $ong;
-    }
-
     public function pre_updateInDB()
     {
         // Clean end alert if begin_date is after old one
@@ -161,21 +137,6 @@ class Contract extends CommonDBTM implements StateInterface
             $alert = new Alert();
             $alert->clear(static::class, $this->fields['id'], Alert::NOTICE);
         }
-    }
-
-    /**
-     * Print the contract form
-     *
-     * @inheritDoc
-     */
-    public function showForm($ID, array $options = [])
-    {
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/management/contract.html.twig', [
-            'item'   => $this,
-            'params' => $options,
-        ]);
-        return true;
     }
 
     /**
@@ -421,45 +382,6 @@ class Contract extends CommonDBTM implements StateInterface
         }
 
         return $actions;
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        $options['display'] = false;
-        switch ($field) {
-            case 'alert':
-                $options['name']  = $name;
-                $options['value'] = $values[$field];
-                return self::dropdownAlert($options);
-
-            case 'renewal':
-                $options['name']  = $name;
-                return self::dropdownContractRenewal($name, $values[$field], false);
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        return match ($field) {
-            'alert' => htmlescape(self::getAlertName($values[$field])),
-            'renewal' => htmlescape(self::getContractRenewalName((int) $values[$field])),
-            '_virtual_expiration' => Infocom::getWarrantyExpir(
-                $values['begin_date'],
-                $values['renewal'] == self::RENEWAL_EXPRESS ? $values['duration'] + $values['periodicity'] : $values['duration'],
-                0,
-                true,
-                (int) $values['renewal'] === self::RENEWAL_TACIT,
-                $values['periodicity']
-            ),
-            default => parent::getSpecificValueToDisplay($field, $values, $options),
-        };
     }
 
     public function rawSearchOptions()
@@ -855,191 +777,6 @@ class Contract extends CommonDBTM implements StateInterface
         ];
 
         return $tab;
-    }
-
-    /**
-     * Show central contract resume
-     * HTML array
-     *
-     * @param bool $display if false, return html
-     *
-     * @return string|void Return generated content if `display` parameter is true.
-     **/
-    public static function showCentral(bool $display = true)
-    {
-        global $CFG_GLPI, $DB;
-
-        if (!self::canView()) {
-            return;
-        }
-
-        $end_date = QueryFunction::dateAdd(
-            date: 'begin_date',
-            interval: new QueryExpression($DB::quoteName('duration')),
-            interval_unit: 'MONTH'
-        );
-
-        $end_date_diff_now = QueryFunction::dateDiff(
-            expression1: $end_date,
-            expression2: QueryFunction::curDate()
-        );
-
-        // No recursive contract, not in local management
-        // contrats echus depuis moins de 30j
-        $table = self::getTable();
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => $table,
-            'WHERE'  => [
-                'is_deleted'   => 0,
-                new QueryExpression("$end_date_diff_now  > -30"),
-                new QueryExpression("$end_date_diff_now < 0"),
-            ] + getEntitiesRestrictCriteria($table),
-        ])->current();
-        $contract0 = $result['cpt'];
-
-        // contrats  echeance j-7
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => $table,
-            'WHERE'  => [
-                'is_deleted'   => 0,
-                new QueryExpression("$end_date_diff_now > 0"),
-                new QueryExpression("$end_date_diff_now  <= 7"),
-            ] + getEntitiesRestrictCriteria($table),
-        ])->current();
-        $contract7 = $result['cpt'];
-
-        // contrats echeance j -30
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => $table,
-            'WHERE'  => [
-                'is_deleted'   => 0,
-                new QueryExpression("$end_date_diff_now > 7"),
-                new QueryExpression("$end_date_diff_now < 30"),
-            ] + getEntitiesRestrictCriteria($table),
-        ])->current();
-        $contract30 = $result['cpt'];
-
-        $notice_date = QueryFunction::dateAdd(
-            date: 'begin_date',
-            interval: new QueryExpression($DB::quoteName('duration') . ' - ' . $DB::quoteName('notice')),
-            interval_unit: 'MONTH'
-        );
-
-        $end_date_diff_notice = QueryFunction::dateDiff(
-            expression1: $notice_date,
-            expression2: QueryFunction::curDate()
-        );
-
-        // contrats avec pr??avis echeance j-7
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => $table,
-            'WHERE'  => [
-                'is_deleted'   => 0,
-                'notice'       => ['<>', 0],
-                new QueryExpression("$end_date_diff_notice > 0"),
-                new QueryExpression("$end_date_diff_notice <= 7"),
-            ] + getEntitiesRestrictCriteria($table),
-        ])->current();
-        $contractpre7 = $result['cpt'];
-
-        // contrats avec pr??avis echeance j -30
-        $result = $DB->request([
-            'COUNT'  => 'cpt',
-            'FROM'   => $table,
-            'WHERE'  => [
-                'is_deleted'   => 0,
-                'notice'       => ['<>', 0],
-                new QueryExpression("$end_date_diff_notice > 7"),
-                new QueryExpression("$end_date_diff_notice < 30"),
-            ] + getEntitiesRestrictCriteria($table),
-        ])->current();
-        $contractpre30 = $result['cpt'];
-
-        $twig_params = [
-            'title'     => [
-                'link'   => $CFG_GLPI["root_doc"] . "/front/contract.php?reset=reset",
-                'text'   =>  self::getTypeName(1),
-                'icon'   => self::getIcon(),
-            ],
-            'items'     => [],
-        ];
-
-        $options = [
-            'reset' => 'reset',
-            'sort'  => 20,
-            'order' => 'DESC',
-            'start' => 0,
-            'criteria' => [
-                [
-                    'field'      => 20,
-                    'value'      => 'NOW',
-                    'searchtype' => 'lessthan',
-                ],
-                [
-                    'field'      => 20,
-                    'link'       => 'AND',
-                    'searchtype' => 'morethan',
-                    'value'      => '-1MONTH',
-                ],
-            ],
-        ];
-
-        $twig_params['items'][] = [
-            'link'   => $CFG_GLPI["root_doc"] . "/front/contract.php?" . Toolbox::append_params($options),
-            'text'   => __('Contracts expired in the last 30 days'),
-            'count'  => $contract0,
-        ];
-
-        $options['criteria'][0]['searchtype'] = 'morethan';
-        $options['criteria'][0]['value']      = 'NOW';
-        $options['criteria'][1]['searchtype'] = 'lessthan';
-        $options['criteria'][1]['value']      = '7DAY';
-        $twig_params['items'][] = [
-            'link'   => $CFG_GLPI["root_doc"] . "/front/contract.php?" . Toolbox::append_params($options),
-            'text'   => __('Contracts expiring in less than 7 days'),
-            'count'  => $contract7,
-        ];
-
-        $options['criteria'][0]['searchtype'] = 'morethan';
-        $options['criteria'][0]['value']      = '6DAY';
-        $options['criteria'][1]['searchtype'] = 'lessthan';
-        $options['criteria'][1]['value']      = '1MONTH';
-        $twig_params['items'][] = [
-            'link'   => $CFG_GLPI["root_doc"] . "/front/contract.php?" . Toolbox::append_params($options),
-            'text'   => __('Contracts expiring in less than 30 days'),
-            'count'  => $contract30,
-        ];
-
-        $options['criteria'][0]['field'] = 13;
-        $options['criteria'][0]['searchtype'] = 'morethan';
-        $options['criteria'][0]['value'] = 'NOW';
-        $options['criteria'][1]['field'] = 13;
-        $options['criteria'][1]['searchtype'] = 'lessthan';
-        $options['criteria'][1]['value'] = '7DAY';
-        $twig_params['items'][] = [
-            'link'   => $CFG_GLPI["root_doc"] . "/front/contract.php?" . Toolbox::append_params($options),
-            'text'   => __('Contracts where notice begins in less than 7 days'),
-            'count'  => $contractpre7,
-        ];
-
-        $options['criteria'][0]['value'] = '6DAY';
-        $options['criteria'][1]['value'] = '1MONTH';
-        $twig_params['items'][] = [
-            'link'   => $CFG_GLPI["root_doc"] . "/front/contract.php?" . Toolbox::append_params($options),
-            'text'   => __('Contracts where notice begins in less than 30 days'),
-            'count'  => $contractpre30,
-        ];
-
-        $output = TemplateRenderer::getInstance()->render('central/lists/itemtype_count.html.twig', $twig_params);
-        if ($display) {
-            echo $output;
-        } else {
-            return $output;
-        }
     }
 
     /**
@@ -1521,29 +1258,6 @@ class Contract extends CommonDBTM implements StateInterface
     }
 
     /**
-     * Print a select with contract renewal
-     *
-     * Print a select named $name with contract renewal options and selected value $value
-     *
-     * @param string  $name    HTML select name
-     * @param int $value   HTML select selected value (default = 0)
-     * @param bool $display get or display string ? (true by default)
-     *
-     * @return string|int HTML output, or random part of dropdown ID.
-     **/
-    public static function dropdownContractRenewal($name, $value = 0, $display = true)
-    {
-        $values = [
-            self::RENEWAL_NEVER => __('Never'),
-            self::RENEWAL_TACIT => __('Tacit'),
-            self::RENEWAL_EXPRESS => __('Express'),
-        ];
-        return Dropdown::showFromArray($name, $values, ['value'   => $value,
-            'display' => $display,
-        ]);
-    }
-
-    /**
      * Get the renewal type name
      *
      * @param int $value HTML select selected value
@@ -1649,14 +1363,6 @@ class Contract extends CommonDBTM implements StateInterface
                 $actions[$action_prefix . 'remove'] = _sx('button', 'Remove a contract');
             }
         }
-    }
-
-    /**
-     * @return string
-     */
-    public static function getIcon()
-    {
-        return "ti ti-writing-sign";
     }
 
     /**

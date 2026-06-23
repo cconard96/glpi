@@ -63,19 +63,4 @@ class BarcodeManager
         )->setBackgroundColor('white');
         return $qrcode;
     }
-
-    /**
-     * @param CommonDBTM $item
-     *
-     * @return false|string
-     */
-    public static function renderQRCode(CommonDBTM $item)
-    {
-        $barcode_manager = new self();
-        $qrcode = $barcode_manager->generateQRCode($item);
-        if ($qrcode) {
-            return "<img src=\"data:image/png;base64," . base64_encode($qrcode->getPngData()) . "\" />";
-        }
-        return false;
-    }
 }

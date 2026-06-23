@@ -172,126 +172,6 @@ class UserEmail extends CommonDBChild
         return false;
     }
 
-    #[Override()]
-    public static function getJSCodeToAddForItemChild($field_name, $child_count_js_var)
-    {
-        $html = "<div class='d-flex'>"
-            . "<input title='" . __s('Default email') . "' type='radio' name='_default_email' value='-__JS_PLACEHOLDER__' aria-label='" . __s('Set as default email') . "'>"
-            . "&nbsp;"
-            . "<input type='text' size='30' class='form-control' " . "name='" . htmlescape($field_name) . "[-__JS_PLACEHOLDER__]'  aria-label='" . __s('Email address') . "'>"
-            . "</div>";
-
-        return str_replace(
-            '__JS_PLACEHOLDER__',
-            "'+{$child_count_js_var}+'", // string closing, + operator, JS variable name, + operator, string reopening
-            jsescape($html)
-        );
-    }
-
-
-    /**
-     * @since 0.85 (since 0.85 but param $id since 0.85)
-     *
-     * @param $canedit
-     * @param $field_name
-     * @param $id
-     **/
-    public function showChildForItemForm($canedit, $field_name, $id, bool $display = true)
-    {
-
-        if ($this->isNewID($this->getID())) {
-            $value = '';
-        } else {
-            $value = htmlescape($this->fields['email']);
-        }
-        $result = "";
-        $field_name = htmlescape($field_name . "[$id]");
-        $result .= "<div class='d-flex align-items-center'>";
-        $result .= "<input title='" . __s('Default email') . "' type='radio' name='_default_email'
-             value='" . htmlescape($this->getID()) . "'";
-        if (!$canedit) {
-            $result .= " disabled aria-disabled='true'";
-        }
-        if ($this->fields['is_default']) {
-            $result .= " checked";
-        }
-        $result .= " aria-label='" . __s('Set as default email') . "'>&nbsp;";
-        if (!$canedit || $this->fields['is_dynamic']) {
-            $result .= "<input type='hidden' name='$field_name' value='$value'>";
-            $result .= sprintf('%s <span class="b">(%s)</span>', $value, __s('D'));
-        } else {
-            $result .= "<input type='text' size=30 class='form-control' name='$field_name' value='$value' aria-label='" . __s('Email address') . "'>";
-        }
-        $result .= "</div>";
-
-        if ($display) {
-            echo $result;
-        } else {
-            return $result;
-        }
-    }
-
-
-    /**
-     * Show emails of a user
-     *
-     * @param $user User object
-     *
-     * @return void
-     **/
-    public static function showForUser(User $user)
-    {
-
-        $users_id = $user->getID();
-
-        if (
-            !$user->can($users_id, READ)
-            && ($users_id != Session::getLoginUserID())
-        ) {
-            return;
-        }
-
-        $canedit = $users_id == Session::getLoginUserID();
-        if (!$canedit) {
-            if ($user->isNewID($users_id)) {
-                $canedit = $user->can($users_id, CREATE);
-            } else {
-                $canedit = $user->can($users_id, UPDATE)
-                && $user->currentUserHaveMoreRightThan($users_id);
-            }
-        }
-
-        parent::showChildsForItemForm($user, '_useremails', $canedit);
-    }
-
-
-    /**
-     * @param User $user
-     *
-     * @return void
-     **/
-    public static function showAddEmailButton(User $user)
-    {
-
-        $users_id = $user->getID();
-        if (!$user->can($users_id, READ) && ($users_id != Session::getLoginUserID())) {
-            return;
-        }
-
-        $canedit = $users_id == Session::getLoginUserID();
-        if (!$canedit) {
-            if ($user->isNewID($users_id)) {
-                $canedit = $user->can($users_id, CREATE);
-            } else {
-                $canedit = $user->can($users_id, UPDATE)
-                    && $user->currentUserHaveMoreRightThan($users_id);
-            }
-        }
-
-        parent::showAddChildButtonForItemForm($user, '_useremails', $canedit);
-    }
-
-
     public function prepareInputForAdd($input)
     {
         if (!$this->checkInputEmailValidity($input)) {
@@ -326,7 +206,6 @@ class UserEmail extends CommonDBChild
     {
         return isset($input['email']) && !empty($input['email']) && GLPIMailer::validateAddress($input['email']);
     }
-
 
     /**
      * @since 0.84

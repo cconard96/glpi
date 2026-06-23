@@ -35,12 +35,9 @@
 
 namespace Glpi\Dashboard;
 
-use Config;
 use Dropdown;
 use Glpi\Application\Environment;
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Debug\Profiler;
-use Glpi\Error\ErrorHandler;
 use Glpi\Exception\Http\AccessDeniedHttpException;
 use Glpi\Plugin\Hooks;
 use Html;
@@ -50,12 +47,9 @@ use Ramsey\Uuid\Uuid;
 use ReflectionClass;
 use Reminder;
 use Session;
-use ShareDashboardDropdown;
 use Telemetry;
-use Throwable;
 use Ticket;
 use Toolbox;
-
 use function Safe\json_encode;
 use function Safe\preg_replace;
 
@@ -92,7 +86,6 @@ class Grid
         $this->context   = $context;
     }
 
-
     /**
      * Return the instance of current dasbhoard
      *
@@ -111,7 +104,6 @@ class Grid
     {
         return $this->context;
     }
-
 
     /**
      * load all existing dashboards from DB into a static property for caching data
@@ -133,55 +125,6 @@ class Grid
         return is_array(self::$all_dashboards);
     }
 
-
-    /**
-     * Init dashboards cards
-     * A define.php constant (GLPI_AJAX_DASHBOARD) exists to control how the cards should be loaded
-     *  - if true: load all cards in seperate ajax request
-     *    pros: slow cards wont impact the others
-     * - else: load all cards in a single ajax request
-     *    pros: less strain for the server
-     *
-     * @return void
-     */
-    public function getCards()
-    {
-        self::loadAllDashboards();
-
-        if (
-            !isset(self::$all_dashboards[$this->current])
-            || !isset(self::$all_dashboards[$this->current]['items'])
-        ) {
-            self::$all_dashboards[$this->current] = [
-                'items' => [],
-            ];
-        }
-
-        foreach (self::$all_dashboards[$this->current]['items'] as $specs) {
-            $card_id      = $specs['card_id'] ?? $specs['gridstack_id'] ?? $specs['id'];
-            $gridstack_id = $specs['gridstack_id']   ?? $specs['id'];
-            $card_options = ($specs['card_options'] ?? []) + [
-                'card_id' => $card_id,
-            ];
-
-            $card_html    = <<<HTML
-            <div class="loading-card">
-               <span class="spinner-border spinner-border" role="status" aria-hidden="true"></span>
-            </div>
-HTML;
-            $this->addGridItem(
-                $card_html,
-                $gridstack_id,
-                $specs['x'] ?? -1,
-                $specs['y'] ?? -1,
-                $specs['width'] ?? 2,
-                $specs['height'] ?? 2,
-                $card_options
-            );
-        }
-    }
-
-
     /**
      * Do we have the right to view at least one dashboard int the current collection
      *
@@ -196,7 +139,6 @@ HTML;
 
         return $this->dashboard->canViewCurrent();
     }
-
 
     /**
      * Do we have the right to view at least one dashboard?
@@ -222,7 +164,6 @@ HTML;
         return (count($viewable) > 0);
     }
 
-
     /**
      * Do we have the right to view the specified dashboard int the current collection
      *
@@ -244,298 +185,6 @@ HTML;
 
         return isset(self::$all_dashboards[$key]);
     }
-
-
-    /**
-     * Display grid for the current dashboard
-     *
-     * @return void display html of the grid
-     */
-    public function show(bool $mini = false, ?string $token = null)
-    {
-        global $GLPI_CACHE;
-
-        $rand = mt_rand();
-
-        if (!self::$embed && !$this->dashboard->canViewCurrent()) {
-            return;
-        }
-
-        self::loadAllDashboards();
-
-        $this->restoreLastDashboard();
-
-        if ($mini) {
-            $this->cell_margin = 3;
-        }
-
-        $embed_class   = self::$embed ? "embed" : "";
-        $mini_class    = $mini ? "mini" : "";
-
-        $nb_dashboards = count(self::$all_dashboards);
-
-        $can_view_all  = Session::haveRight('dashboard', READ) || self::$embed;
-        $can_create    = Session::haveRight('dashboard', CREATE);
-        $can_edit      = Session::haveRight('dashboard', UPDATE) && $nb_dashboards;
-        $can_purge     = Session::haveRight('dashboard', PURGE) && $nb_dashboards;
-        $can_clone     = $can_create && $nb_dashboards;
-
-        // prepare html for add controls
-        $add_controls = "";
-        for ($y = 0; $y < $this->grid_rows; $y++) {
-            for ($x = 0; $x < $this->grid_cols; $x++) {
-                $add_controls .= "<div class='cell-add' data-x='$x' data-y='$y'>&nbsp;</div>";
-            }
-        }
-
-        // prepare all available cards
-        $cards = $this->getAllDasboardCards();
-
-        // prepare all available widgets
-        $all_widgets = Widget::getAllTypes();
-
-        // prepare labels
-        $embed_label      = __s("Share or embed this dashboard");
-        $delete_label     = __s("Delete this dashboard");
-        $history_label    = __s("Toggle auto-refresh");
-        $night_label      = __s("Toggle night mode");
-        $fs_label         = __s("Toggle fullscreen");
-        $clone_label      = __s("Clone this dashboard");
-        $edit_label       = __s("Toggle edit mode");
-        $filter_label     = __s("Toggle filter mode");
-        $add_dash_label   = __s("Add a new dashboard");
-        $save_label       = _sx('button', "Save");
-        $reset_label      = __s("Reset dashboard to default");
-
-        $gridstack_items = $this->getGridItemsHtml(!$mini);
-
-        $dropdown_dashboards = "";
-        if ($nb_dashboards) {
-            $dropdown_dashboards = self::dropdownDashboard("", [
-                'value'        => $this->current,
-                'display'      => false,
-                'class'        => 'dashboard_select form-select',
-                'can_view_all' => $can_view_all,
-                'noselect2'    => true,
-                'context'      => $this->context,
-            ]);
-        }
-
-        $dashboard_title = \htmlescape($this->dashboard->getTitle());
-
-        $l_tb_icons   = "";
-        $r_tb_icons   = "";
-        $rename       = "";
-        $left_toolbar = "";
-        $grid_guide   = "";
-
-        if (!self::$embed) {
-            if (!$mini && $can_create) {
-                $l_tb_icons .= "<i class='btn btn-sm btn-icon btn-ghost-secondary ti ti-plus fs-toggle add-dashboard' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$add_dash_label'></i>";
-            }
-            if (!$mini && $can_clone) {
-                $r_tb_icons .= "<i class='btn btn-sm btn-icon btn-ghost-secondary ti ti-copy fs-toggle clone-dashboard' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$clone_label'></i>";
-            }
-            if (!$mini && $can_edit) {
-                $r_tb_icons .= "<i class='btn btn-sm btn-icon btn-ghost-secondary ti ti-share fs-toggle open-embed' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$embed_label'></i>";
-                $rename = "<div class='edit-dashboard-properties'>
-               <input type='text' class='dashboard-name form-control' value='{$dashboard_title}' size='1'>
-               <button class='btn btn-ghost-secondary btn-icon btn-sm fs-2 ms-1 save-dashboard-name' data-bs-toggle='tooltip' data-bs-placement='bottom' title='{$save_label}'>
-                   <i class='ti ti-device-floppy' ></i>
-               </button>
-               <button class='btn btn-ghost-danger btn-icon btn-sm fs-2 ms-1 reset-dashboard' data-bs-toggle='tooltip' data-bs-placement='bottom' title='{$reset_label}'>
-                   <i class='ti ti-refresh' ></i>
-               </button>
-               <span class='display-message'></span>
-            </div>";
-            }
-            if ($mini && $can_edit) {
-                $rename = <<<HTML
-                    <div class='edit-dashboard-properties'>
-                        <button class='btn btn-ghost-danger btn-icon btn-sm fs-2 ms-1 reset-dashboard' title='{$reset_label}'>
-                           <i class='ti ti-refresh' ></i>
-                       </button>
-                    </div>
-HTML;
-
-            }
-            if (!$mini && $can_purge) {
-                $r_tb_icons .= "<i class='btn btn-sm btn-icon btn-ghost-secondary ti ti-trash fs-toggle delete-dashboard' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$delete_label'></i>";
-            }
-            if ($can_edit) {
-                $r_tb_icons .= "<i class='btn btn-sm btn-icon btn-ghost-secondary ti ti-edit fs-toggle edit-dashboard' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$edit_label'></i>";
-            } elseif (!$mini) {
-                $r_tb_icons .= "<i class='btn btn-outline-secondary ti ti-filter fs-toggle filter-dashboard' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$filter_label'></i>";
-            }
-
-            if (!$mini) {
-                $r_tb_icons .= "<i class='btn btn-sm btn-icon btn-ghost-secondary ti ti-maximize toggle-fullscreen' data-bs-toggle='tooltip' data-bs-placement='bottom' title='$fs_label'></i>";
-            }
-
-            if (!$mini) {
-                $left_toolbar = <<<HTML
-               <span class="toolbar left-toolbar">
-                  <div class="change-dashboard d-flex">
-                     $dropdown_dashboards
-                     $l_tb_icons
-                  </div>
-                  $rename
-               </span>
-HTML;
-            } else {
-                $left_toolbar = <<<HTML
-                    <div class="toolbar left-toolbar mb-3 position-relative">
-                        <div class='edit-dashboard-properties'>
-                            <button class='btn btn-ghost-danger btn-sm ms-1 reset-dashboard'>
-                               <i class='ti ti-refresh' ></i>
-                               {$reset_label}
-                           </button>
-                        </div>
-                    </div>
-HTML;
-            }
-
-            $grid_guide = <<<HTML
-            <div class="grid-guide">
-               $add_controls
-            </div>
-HTML;
-        }
-
-        $toolbars = <<<HTML
-         $left_toolbar
-         <span class="toolbar">
-            <i class="btn btn-sm btn-icon btn-ghost-secondary ti ti-refresh auto-refresh" data-bs-toggle='tooltip' data-bs-placement='bottom' title="$history_label"></i>
-            <i class="btn btn-sm btn-icon btn-ghost-secondary ti ti-moon night-mode" data-bs-toggle='tooltip' data-bs-placement='bottom' title="$night_label"></i>
-            $r_tb_icons
-         </span>
-HTML;
-
-        $filters = "";
-
-        global $CFG_GLPI;
-        if (!$mini) {
-            $params = [
-                'is_placeholder' => $CFG_GLPI['is_demo_dashboards'] ?? 0,
-                'messages' => [
-                    'add_filter' => __("Add filter"),
-                    'placeholder_main' => __("You are viewing demonstration data."),
-                    'disable_demo_msg' => __('Disable demonstration'),
-                ],
-                'can_disable_demo' => Session::haveRight(Config::$rightname, UPDATE) ? 1 : 0,
-            ];
-            $filters = TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-                <div class='filters_toolbar m-2 {{ is_placeholder ? "d-none" : "" }}'>
-                    <span class='filters'></span>
-                    <span class='filters-control'>
-                        <i class="btn btn-sm btn-ghost-secondary ti ti-plus plus-sign add-filter">
-                            <span class='add-filter-lbl'>{{ messages['add_filter'] }}</span>
-                        </i>
-                    </span>
-                </div>
-                <div class='placeholder_info {{ is_placeholder ? "" : "d-none" }}' style="background-color: transparent; color: var(--tblr-body-color); font-size: var(--tblr-body-font-size)">
-                    <div class="alert alert-info">
-                        <div class="d-flex">
-                            <i class="ti ti-info-circle fs-2x me-3"></i>
-                            <div>
-                                <h4 class="alert-title">{{ messages['placeholder_main'] }}</h4>
-                                <div class="mt-2">
-                                    <button class="btn btn-info btn-sm disable-dashboard-demo me-2 {{ can_disable_demo ? '' : 'd-none' }}" type="button">
-                                        <i class="ti ti-presentation-off"></i>
-                                        <span>{{ messages['disable_demo_msg'] }}</span>
-                                    </button>
-                                    <script>
-                                        $('button.disable-dashboard-demo').on('click', function() {
-                                            $.post(CFG_GLPI.root_doc + '/ajax/dashboard.php', {
-                                                action: 'disable_placeholders'
-                                            }).then(() => {
-                                                window.location.reload();
-                                            });
-                                        });
-                                    </script>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-TWIG, $params);
-        }
-
-        $ajax_cards = GLPI_AJAX_DASHBOARD;
-        $cache_key  = sha1($_SESSION['glpiactiveentities_string'] ?? "");
-
-        $twig_params = [
-            'mini' => $mini,
-            'embed_class' => $embed_class,
-            'mini_class' => $mini_class,
-            'toolbars' => $toolbars,
-            'filters' => $filters,
-            'grid_guide' => $grid_guide,
-            'gridstack_items' => $gridstack_items,
-            'rand' => $rand,
-            'grid_cols' => $this->grid_cols,
-            'grid_rows' => $this->grid_rows,
-            'cell_margin'   => $this->cell_margin,
-            'js_params' => [
-                'mini'          => $mini,
-                'current'       => $this->current,
-                'cols'          => $this->grid_cols,
-                'rows'          => $this->grid_rows,
-                'cell_margin'   => $this->cell_margin,
-                'rand'          => $rand,
-                'ajax_cards'    => $ajax_cards,
-                'all_cards'     => $cards,
-                'all_widgets'   => $all_widgets,
-                'context'       => $this->context,
-                'cache_key'     => $cache_key,
-                'embed'         => self::$embed,
-                'token'         => $token,
-                'entities_id'   => $_SESSION['glpiactive_entity'],
-                'is_recursive'  => $_SESSION['glpiactive_entity_recursive'] ? 1 : 0,
-            ],
-        ];
-        // language=Twig
-        echo TemplateRenderer::getInstance()->renderFromStringTemplate(<<<TWIG
-            {% if mini %}
-                <div class='card mb-4 d-none d-md-block dashboard-card'>
-                    <div class='card-body p-2'>
-            {% endif %}
-            <div class="dashboard {{ embed_class }} {{ mini_class }}" id="dashboard-{{ rand }}">
-                <span class='glpi_logo'></span>
-                {{ toolbars|raw }}
-                {{ filters|raw }}
-                <div class="grid-stack grid-stack-{{ grid_cols }}"
-                id="grid-stack-{{ rand }}"
-                gs-column="{{ grid_cols }}"
-                gs-min-row="{{ grid_rows }}"
-                style="width: 100%; --gs-col-count: {{ grid_cols }}; --gs-row-count: {{ grid_rows }}; --gs-cell-margin: {{ cell_margin }}px;">
-                    {{ grid_guide|raw }}
-                    {{ gridstack_items|raw }}
-                </div>
-            </div>
-            {% if mini %}
-                    </div>
-                </div>
-            {% endif %}
-            <script type="module">
-                import('/js/modules/Dashboard/Dashboard.js').then((m) => {
-                    new m.GLPIDashboard({{ js_params|json_encode|raw }});
-                });
-            </script>
-TWIG, $twig_params);
-    }
-
-
-    /**
-     * @return void
-     */
-    public function showDefault()
-    {
-        echo "<div class='card p-3'>";
-        $this->show();
-        echo "</div>";
-    }
-
 
     /**
      * Init embed session
@@ -594,24 +243,6 @@ TWIG, $twig_params);
         $this->initEmbedSession($params);
     }
 
-
-    /**
-     * Show an embedded dashboard.
-     * We must check token validity to avoid displaying dashboard to invalid users
-     *
-     * @param array $params must contain "token" key
-     *
-     * @return void (display)
-     */
-    public function embed(array $params)
-    {
-        Toolbox::deprecated(version: '11.1.0');
-
-        // show embedded dashboard
-        $this->initEmbed($params);
-        $this->show(true, $params['token'] ?? '');
-    }
-
     public static function getToken(string $dasboard = "", int $entities_id = 0, int $is_recursive = 0): string
     {
         $seed         = $dasboard . $entities_id . $is_recursive . Telemetry::getInstanceUuid();
@@ -654,517 +285,6 @@ TWIG, $twig_params);
 
         return true;
     }
-
-
-    /**
-     * Return the html for all items for the current dashboard
-     *
-     * @param bool $with_lock if true, return also a locked bottom item (to fix grid height)
-     *
-     * @return string html of the grid items
-     */
-    public function getGridItemsHtml(bool $with_lock = true, bool $embed = false): string
-    {
-        global $DB;
-
-        if ($embed) {
-            self::$embed = true;
-        }
-
-        $this->getCards();
-
-        if ($with_lock) {
-            $this->items[] = <<<HTML
-         <div class="grid-stack-item lock-bottom"
-            gs-no-resize="true"
-            gs-no-move="true"
-            gs-h="1"
-            gs-w="{$this->grid_cols}"
-            gs-x="0"
-            gs-y="{$this->grid_rows}"></div>
-HTML;
-        }
-
-        // append all elements to insert them in html
-        return implode("", $this->items);
-    }
-
-
-    /**
-     * Add a new grid item
-     *
-     * @param string $html content of the card
-     * @param string $gridstack_id unique id identifying the card (used in gridstack)
-     * @param int $x position in the grid
-     * @param int $y position in the grid
-     * @param int $width size in the grid
-     * @param int $height size in the grid
-     * @param array $data_option aditional options passed to the widget, contains at least thses keys:
-     *                             - string 'color'
-     * @return void
-     */
-    public function addGridItem(
-        string $html = "",
-        string $gridstack_id = "",
-        int $x = -1,
-        int $y = -1,
-        int $width = 2,
-        int $height = 2,
-        array $data_option = []
-    ) {
-
-        // let grid-stack to autoposition item
-        $autoposition = 'gs-auto-position="true"';
-        $coordinates  = '';
-        if ($x >= 0 && $y >= 0) {
-            $autoposition = "";
-            $coordinates  = "gs-x='$x' gs-y='$y'";
-        }
-
-        $color    = $data_option['color'] ?? "#FFFFFF";
-        $fg_color = htmlescape(Toolbox::getFgColor($color, 100, true));
-
-        // add card options in data attribute
-        $data_option_attr = "";
-        if (count($data_option)) {
-            $data_option_attr = "data-card-options='" . htmlescape(json_encode($data_option)) . "'";
-        }
-
-        $refresh_label = __s("Refresh this card");
-        $edit_label    = __s("Edit this card");
-        $delete_label  = __s("Delete this card");
-
-        $gridstack_id = htmlescape($gridstack_id);
-
-        $this->items[] = <<<HTML
-         <div class="grid-stack-item"
-               gs-id="{$gridstack_id}"
-               gs-w="{$width}"
-               gs-h="{$height}"
-               {$coordinates}
-               {$autoposition}
-               {$data_option_attr}
-               style="color: {$fg_color}">
-            <span class="controls">
-               <i class="refresh-item ti ti-refresh" title="{$refresh_label}"></i>
-               <i class="edit-item ti ti-edit" title="{$edit_label}"></i>
-               <i class="delete-item ti ti-x" title="{$delete_label}"></i>
-            </span>
-            <div class="grid-stack-item-content">{$html}</div>
-         </div>
-HTML;
-    }
-
-
-    /**
-     * Display a mini form fo adding a new dashboard
-     *
-     * @return void (display)
-     */
-    public function displayAddDashboardForm()
-    {
-        $rand = mt_rand();
-
-        echo "<form class='no-shadow display-add-dashboard-form'>";
-
-        echo "<div class='mb-3'>";
-        echo "<label for='title_$rand'>" . __s("Title") . "</label>";
-        echo "<div>";
-        echo Html::input('title', ['id' => "title_$rand"]);
-        echo "</div>";
-        echo "</div>"; // .field
-
-        echo Html::submit(_x('button', "Add"), [
-            'icon'  => 'ti ti-plus',
-            'class' => 'btn btn-primary submit-new-dashboard',
-        ]);
-
-        echo "</form>"; // .card.display-widget-form
-    }
-
-
-    /**
-     * Display mini configuration form to add or edit a widget
-     *
-     * @param array $params with these keys:
-     * - int    'gridstack_id': unique identifier of the card
-     * - int    'x': position in the grid
-     * - int    'y: position in the grid
-     * - int    'width': size in the grid
-     * - int    'height': size in the grid
-     * - string 'rand': unique identifier for the dom
-     * - string 'action': [display_add_widget|display_edit_widget] current action for the form
-     * - array  'card_options': aditionnal options for the card, contains at least:
-     *     - string 'card_id': identifier return by @see self::getAllDasboardCards
-     *     - string 'color'
-     *
-     * @return void
-     */
-    public function displayWidgetForm(array $params = [])
-    {
-        $gridstack_id = $params['gridstack_id'] ?? "";
-        $old_id       = $gridstack_id;
-        $x            = (int) ($params['x'] ?? 0);
-        $y            = (int) ($params['y'] ?? 0);
-        $width        = (int) ($params['width'] ?? 0);
-        $height       = (int) ($params['height'] ?? 0);
-        $cardopt      = $params['card_options'] ?? ['color' => "#FAFAFA"];
-        $card_id      = $cardopt['card_id'] ?? "";
-        $widgettypes  = Widget::getAllTypes();
-        $widgettype   = $cardopt['widgettype'] ?? "";
-        $widget_def   = $widgettypes[$widgettype] ?? [];
-        $use_gradient = $cardopt['use_gradient'] ?? 0;
-        $palette      = $cardopt['palette'] ?? '';
-        $labels       = $cardopt['labels'] ?? 0;
-        $point_labels = $cardopt['point_labels'] ?? 1;
-        $legend       = $cardopt['legend'] ?? 1;
-        $limit        = $cardopt['limit'] ?? 7;
-        $color        = $cardopt['color'];
-        $edit         = $params['action'] === "display_edit_widget";
-        $cards        = $this->getAllDasboardCards();
-        $card         = $cards[$card_id] ?? [];
-        // append card id to options
-        if (!isset($cardopt['card_id'])) {
-            $cardopt['card_id'] = $card_id;
-        }
-
-        $list_cards = [];
-        array_walk($cards, function ($data, $index) use (&$list_cards) {
-            $group = $data['group'] ?? __("others");
-            $list_cards[$group][$index] = $data['label'] ?? $data['itemtype']::getTypeName();
-        });
-
-        TemplateRenderer::getInstance()->display('components/dashboard/widget_form.html.twig', [
-            'gridstack_id' => $gridstack_id,
-            'old_id'       => $old_id,
-            'x'            => $x,
-            'y'            => $y,
-            'width'        => $width,
-            'height'       => $height,
-            'edit'         => $edit,
-            'card'         => $card,
-            'widget_def'   => $widget_def,
-            'color'        => $color,
-            'card_id'      => $card_id,
-            'use_gradient' => $use_gradient,
-            'palette'      => $palette,
-            'labels'       => $labels,
-            'point_labels' => $point_labels,
-            'legend'       => $legend,
-            'limit'        => $limit,
-            'list_cards'   => $list_cards,
-            'widget_types' => Widget::getAllTypes(),
-            'widgettype'   => $widgettype,
-            'card_options' => $cardopt,
-        ]);
-    }
-
-
-    /**
-     * Display mini form to add filter to the current dashboard
-     *
-     * @param array $params default values for
-     * - 'used' already used filters
-     *
-     * @return void
-     */
-    public function displayFilterForm(array $params = [])
-    {
-        $default_params = [
-            'used'  => [],
-        ];
-        $params = array_merge($default_params, $params);
-
-        $used         = array_flip($params['used']);
-        $filters      = Filter::getFilterChoices();
-        $list_filters = array_diff_key($filters, $used);
-
-        $rand = mt_rand();
-        echo "<form class='display-filter-form'>";
-
-        echo "<div class='field'>";
-        echo "<label for='dropdown_card_id$rand'>" . __s("Filters") . "</label>";
-        echo "<div>";
-        Dropdown::showFromArray('filter_id', $list_filters, [
-            'display_emptychoice' => true,
-            'rand'                => $rand,
-        ]);
-        echo "</div>";
-        echo "</div>"; // .field
-
-        echo Html::submit(_x('button', "Add"), [
-            'icon'  => 'ti ti-plus',
-            'class' => 'btn btn-primary mt-2',
-        ]);
-        echo "</form>"; // form.card.display-filter-form
-    }
-
-
-    /**
-     * Display a mini form for embedding current dashboard in another application.
-     * Also, display a select for sharing current dashboard to another users/groups/entities/profiles
-     *
-     * @return void
-     */
-    public function displayEmbedForm()
-    {
-        global $CFG_GLPI;
-
-        $entities_id  = $_SESSION['glpiactive_entity'];
-        $is_recursive = $_SESSION['glpiactive_entity_recursive'];
-        $token        = self::getToken($this->current, $entities_id, $is_recursive);
-
-        $embed_url    = $CFG_GLPI['url_base']
-         . "/front/central.php?embed&dashboard=" . $this->current
-         . "&entities_id=$entities_id"
-         . "&is_recursive=$is_recursive"
-         . "&token=$token";
-
-        echo "<label>" . __s("Embed in another application") . "</label><br>";
-        echo "<fieldset class='embed_block'>";
-        echo __s("Direct link");
-        echo "<div class='copy_to_clipboard_wrapper'>";
-        echo Html::input('direct_link', [
-            'value' => $embed_url,
-        ]);
-        echo "</div><br>";
-
-        $iframe = "<iframe src='" . htmlescape($embed_url) . "' frameborder='0' width='800' height='600' allowtransparency></iframe>";
-        echo __s("Iframe");
-        echo "<div class='copy_to_clipboard_wrapper'>";
-        echo Html::input('iframe_code', [
-            'value' => $iframe,
-        ]);
-        echo "</div>";
-        echo "</fieldset><br>";
-
-        $this->displayEditRightsForm();
-    }
-
-
-    /**
-     * Display a mini form for sharing current dashboard to another users/groups/entities/profiles.
-     *
-     * @return void
-     */
-    public function displayEditRightsForm()
-    {
-        self::loadAllDashboards();
-        $rand   = mt_rand();
-        $values = [];
-
-        echo "<form class='no-shadow display-rights-form'>";
-
-        echo "<label for='dropdown_rights_id$rand'>"
-           . __s("Or share the dashboard to these target objects:")
-           . "</label><br>";
-
-        $values = [
-            'profiles_id' => self::$all_dashboards[$this->current]['rights']['profiles_id'] ?? [],
-            'entities_id' => self::$all_dashboards[$this->current]['rights']['entities_id'] ?? [],
-            'users_id'    => self::$all_dashboards[$this->current]['rights']['users_id'] ?? [],
-            'groups_id'   => self::$all_dashboards[$this->current]['rights']['groups_id'] ?? [],
-        ];
-
-        echo ShareDashboardDropdown::show((string) $rand, $values);
-        echo "<br>";
-
-        echo "<div class='d-flex align-items-center my-3'>";
-        echo __s('Personal') . "&nbsp;";
-        echo Html::showToolTip(__s("A personal dashboard is not visible by other administrators unless you explicitly share the dashboard")) . "&nbsp";
-        echo Dropdown::showYesNo(
-            'is_private',
-            (self::$all_dashboards[$this->current]['users_id'] == '0' ? '0' : '1'),
-            -1,
-            [
-                'display' => false,
-            ]
-        );
-        echo "</div>";
-
-        echo "<a href='#' class='btn btn-primary save_rights'>
-         <i class='ti ti-device-floppy'></i>
-         <span>" . __s("Save") . "</span>
-      </a>";
-
-        Html::closeForm(true);
-    }
-
-
-    /**
-     * Return the html for the given card_id
-     *
-     * @param string $card_id identifier return by @see self::getAllDasboardCards
-     * @param array $card_options contains these keys:
-     * - array 'args':
-     *    - string 'gridstack_id' unique identifier of the card in the grid, used to return html by cache
-     *    - bool 'force' if true, cache will be bypassed
-     *    - bool 'embed' is the dashboard emebeded or not
-     *
-     * @return string html of the card
-     */
-    public function getCardHtml(string $card_id = "", array $card_options = []): string
-    {
-        global $GLPI_CACHE;
-
-        $start = microtime(true);
-
-        $force = ($card_options['args']['force'] ?? $card_options['force'] ?? false);
-
-        // retrieve card
-        $notfound_html = "<div class='empty-card card-warning '>
-         <i class='ti ti-alert-triangle'></i>"
-         . __s('empty card!') . "
-      </div>";
-        $render_error_html = "<div class='empty-card card-error '>
-         <i class='ti ti-alert-triangle'></i>"
-         . __s('Error rendering card!')
-            . "</br>"
-            . \htmlescape($card_id)
-            . "</div>";
-
-        Profiler::getInstance()->start(__METHOD__ . ' get card data');
-        try {
-            $cards = $this->getAllDasboardCards();
-            if (!isset($cards[$card_id])) {
-                return $notfound_html;
-            }
-            $card = $cards[$card_id];
-
-            $use_cache = !$force
-                && Environment::get()->shouldForceExtraBrowserCache()
-                && (!isset($card['cache']) || $card['cache'] == true);
-            $cache_age = 40;
-
-            if ($use_cache) {
-                // remove headers automatically added by session start
-                header_remove('Pragma');
-                header_remove('Cache-Control');
-                header_remove('Expires');
-
-                // add cache headers
-                header('Cache-Control: public, max-age=' . $cache_age . ', must-revalidate');
-                header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + $cache_age));
-            }
-
-            $html = "";
-
-            // call provider to retrieve data
-            if (isset($card['provider'])) {
-                $provider_args = ($card['args'] ?? []) + [
-                    'params' => [
-                        'label' => $card['label'] ?? "",
-                    ],
-                ];
-
-                global $CFG_GLPI;
-                Profiler::getInstance()->start($card['provider'] . ' (Provider function)');
-                $provider_func = explode('::', $card['provider']);
-                if (($CFG_GLPI['is_demo_dashboards'] ?? 0) && $provider_func[0] === Provider::class) {
-                    $fake_provider_func = FakeProvider::class . '::' . $provider_func[1];
-                    $widget_args = call_user_func_array($fake_provider_func, array_values($provider_args));
-                } else {
-                    if (isset($card_options['args']['apply_filters'])) {
-                        $provider_args['params']['apply_filters'] = $card_options['args']['apply_filters'];
-                    }
-                    $widget_args = call_user_func_array($card['provider'], array_values($provider_args));
-                }
-                Profiler::getInstance()->stop($card['provider'] . ' (Provider function)');
-            }
-            $widget_args = array_merge($widget_args ?? [], $card_options['args'] ?? []);
-
-            // call widget function to construct html
-            $all_widgets = Widget::getAllTypes();
-            $widgettype = $card_options['args']['widgettype'] ?? "";
-            $widgetfct = $all_widgets[$widgettype]['function'] ?? "";
-            if ($widgetfct !== '') {
-                // clean urls in embed mode
-                if (isset($card_options['embed']) && $card_options['embed']) {
-                    unset($widget_args['url']);
-
-                    if (isset($widget_args['data'])) {
-                        $unset_url = static function (&$array) use (&$unset_url) {
-                            unset($array['url']);
-                            foreach ($array as &$value) {
-                                if (is_array($value)) {
-                                    $unset_url($value);
-                                }
-                            }
-                        };
-                        $unset_url($widget_args['data']);
-                    }
-                }
-
-                if (isset($card['filters'])) {
-                    $widget_args['filters'] = $card['filters'];
-                }
-
-                // call widget function
-                Profiler::getInstance()->start($widgetfct . ' (Widget function)');
-                $html = $widgetfct($widget_args);
-                Profiler::getInstance()->stop($widgetfct . ' (Widget function)');
-            }
-
-            // display a warning for empty card
-            if ($html === '') {
-                return $notfound_html;
-            }
-        } catch (Throwable $e) {
-            $html = $render_error_html;
-            // Log the error message without exiting
-            ErrorHandler::logCaughtException($e);
-        }
-        Profiler::getInstance()->stop(__METHOD__ . ' get card data');
-
-        if ($_SESSION['glpi_use_mode'] === Session::DEBUG_MODE) {
-            $html .= '<span class="debug-card">';
-            $html .= "total: " . \htmlescape(Profiler::getInstance()->getCurrentDuration('php_request')) . 'ms - ';
-            $html .= "card: " . \htmlescape(round((microtime(true) - $start) * 1000)) . 'ms';
-            $html .= '</span>';
-        }
-
-        return $html;
-    }
-
-
-    /**
-     * Return Html for a provided set of filters
-     * @param array $filters
-     *
-     * @return string the html
-     */
-    public function getFiltersSetHtml(array $filters = []): string
-    {
-        $html = "";
-
-        foreach ($filters as $filter_id => $filter_values) {
-            $html .= $this->getFilterHtml($filter_id, $filter_values);
-        }
-
-        return $html;
-    }
-
-
-    /**
-     * Return Html for a provided filter name
-     *
-     * @param string $filter_id the system name of a filter (ex dates)
-     * @param string|array $filter_values init the input with these values,
-     *                     will be a string if empty values
-     *
-     * @return string the html
-     */
-    public function getFilterHtml(string $filter_id = "", $filter_values = ""): string
-    {
-        foreach (Filter::getRegisteredFilterClasses() as $filter) {
-            if ($filter::getId() == $filter_id) {
-                return $filter::getHtml($filter_values);
-            }
-        }
-
-        return "";
-    }
-
 
     /**
      * Return all itemtypes possible for constructing cards.
@@ -1513,7 +633,6 @@ HTML;
         return $cards;
     }
 
-
     /**
      * @param string $interface
      *
@@ -1531,21 +650,6 @@ HTML;
             ],
         ];
     }
-
-
-    /**
-     * Save last dashboard viewed
-     *
-     * @param string $page current page
-     * @param string $dashboard current dashboard
-     *
-     * @return void
-     */
-    public function setLastDashboard(string $page = "", string $dashboard = "")
-    {
-        $_SESSION['last_dashboards'][$page] = $dashboard;
-    }
-
 
     /**
      * Restore last viewed dashboard
@@ -1575,7 +679,6 @@ HTML;
         return $new_key;
     }
 
-
     /**
      * Retrieve the default dashboard for a specific menu entry
      * First try from session
@@ -1592,14 +695,6 @@ HTML;
         global $CFG_GLPI;
 
         $grid = new self();
-
-        if (!$strict) {
-            $restored = $grid->restoreLastDashboard();
-            if ($restored !== '') {
-                return $restored;
-            }
-        }
-
         // Try loading default from user preferences
         $config_key = 'default_dashboard_' . $menu;
         $default    = $_SESSION["glpi$config_key"] ?? "";

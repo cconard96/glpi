@@ -74,15 +74,6 @@ class Event extends CommonDBTM
         return ['admin', LogViewer::class, self::class];
     }
 
-    public static function getMenuContent()
-    {
-        $menu = parent::getMenuContent();
-        if ($menu !== false) {
-            unset($menu['links']['search'], $menu['links']['lists']);
-        }
-        return $menu;
-    }
-
     public function add(array $input, $options = [], $history = true)
     {
         throw new RuntimeException(

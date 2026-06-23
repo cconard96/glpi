@@ -43,11 +43,6 @@ class SoftwareLicenseType extends CommonTreeDropdown
         return _n('License type', 'License types', $nb);
     }
 
-    public static function getFieldLabel()
-    {
-        return _n('Type', 'Types', 1);
-    }
-
     public static function getIcon()
     {
         return SoftwareLicense::getIcon();

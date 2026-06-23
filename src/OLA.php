@@ -57,27 +57,9 @@ class OLA extends LevelAgreement
         return __('OLA');
     }
 
-    public static function getSectorizedDetails(): array
-    {
-        return ['config', SLM::class, self::class];
-    }
-
     public static function getLogDefaultServiceName(): string
     {
         return 'setup';
-    }
-
-    public static function getIcon()
-    {
-        return SLM::getIcon();
-    }
-
-    public function showFormWarning()
-    {
-        global $CFG_GLPI;
-
-        echo "<img src='" . htmlescape($CFG_GLPI["root_doc"]) . "/pics/warning.png' alt='" . __s('Warning') . "'>";
-        echo __s('The internal time is recalculated when assigning the OLA');
     }
 
     public function getAddConfirmation(): array

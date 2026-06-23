@@ -33,9 +33,7 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Features\Inventoriable;
-use Glpi\Inventory\Inventory;
 use Glpi\Inventory\Request;
 use Glpi\Search\DefaultSearchRequestInterface;
 
@@ -53,11 +51,6 @@ class RefusedEquipment extends CommonDBTM implements DefaultSearchRequestInterfa
     public static function getTypeName($nb = 0)
     {
         return _n('Equipment refused by rules log', 'Equipments refused by rules log', $nb);
-    }
-
-    public static function getSectorizedDetails(): array
-    {
-        return ['admin', Inventory::class, self::class];
     }
 
     public function rawSearchOptions()
@@ -166,84 +159,6 @@ class RefusedEquipment extends CommonDBTM implements DefaultSearchRequestInterfa
             'sort'  => 3, //date SO
             'order' => 'DESC',
         ];
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-x";
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        global $CFG_GLPI;
-
-        $this->initForm($ID, $options);
-        $this->showFormHeader($options);
-
-        echo "<tr class='tab_bg_1'>";
-
-        $itemtype = $this->fields['itemtype'];
-        echo "<th>" . __s('Item type') . "</th>";
-        echo "<td>" . htmlescape($itemtype::getTypeName(1)) . "</td>";
-
-        echo "<th>" . __s('Name') . "</th>";
-        echo "<td>" . htmlescape($this->getName()) . "</td>";
-
-        echo "</tr>";
-        echo "<tr class='tab_bg_1'>";
-
-        echo "<th>" . __s('Serial') . "</th>";
-        echo "<td>" . htmlescape($this->fields['serial']) . "</td>";
-
-        echo "<th>" . __s('UUID') . "</th>";
-        echo "<td>" . htmlescape($this->fields['uuid']) . "</td>";
-
-        echo "</tr>";
-        echo "<tr class='tab_bg_1'>";
-
-        $rule = new RuleImportAsset();
-        $rule->getFromDB($this->fields['rules_id']);
-        echo "<th>" . htmlescape(Rule::getTypeName(1)) . "</th>";
-        echo "<td>";
-        echo $rule->getLink();
-
-        $rand = mt_rand();
-        echo sprintf(
-            "<a class='btn btn-primary' style='float:right;' href='#'  data-bs-toggle='modal' data-bs-target='#allruletest%s'>%s</a>",
-            $rand,
-            __s('Test rules engine')
-        );
-        Ajax::createIframeModalWindow(
-            'allruletest' . $rand,
-            $CFG_GLPI['root_doc'] . "/front/rulesengine.test.php?" . "sub_type=" . RuleImportAsset::getType() . "&refusedequipments_id=" . $this->fields['id'],
-            ['title' => __('Test rules engine')]
-        );
-
-        echo "</td>";
-
-        $entity = new Entity();
-        $entity->getFromDB($this->fields['entities_id']);
-        echo "<th>" . htmlescape(Entity::getTypeName(1)) . "</th>";
-        echo "<td>" . $entity->getLink() . "</td>";
-
-        echo "</tr>";
-        echo "<tr class='tab_bg_1'>";
-
-        echo "<th>" . htmlescape(IPAddress::getTypeName(1)) . "</th>";
-        echo "<td>" . htmlescape(implode(', ', importArrayFromDB($this->fields['ip']))) . "</td>";
-
-        echo "<th>" . __s('MAC address') . "</th>";
-        echo "<td>" . htmlescape(implode(', ', importArrayFromDB($this->fields['mac']))) . "</td>";
-
-        echo "</tr>";
-
-        echo '<tr><td colspan="4">';
-        echo TemplateRenderer::getInstance()->render('components/form/inventory_info.html.twig', ['item' => $this]);
-        echo "</td></tr>";
-
-        $this->showFormButtons($options);
-
-        return true;
     }
 
     public function isDynamic()

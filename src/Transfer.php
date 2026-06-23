@@ -33,7 +33,6 @@
  * ---------------------------------------------------------------------
  */
 
-use Glpi\Application\View\TemplateRenderer;
 use Glpi\Asset\Asset_PeripheralAsset;
 use Glpi\Asset\AssetDefinitionManager;
 use Glpi\DBAL\QueryParam;
@@ -4179,89 +4178,6 @@ final class Transfer extends CommonDBTM
                     break;
             }
         }
-    }
-
-    public function showForm($ID, array $options = [])
-    {
-        $edit_form = true;
-        $referer_url = Html::getRefererUrl();
-        if ($referer_url === null || !str_contains($referer_url, "transfer.form.php")) {
-            $edit_form = false;
-        }
-
-        $options = [
-            'target' => URL::sanitizeURL($options['target']),
-            'canedit' => Session::haveRight("transfer", READ),
-        ];
-
-        $this->initForm($ID, $options);
-        TemplateRenderer::getInstance()->display('pages/admin/transfer.html.twig', [
-            'item' => $this,
-            'edit_mode' => $edit_form,
-            'can_change_options' => Session::haveRightsOr("transfer", [CREATE, UPDATE, PURGE]),
-            'params' => $options,
-        ]);
-        return true;
-    }
-
-    /**
-     * Display items to transfer
-     * @return void
-     */
-    public function showTransferList(): void
-    {
-        global $DB;
-
-        $transfer_list = [];
-        if (!empty($_SESSION['glpitransfer_list'])) {
-            /** @var class-string<CommonDBTM> $itemtype */
-            foreach ($_SESSION['glpitransfer_list'] as $itemtype => $tab) {
-                if (!empty($tab)) {
-                    $table = $itemtype::getTable();
-                    $name_field = $itemtype::getNameField();
-                    $has_name_field = $DB->fieldExists($table, $name_field);
-                    $table_name_field = $has_name_field ? sprintf('%1$s.%2$s', $table, $name_field) : null;
-
-                    $select = [
-                        "$table.id",
-                        'entities.completename AS entname',
-                        'entities.id AS entID',
-                    ];
-                    if ($table_name_field !== null) {
-                        $select[] = $table_name_field;
-                    }
-
-                    $iterator = $DB->request([
-                        'SELECT' => $select,
-                        'FROM' => $table,
-                        'LEFT JOIN' => [
-                            'glpi_entities AS entities' => [
-                                'ON' => [
-                                    'entities' => 'id',
-                                    $table => 'entities_id',
-                                ],
-                            ],
-                        ],
-                        'WHERE' => ["$table.id" => $tab],
-                        'ORDERBY' => $table_name_field !== null ? ['entname', $table_name_field] : ['entname'],
-                    ]);
-
-                    foreach ($iterator as $data) {
-                        $transfer_list[$itemtype] ??= [];
-                        $transfer_list[$itemtype][] = $data;
-                    }
-                }
-            }
-        }
-
-        TemplateRenderer::getInstance()->display('pages/admin/transfer_list.html.twig', [
-            'transfer_list' => $transfer_list,
-        ]);
-    }
-
-    public static function getIcon()
-    {
-        return "ti ti-corner-right-up";
     }
 
     public function getItemtypes(): array

@@ -44,16 +44,13 @@ class SoftwareCategory extends CommonTreeDropdown
         return _n('Software category', 'Software categories', $nb);
     }
 
-
     public function cleanDBonPurge()
     {
         Rule::cleanForItemAction($this);
     }
 
-
     public function cleanRelationData()
     {
-
         parent::cleanRelationData();
 
         if ($this->isUsedAsCategoryOnSoftwareDeletion()) {
@@ -68,7 +65,6 @@ class SoftwareCategory extends CommonTreeDropdown
         }
     }
 
-
     public function isUsed()
     {
 
@@ -78,7 +74,6 @@ class SoftwareCategory extends CommonTreeDropdown
 
         return $this->isUsedAsCategoryOnSoftwareDeletion();
     }
-
 
     /**
      * Check if type is used as category for software deleted by rules.
@@ -92,10 +87,5 @@ class SoftwareCategory extends CommonTreeDropdown
 
         return array_key_exists('softwarecategories_id_ondelete', $config_values)
          && $config_values['softwarecategories_id_ondelete'] == $this->fields['id'];
-    }
-
-    public static function getIcon()
-    {
-        return Software::getIcon();
     }
 }
