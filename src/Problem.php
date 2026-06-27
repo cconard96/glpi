@@ -60,13 +60,13 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
     public const IMPACT_MASK_FIELD    = 'impact_mask';
     public const STATUS_MATRIX_FIELD  = 'problem_status';
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Problem', 'Problems', $nb);
     }
 
-    #[Override]
+    
     public function canSolve()
     {
 
@@ -83,13 +83,13 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                               ))))));
     }
 
-    #[Override]
+    
     public static function canView(): bool
     {
         return Session::haveRightsOr(self::$rightname, [self::READALL, self::READMY]);
     }
 
-    #[Override]
+    
     public function canViewItem(): bool
     {
 
@@ -114,7 +114,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                               ))))));
     }
 
-    #[Override]
+    
     public function canCreateItem(): bool
     {
 
@@ -136,7 +136,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
                  || $this->isAllowedStatus($this->fields['status'], self::ASSIGNED));
     }
 
-    #[Override]
+    
     public function pre_deleteItem()
     {
         global $CFG_GLPI;
@@ -147,7 +147,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return true;
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         // CommonITILTask does not extends CommonDBConnexity
@@ -171,7 +171,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         parent::cleanDBonPurge();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         global $CFG_GLPI;
@@ -214,7 +214,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         }
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         $input =  parent::prepareInputForAdd($input);
@@ -244,7 +244,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
         $input = $this->transformActorsInput($input);
@@ -256,7 +256,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return $input;
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         global $DB;
@@ -302,7 +302,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         $this->handleNewItemNotifications();
     }
 
-    #[Override]
+    
     public static function getDefaultSearchRequest(): array
     {
         $search = ['criteria' => [0 => ['field'      => 12,
@@ -317,7 +317,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return $search;
     }
 
-    #[Override]
+    
     public function getSpecificMassiveActions($checkitem = null)
     {
         $actions = parent::getSpecificMassiveActions($checkitem);
@@ -347,7 +347,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return $actions;
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $tab = [];
@@ -605,7 +605,7 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-    #[Override]
+    
     public static function getAllStatusArray($withmetaforsearch = false)
     {
         $tab = [
@@ -850,13 +850,13 @@ class Problem extends CommonITILObject implements DefaultSearchRequestInterface
         ]);
     }
 
-    #[Override]
+    
     public static function getItemLinkClass(): string
     {
         return Item_Problem::class;
     }
 
-    #[Override]
+    
     public static function getContentTemplatesParametersClassInstance(): CommonITILObjectParameters
     {
         return new ProblemParameters();

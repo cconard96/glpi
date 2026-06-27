@@ -49,7 +49,7 @@ class AllowedInGlobalSearchCapacity extends AbstractCapacity
         return 'ti ti-search';
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Include in global search (from the header bar) results");

@@ -101,32 +101,32 @@ class QuestionTypeItemDropdown extends QuestionTypeItem
         return $dropdown_itemtypes;
     }
 
-    #[Override]
+    
     public function getName(): string
     {
         return _n('Dropdown', 'Dropdowns', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-edit';
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 30;
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): string
     {
         return QuestionTypeItemDropdownExtraDataConfig::class;
 
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): mixed
     {
         // Decode JSON string to array
@@ -158,7 +158,7 @@ class QuestionTypeItemDropdown extends QuestionTypeItem
         ))->jsonSerialize();
     }
 
-    #[Override]
+    
     public function prepareExtraData(array $input): array
     {
         $input = parent::prepareExtraData($input);
@@ -171,7 +171,7 @@ class QuestionTypeItemDropdown extends QuestionTypeItem
         return $input;
     }
 
-    #[Override]
+    
     public function validateExtraDataInput(array $input): bool
     {
         // Check if the categories_filter is set and is an array

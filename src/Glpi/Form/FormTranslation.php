@@ -46,19 +46,19 @@ final class FormTranslation extends ItemTranslation
 {
     public static $rightname = 'form';
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Form translation', 'Form translations', $nb);
     }
 
-    #[Override]
+    
     public static function getIcon(): string
     {
         return "ti ti-language";
     }
 
-    #[Override]
+    
     public static function getTable($classname = null)
     {
         if (is_a($classname ?? self::class, ItemTranslation::class, true)) {
@@ -67,13 +67,13 @@ final class FormTranslation extends ItemTranslation
         return parent::getTable($classname);
     }
 
-    #[Override]
+    
     public function getName($options = []): string
     {
         return Dropdown::getLanguageName($this->fields['language']);
     }
 
-    #[Override]
+    
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         if ($item instanceof Form) {
@@ -97,7 +97,7 @@ final class FormTranslation extends ItemTranslation
         return '';
     }
 
-    #[Override]
+    
     public static function displayTabContentForItem(
         CommonGLPI $item,
         $tabnum = 1,

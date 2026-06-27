@@ -40,7 +40,7 @@
  */
 class NotificationTargetProblem extends NotificationTargetCommonITILObject
 {
-    #[Override]
+    
     public function getEvents()
     {
 
@@ -56,7 +56,7 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject
         return $events;
     }
 
-    #[Override]
+    
     public function getDataForObject(CommonDBTM $item, array $options, $simple = false)
     {
         // Common ITIL data
@@ -187,7 +187,7 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject
         return $data;
     }
 
-    #[Override]
+    
     public function getTags()
     {
 

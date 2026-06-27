@@ -44,7 +44,7 @@ use Override;
 
 final class QuestionTypeFile extends AbstractQuestionType implements FormQuestionDataConverterInterface
 {
-    #[Override]
+    
     public function prepareEndUserAnswer(Question $question, mixed $answer): mixed
     {
         $form         = $question->getForm();
@@ -63,7 +63,7 @@ final class QuestionTypeFile extends AbstractQuestionType implements FormQuestio
         return $document_ids;
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -88,13 +88,13 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderAdministrationOptionsTemplate(?Question $question): string
     {
         return '';
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         $template = <<<TWIG
@@ -119,7 +119,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         return implode(', ', array_map(
@@ -128,35 +128,35 @@ TWIG;
         ));
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::FILE;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return Config::allowUnauthenticatedUploads();
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return self::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): null
     {
         return null;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): null
     {
         return null;

@@ -54,19 +54,19 @@ final class TitleField extends AbstractConfigField implements DestinationFieldCo
 {
     use TagConversionTrait;
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Title");
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return SimpleValueConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -123,7 +123,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -145,13 +145,13 @@ TWIG;
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): SimpleValueConfig
     {
         return new SimpleValueConfig((new FormTagProvider())->getTagForForm($form)->html);
     }
 
-    #[Override]
+    
     public function prepareInput(array $input): array
     {
         if (isset($input[$this->getKey()]) && isset($input[$this->getKey()]['value'])) {
@@ -162,19 +162,19 @@ TWIG;
         return $input;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         if (isset($rawData['target_name'])) {

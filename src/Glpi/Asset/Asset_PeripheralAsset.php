@@ -530,7 +530,7 @@ final class Asset_PeripheralAsset extends CommonDBRelation
         return $params;
     }
 
-    #[Override]
+    
     public static function getTypeItemsQueryParams_Select(CommonDBTM $item): array
     {
         $table = self::getTable();
@@ -566,7 +566,7 @@ final class Asset_PeripheralAsset extends CommonDBRelation
         return $tab;
     }
 
-    #[Override]
+    
     public static function getRelationMassiveActionsPeerForSubForm(MassiveAction $ma)
     {
         global $CFG_GLPI;
@@ -654,13 +654,13 @@ final class Asset_PeripheralAsset extends CommonDBRelation
         return $count;
     }
 
-    #[Override]
+    
     public static function countForItem(CommonDBTM $item)
     {
         return self::countLinkedAssets($item);
     }
 
-    #[Override]
+    
     public static function getItemField($itemtype): string
     {
         global $CFG_GLPI;

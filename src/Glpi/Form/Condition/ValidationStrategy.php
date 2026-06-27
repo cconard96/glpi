@@ -42,7 +42,7 @@ enum ValidationStrategy: string implements StrategyInterface
     case VALID_IF      = 'valid_if';
     case INVALID_IF    = 'invalid_if';
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return match ($this) {
@@ -52,7 +52,7 @@ enum ValidationStrategy: string implements StrategyInterface
         };
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return match ($this) {
@@ -62,7 +62,7 @@ enum ValidationStrategy: string implements StrategyInterface
         };
     }
 
-    #[Override]
+    
     public function showEditor(): bool
     {
         return match ($this) {

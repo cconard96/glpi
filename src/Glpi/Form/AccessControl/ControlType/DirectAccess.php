@@ -50,25 +50,25 @@ use Toolbox;
 
 final class DirectAccess implements ControlTypeInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Allow direct access");
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return "ti ti-link";
     }
 
-    #[Override]
+    
     public function getConfig(): JsonFieldInterface
     {
         return new DirectAccessConfig();
     }
 
-    #[Override]
+    
     public function getWarnings(Form $form): array
     {
         return $this->getWarningIfFormHasBlacklistedQuestionTypes($form);
@@ -92,7 +92,7 @@ final class DirectAccess implements ControlTypeInterface
         return $warnings;
     }
 
-    #[Override]
+    
     public function renderConfigForm(FormAccessControl $access_control): string
     {
         global $CFG_GLPI;
@@ -117,13 +117,13 @@ final class DirectAccess implements ControlTypeInterface
         ]);
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;
     }
 
-    #[Override]
+    
     public function createConfigFromUserInput(array $input): DirectAccessConfig
     {
         return DirectAccessConfig::jsonDeserialize([
@@ -132,7 +132,7 @@ final class DirectAccess implements ControlTypeInterface
         ]);
     }
 
-    #[Override]
+    
     public function canAnswer(
         Form $form,
         JsonFieldInterface $config,
@@ -210,14 +210,14 @@ final class DirectAccess implements ControlTypeInterface
         return $config->allowUnauthenticated();
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         JsonFieldInterface $config
     ): DynamicExportDataField {
         return new DynamicExportDataField($config->jsonSerialize(), []);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         DatabaseMapper $mapper,

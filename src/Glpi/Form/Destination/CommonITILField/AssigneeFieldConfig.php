@@ -40,7 +40,7 @@ use Override;
 #[HasFieldWithQuestionId(self::SPECIFIC_QUESTION_IDS, is_array: true)]
 final class AssigneeFieldConfig extends ITILActorFieldConfig
 {
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategies = array_map(

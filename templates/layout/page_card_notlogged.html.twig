@@ -1,0 +1,160 @@
+{#
+# ---------------------------------------------------------------------
+#
+# GLPI - Gestionnaire Libre de Parc Informatique
+#
+# http://glpi-project.org
+#
+# @copyright 2015-2026 Teclib' and contributors.
+# @licence   https://www.gnu.org/licenses/gpl-3.0.html
+#
+# ---------------------------------------------------------------------
+#
+# LICENSE
+#
+# This file is part of GLPI.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# ---------------------------------------------------------------------
+#}
+
+{% set is_anonymous_page = true %}
+
+{{ include('layout/parts/head.html.twig') }}
+    <body class="welcome-anonymous">
+        <style>
+           :root[data-glpi-theme="auror"] {
+              --glpi-palette-color-1: #1b2f62;
+              --glpi-palette-color-2: #fff;
+              --glpi-palette-color-3: #3a5693;
+              --glpi-palette-color-4: #fec95c;
+           }
+
+           body {
+              height: 100vh;
+              background-color: #f5f7fb;
+              color: #374151;
+              display: flex;
+              font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+              font-size: 14px;
+           }
+
+           main {
+              height: fit-content;
+              background-color: #fff;
+              display: flex;
+              flex-direction: column;
+              padding-block-start: 1rem;
+              padding-block-end: 1rem;
+              margin-block-start: 1rem;
+              margin-inline: auto;
+              padding-inline: 4rem;
+              border-radius: 0.5rem;
+              box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.1);
+           }
+
+           .rich_text_container {
+              white-space: initial;
+              max-width: 100%;
+
+              thead,
+              tbody,
+              tfoot,
+              tr,
+              td,
+              th {
+                 border-width: inherit; // Prevent removal of borders from reboot CSS
+              }
+
+              img {
+                 max-width: 100%;
+              }
+
+              table {
+                 overflow: auto;
+                 max-width: 100%;
+                 word-break: normal;
+              }
+
+              a[target="_blank"]::before {
+                 font-family: tabler-icons, sans-serif;
+                 content: "\ea99";
+                 padding-right: 4px;
+              }
+
+              .long_text {
+                 max-height: 350px;
+                 position: relative;
+                 overflow: hidden;
+
+                 .read_more {
+                    background: linear-gradient(to bottom, rgb(255, 255, 255, 0%) 0%, var(--glpi-timeline-itil-content-bg) 100%);
+                 }
+              }
+
+              h1, h2, h3, h4, h5, h6 {
+                 margin-bottom: 0.5rem;
+              }
+           }
+
+           .form-label + * {
+              margin-block-end: 0.5rem;
+           }
+
+           .btn {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              white-space: nowrap;
+              box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.1);
+              position: relative;
+              border-color: transparent;
+              border-radius: 0.25rem;
+              font-weight: 500;
+              padding-block-start: 0.5rem;
+              padding-block-end: 0.5rem;
+              padding-inline-start: 1rem;
+              padding-inline-end: 1rem;
+              font-size: 0.875rem;
+              cursor: pointer;
+           }
+
+           .btn.btn-primary {
+              background-color: #fec95c;
+           }
+
+           .form-control {
+              padding: 0.5rem 1rem;
+              border-radius: 0.25rem;
+              border: 1px solid #d1d5db;
+              font-size: .875rem;
+           }
+        </style>
+        <main id="page" class="page-anonymous" role="main" tabindex="-1">
+            <div style="text-align: center;">
+                <img src="{{ asset_path('/pics/logos/logo-GLPI-250-black.png') }}" alt="GLPI" width="145" height="80" />
+            </div>
+            <div class="">
+                <div class="card-body">
+                    {% block content_block %}{% endblock %}
+                </div>
+            </div>
+
+            <div class="text-center text-muted mt-3">
+                {% block footer_block %}{% endblock %}
+            </div>
+        </main>
+    </body>
+</html>

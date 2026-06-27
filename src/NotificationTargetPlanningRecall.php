@@ -42,13 +42,13 @@
  */
 class NotificationTargetPlanningRecall extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
         return ['planningrecall' => __('Planning recall')];
     }
 
-    #[Override]
+    
     public function addNotificationTargets($entity)
     {
         $this->addTarget(Notification::AUTHOR, _n('Requester', 'Requesters', 1));
@@ -57,7 +57,7 @@ class NotificationTargetPlanningRecall extends NotificationTarget
         $this->addTarget(Notification::PLANNING_EVENT_GUESTS, __('Guests'));
     }
 
-    #[Override]
+    
     public function addSpecificTargets($data, $options)
     {
         switch ($data['type']) {
@@ -243,7 +243,7 @@ class NotificationTargetPlanningRecall extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
         $tags_all = ['recall.action'            => _n('Event', 'Events', 1),
@@ -269,7 +269,7 @@ class NotificationTargetPlanningRecall extends NotificationTarget
         asort($this->tag_descriptions);
     }
 
-    #[Override]
+    
     public function getObjectItem($event = '')
     {
         if ($this->obj) {

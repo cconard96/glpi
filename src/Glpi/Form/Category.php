@@ -51,19 +51,19 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
     /** @var ServiceCatalogItemInterface[] $children */
     private array $children = [];
 
-    #[Override]
+    
     public static function getTypeName($nb = 0): string
     {
         return _n('Service catalog category', 'Service catalog categories', $nb);
     }
 
-    #[Override]
+    
     public static function getIcon(): string
     {
         return "ti ti-tags";
     }
 
-    #[Override]
+    
     protected function insertTabs($options = []): array
     {
         $tabs = [];
@@ -72,7 +72,7 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
         return $tabs;
     }
 
-    #[Override]
+    
     public function getAdditionalFields()
     {
         $fields = parent::getAdditionalFields();
@@ -93,7 +93,7 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
         return $fields;
     }
 
-    #[Override]
+    
     public function rawSearchOptions(): array
     {
         $options = parent::rawSearchOptions();
@@ -131,7 +131,7 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemTitle(): string
     {
         return DropdownTranslation::getTranslatedValue(
@@ -142,7 +142,7 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
         );
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemDescription(): string
     {
         return DropdownTranslation::getTranslatedValue(
@@ -153,25 +153,25 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
         );
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemIllustration(): string
     {
         return $this->fields['illustration'] ?: IllustrationManager::DEFAULT_ILLUSTRATION;
     }
 
-    #[Override]
+    
     public function isServiceCatalogItemPinned(): bool
     {
         return false;
     }
 
-    #[Override]
+    
     public function getChildrenUrlParameters(): string
     {
         return http_build_query(['category' => $this->getID()]);
     }
 
-    #[Override]
+    
     public function getChildrenItemRequest(
         ItemRequest $item_request,
     ): ItemRequest {
@@ -181,13 +181,13 @@ class Category extends CommonTreeDropdown implements ServiceCatalogCompositeInte
         );
     }
 
-    #[Override]
+    
     public function setChildren(array $children): void
     {
         $this->children = $children;
     }
 
-    #[Override]
+    
     public function getChildren(): array
     {
         return $this->children;

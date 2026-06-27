@@ -54,7 +54,7 @@ class HasKnowbaseCapacity extends AbstractCapacity
         return KnowbaseItem::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Knowledge base articles can be associated to these assets");

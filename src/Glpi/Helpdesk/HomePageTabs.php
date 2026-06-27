@@ -52,7 +52,7 @@ final class HomePageTabs extends CommonGLPI
     private const RSS_FEED_PUBLIC = 4;
     private const DASHBOARD_TAB = 5;
 
-    #[Override]
+    
     public function defineTabs($options = []): array
     {
         $tabs = [];
@@ -62,7 +62,7 @@ final class HomePageTabs extends CommonGLPI
         return $tabs;
     }
 
-    #[Override]
+    
     public function getTabNameForItem(
         CommonGLPI $item,
         $withtemplate = 0

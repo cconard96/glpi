@@ -115,13 +115,13 @@ class FormMigration extends AbstractPluginMigration
         $this->formAccessControlManager = $formAccessControlManager;
     }
 
-    #[Override]
+    
     protected function getHasBeenExecutedConfigurationKey(): string
     {
         return 'glpi_11_form_migration';
     }
 
-    #[Override]
+    
     protected function getMainPluginTables(): array
     {
         return ['glpi_plugin_formcreator_forms'];

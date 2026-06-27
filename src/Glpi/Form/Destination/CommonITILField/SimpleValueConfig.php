@@ -47,7 +47,7 @@ class SimpleValueConfig implements JsonFieldInterface
         protected string $value,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -55,7 +55,7 @@ class SimpleValueConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

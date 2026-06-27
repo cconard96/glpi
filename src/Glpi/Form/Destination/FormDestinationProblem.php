@@ -44,19 +44,19 @@ use Problem;
 
 final class FormDestinationProblem extends AbstractCommonITILFormDestination
 {
-    #[Override]
+    
     public function getTarget(): CommonITILObject
     {
         return new Problem();
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 30;
     }
 
-    #[Override]
+    
     protected function defineConfigurableFields(): array
     {
         return array_merge(parent::defineConfigurableFields(), [

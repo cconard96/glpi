@@ -49,31 +49,31 @@ final class ExternalPageTile extends CommonDBTM implements TileInterface, Provid
     public const TRANSLATION_KEY_TITLE = 'title';
     public const TRANSLATION_KEY_DESCRIPTION = 'description';
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 30;
     }
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("External page");
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         return self::canUpdate();
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         return self::canUpdate();
     }
 
-    #[Override]
+    
     public function getTitle(): string
     {
         return HelpdeskTranslation::translate(
@@ -82,7 +82,7 @@ final class ExternalPageTile extends CommonDBTM implements TileInterface, Provid
         ) ?? '';
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return HelpdeskTranslation::translate(
@@ -91,37 +91,37 @@ final class ExternalPageTile extends CommonDBTM implements TileInterface, Provid
         ) ?? '';
     }
 
-    #[Override]
+    
     public function getIllustration(): string
     {
         return $this->fields['illustration'] ?? IllustrationManager::DEFAULT_ILLUSTRATION;
     }
 
-    #[Override]
+    
     public function getTileUrl(): string
     {
         return $this->fields['url'] ?? "";
     }
 
-    #[Override]
+    
     public function isAvailable(SessionInfo $session_info): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function getDatabaseId(): int
     {
         return $this->fields['id'];
     }
 
-    #[Override]
+    
     public function getConfigFieldsTemplate(): string
     {
         return "pages/admin/external_page_tile_config_fields.html.twig";
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -131,7 +131,7 @@ final class ExternalPageTile extends CommonDBTM implements TileInterface, Provid
         );
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $handlers = [];

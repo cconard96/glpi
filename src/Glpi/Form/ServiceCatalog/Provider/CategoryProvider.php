@@ -52,7 +52,7 @@ final class CategoryProvider implements CompositeProviderInterface
         $this->matcher = new FuzzyMatcher(new PartialMatchStrategy());
     }
 
-    #[Override]
+    
     public function getItems(ItemRequest $item_request): array
     {
         $category_id = $item_request->getCategoryID();

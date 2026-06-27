@@ -53,7 +53,7 @@ class HasSocketCapacity extends AbstractCapacity
         return Socket::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Manage sockets and cable links");

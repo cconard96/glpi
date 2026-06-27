@@ -58,19 +58,19 @@ abstract class AbstractTextAreaField extends AbstractConfigField implements Dest
 
     abstract protected function getColumnName(): string;
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return SimpleValueConfig::class;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): SimpleValueConfig
     {
         return new SimpleValueConfig("");
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -89,7 +89,7 @@ abstract class AbstractTextAreaField extends AbstractConfigField implements Dest
         return $input;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -131,7 +131,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function convertFieldConfig(
         FormMigration $migration,
         Form $form,

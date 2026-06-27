@@ -46,38 +46,38 @@ final class QuestionTypeShortText extends AbstractQuestionTypeShortAnswer implem
     UsedAsCriteriaInterface,
     TranslationAwareQuestionType
 {
-    #[Override]
+    
     public function getInputType(): string
     {
         return 'text';
     }
 
-    #[Override]
+    
     public function getName(): string
     {
         return __("Text");
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-text-size';
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return array_merge(parent::getConditionHandlers($question_config), [new StringConditionHandler()]);
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(Question $question): array
     {
         return [

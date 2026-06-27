@@ -83,32 +83,32 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
 
     private ?Form $form = null;
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Section', 'Sections', $nb);
     }
 
-    #[Override]
+    
     public function getUUID(): string
     {
         return $this->fields['uuid'];
     }
 
-    #[Override]
+    
     public function post_getFromDB()
     {
         // Clear any lazy loaded data
         $this->clearLazyLoadedData();
     }
 
-    #[Override]
+    
     public function isEntityAssign()
     {
         return false;
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -120,7 +120,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         );
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         if (!isset($input['uuid'])) {
@@ -136,7 +136,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         return parent::prepareInputForAdd($input);
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
         $input = $this->prepareInput($input);
@@ -155,7 +155,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         return $input;
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         parent::post_addItem();
@@ -168,7 +168,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         ]);
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         parent::post_updateItem($history);
@@ -181,7 +181,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         ]);
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $form = $this->getItem();
@@ -223,14 +223,14 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         return array_merge($handlers, ...$blocks_handlers);
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return [new VisibilityConditionHandler()];
     }
 
-    #[Override]
+    
     public function getSupportedValueOperators(
         ?JsonFieldInterface $question_config
     ): array {
@@ -374,7 +374,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         $this->form = $form;
     }
 
-    #[Override]
+    
     public function getCloneRelations(): array
     {
         return [
@@ -384,7 +384,7 @@ final class Section extends CommonDBChild implements ConditionableVisibilityInte
         ];
     }
 
-    #[Override]
+    
     public function prepareInputForClone($input)
     {
         $input = parent::prepareInputForClone($input);

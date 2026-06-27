@@ -4269,7 +4269,7 @@ final class SQLProvider implements SearchProviderInterface
         return $orderby_criteria;
     }
 
-    #[Override]
+    
     public static function constructSQL(array &$data)
     {
         global $CFG_GLPI, $DB;
@@ -5058,7 +5058,7 @@ final class SQLProvider implements SearchProviderInterface
         }
     }
 
-    #[Override]
+    
     public static function constructData(array &$data, $onlycount = false)
     {
         if (!isset($data['sql']) || !isset($data['sql']['search'])) {

@@ -1593,13 +1593,13 @@ class KnowbaseItem extends CommonDBVisible implements ExtraVisibilityCriteria, S
         return $params;
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemTitle(): string
     {
         return $this->fields['name'] ?? "";
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemDescription(): string
     {
         // Fallback to answer when using the home page search results as the
@@ -1607,7 +1607,7 @@ class KnowbaseItem extends CommonDBVisible implements ExtraVisibilityCriteria, S
         return $this->fields['description'] ?? $this->fields['answer'] ?? "";
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemIllustration(): string
     {
         // Fallback to a specific icon when using the home page search results
@@ -1615,13 +1615,13 @@ class KnowbaseItem extends CommonDBVisible implements ExtraVisibilityCriteria, S
         return $this->fields['illustration'] ?: "browse-kb";
     }
 
-    #[Override]
+    
     public function isServiceCatalogItemPinned(): bool
     {
         return $this->fields['is_pinned'] ?? false;
     }
 
-    #[Override]
+    
     public function getServiceCatalogLink(): string
     {
         return $this->getLinkURL();

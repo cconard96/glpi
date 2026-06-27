@@ -63,7 +63,7 @@ class NotificationTemplate extends CommonDBTM
 
     public static $rightname = 'config';
 
-    #[Override]
+    
     public function getCloneRelations(): array
     {
         return [
@@ -71,19 +71,19 @@ class NotificationTemplate extends CommonDBTM
         ];
     }
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Notification template', 'Notification templates', $nb);
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         return static::canUpdate();
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         return static::canUpdate();
@@ -99,7 +99,7 @@ class NotificationTemplate extends CommonDBTM
         $this->templates_by_languages = [];
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $tab = [];
@@ -582,7 +582,7 @@ class NotificationTemplate extends CommonDBTM
         return $mailing_options;
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(

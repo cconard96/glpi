@@ -44,37 +44,37 @@ use User;
 
 final class RequesterField extends ITILActorField
 {
-    #[Override]
+    
     public function getAllowedQuestionType(): array
     {
         return [new QuestionTypeRequester(), new QuestionTypeEmail()];
     }
 
-    #[Override]
+    
     public function getAllowedQuestionItemTypes(): array
     {
         return [User::class, Group::class];
     }
 
-    #[Override]
+    
     public function getActorType(): string
     {
         return 'requester';
     }
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return _n('Requester', 'Requesters', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return RequesterFieldConfig::class;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): RequesterFieldConfig
     {
         return new RequesterFieldConfig(
@@ -82,7 +82,7 @@ final class RequesterField extends ITILActorField
         );
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 100;

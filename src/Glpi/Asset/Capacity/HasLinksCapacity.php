@@ -55,7 +55,7 @@ class HasLinksCapacity extends AbstractCapacity
         return ManualLink::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Define associated external links for the assets");

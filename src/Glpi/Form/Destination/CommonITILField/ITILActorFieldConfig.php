@@ -59,7 +59,7 @@ abstract class ITILActorFieldConfig implements
         private array $specific_question_ids = [],
     ) {}
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -72,13 +72,13 @@ abstract class ITILActorFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGIES;
     }
 
-    #[Override]
+    
     public function getStrategies(): array
     {
         return $this->strategies;

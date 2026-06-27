@@ -54,19 +54,19 @@ use Override;
 
 final class LocationField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return _n('Location', 'Locations', 1);
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return LocationFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -104,7 +104,7 @@ final class LocationField extends AbstractConfigField implements DestinationFiel
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -130,7 +130,7 @@ final class LocationField extends AbstractConfigField implements DestinationFiel
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): LocationFieldConfig
     {
         return new LocationFieldConfig(
@@ -164,19 +164,19 @@ final class LocationField extends AbstractConfigField implements DestinationFiel
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 80;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         if (isset($rawData['location_rule'])) {
@@ -214,7 +214,7 @@ final class LocationField extends AbstractConfigField implements DestinationFiel
         return $this->getDefaultConfig($form);
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -241,7 +241,7 @@ final class LocationField extends AbstractConfigField implements DestinationFiel
         return new DynamicExportDataField($config, [$requirement]);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

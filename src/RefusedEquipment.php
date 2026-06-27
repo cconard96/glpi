@@ -152,7 +152,7 @@ class RefusedEquipment extends CommonDBTM implements DefaultSearchRequestInterfa
         return $tab;
     }
 
-    #[Override]
+    
     public static function getDefaultSearchRequest(): array
     {
         return [

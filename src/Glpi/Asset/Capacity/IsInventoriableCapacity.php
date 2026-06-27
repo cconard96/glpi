@@ -59,7 +59,7 @@ class IsInventoriableCapacity extends AbstractCapacity
         return Inventory::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("The GLPI agent can report inventory data for these assets.");

@@ -51,19 +51,19 @@ use Session;
 
 final class ITILFollowupField extends AbstractConfigField
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return _n('Followup', 'Followups', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return ITILFollowupFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -92,7 +92,7 @@ final class ITILFollowupField extends AbstractConfigField
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -115,7 +115,7 @@ final class ITILFollowupField extends AbstractConfigField
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): ITILFollowupFieldConfig
     {
         return new ITILFollowupFieldConfig(
@@ -132,13 +132,13 @@ final class ITILFollowupField extends AbstractConfigField
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;
     }
 
-    #[Override]
+    
     public function prepareInput(array $input): array
     {
         $input = parent::prepareInput($input);
@@ -151,13 +151,13 @@ final class ITILFollowupField extends AbstractConfigField
         return $input;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::TIMELINE;
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -184,7 +184,7 @@ final class ITILFollowupField extends AbstractConfigField
         return new DynamicExportDataField($config, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

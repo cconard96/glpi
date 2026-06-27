@@ -40,7 +40,7 @@ use Glpi\Toolbox\URL;
  */
 class NotificationTargetKnowbaseItem extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
         return [
@@ -50,7 +50,7 @@ class NotificationTargetKnowbaseItem extends NotificationTarget
         ];
     }
 
-    #[Override]
+    
     public function addNotificationTargets($entity)
     {
         if (Session::haveRight("config", UPDATE)) {
@@ -179,7 +179,7 @@ class NotificationTargetKnowbaseItem extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
         $tags = [

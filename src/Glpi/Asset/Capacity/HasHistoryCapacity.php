@@ -52,7 +52,7 @@ class HasHistoryCapacity extends AbstractCapacity
         return Log::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Records the modifications made to the asset");

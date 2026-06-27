@@ -90,7 +90,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
      */
     abstract public function getGroupConditions(): array;
 
-    #[Override]
+    
     public function formatDefaultValueForDB(mixed $value): ?string
     {
         if (empty($value) || !is_array($value)) {
@@ -127,7 +127,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return json_encode($config->jsonSerialize());
     }
 
-    #[Override]
+    
     public function prepareExtraData(array $input): array
     {
         $allowed_types_key = QuestionTypeActorsExtraDataConfig::ENABLED_TYPES;
@@ -147,7 +147,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return $input;
     }
 
-    #[Override]
+    
     public function validateExtraDataInput(array $input): bool
     {
         // Two allowed keys: is_multiple_actors and enabled_types
@@ -181,7 +181,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return true;
     }
 
-    #[Override]
+    
     public function prepareEndUserAnswer(Question $question, mixed $answer): mixed
     {
         if (empty($answer)) {
@@ -226,7 +226,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return $actors;
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): mixed
     {
         $users_ids = [];
@@ -238,7 +238,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return ['users_ids' => $users_ids];
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): mixed
     {
         // Actors question type was always multiple in FormCreator
@@ -325,7 +325,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return [key($default_values) => current($default_values)];
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = "pages/admin/form/question_type/actors_admin.html.twig";
@@ -349,7 +349,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         ]);
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         $formatted_actors = [];
@@ -367,7 +367,7 @@ abstract class AbstractQuestionTypeActors extends AbstractQuestionType implement
         return implode(', ', $formatted_actors);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         $template = <<<TWIG
@@ -419,7 +419,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
@@ -433,7 +433,7 @@ TWIG;
         );
     }
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): array
     {
         // Handle empty cases first
@@ -497,19 +497,19 @@ TWIG;
         return $actors;
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategory
     {
         return QuestionTypeCategory::ACTORS;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return false;
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): ?string
     {
         return QuestionTypeActorsExtraDataConfig::class;
@@ -520,7 +520,7 @@ TWIG;
         return QuestionTypeActorsDefaultValueConfig::class;
     }
 
-    #[Override]
+    
     public function exportDynamicDefaultValue(
         ?JsonFieldInterface $extra_data_config,
         array|int|float|bool|string|null $default_value_config,
@@ -565,7 +565,7 @@ TWIG;
         return new DynamicExportDataField($default_value_config, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicDefaultValueForImport(
         ?array $extra_data,
         array|int|float|bool|string|null $default_value_data,
@@ -608,13 +608,13 @@ TWIG;
         return $default_value_data;
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return static::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 }

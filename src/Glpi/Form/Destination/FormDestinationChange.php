@@ -46,19 +46,19 @@ use Override;
 
 final class FormDestinationChange extends AbstractCommonITILFormDestination
 {
-    #[Override]
+    
     public function getTarget(): CommonITILObject
     {
         return new Change();
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;
     }
 
-    #[Override]
+    
     protected function defineConfigurableFields(): array
     {
         return array_merge(parent::defineConfigurableFields(), [

@@ -43,13 +43,13 @@ use Override;
 
 final class CommentTitleTagProvider implements TagProviderInterface, TagWithIdValueInterface
 {
-    #[Override]
+    
     public function getTagColor(): string
     {
         return "green";
     }
 
-    #[Override]
+    
     public function getTags(Form $form): array
     {
         $tags = [];
@@ -60,7 +60,7 @@ final class CommentTitleTagProvider implements TagProviderInterface, TagWithIdVa
         return $tags;
     }
 
-    #[Override]
+    
     public function getTagContentForValue(
         string $value,
         AnswersSet $answers_set
@@ -74,13 +74,13 @@ final class CommentTitleTagProvider implements TagProviderInterface, TagWithIdVa
         return FormTranslation::translate($comment, Comment::TRANSLATION_KEY_NAME) ?? $comment->fields['name'];
     }
 
-    #[Override]
+    
     public function getItemtype(): string
     {
         return Comment::class;
     }
 
-    #[Override]
+    
     public function getTagFromRawValue(string $value): ?Tag
     {
         $comment = Comment::getById((int) $value);

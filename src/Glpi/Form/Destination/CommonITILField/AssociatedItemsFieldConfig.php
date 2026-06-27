@@ -61,7 +61,7 @@ final class AssociatedItemsFieldConfig implements
         private array $specific_associated_items = [],
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategies = array_map(
@@ -79,7 +79,7 @@ final class AssociatedItemsFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -92,7 +92,7 @@ final class AssociatedItemsFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGIES;

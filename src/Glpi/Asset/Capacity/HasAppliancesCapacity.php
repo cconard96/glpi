@@ -53,7 +53,7 @@ class HasAppliancesCapacity extends AbstractCapacity
         return Appliance::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Can be part of an appliance. An appliance is a virtual object that groups several assets");

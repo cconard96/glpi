@@ -57,7 +57,7 @@ final class QuestionTypeItemDropdownExtraDataConfig extends QuestionTypeItemExtr
         );
     }
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -69,7 +69,7 @@ final class QuestionTypeItemDropdownExtraDataConfig extends QuestionTypeItemExtr
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

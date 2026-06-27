@@ -40,13 +40,13 @@
  **/
 class NotificationTargetCartridgeItem extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
         return ['alert' => __('Cartridges alarm')];
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
         $events = $this->getAllEvents();
@@ -87,7 +87,7 @@ class NotificationTargetCartridgeItem extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
         $tags = [

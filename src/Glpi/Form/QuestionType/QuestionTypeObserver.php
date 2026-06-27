@@ -44,37 +44,37 @@ use User;
 
 final class QuestionTypeObserver extends AbstractQuestionTypeActors
 {
-    #[Override]
+    
     public function getName(): string
     {
         return _n('Observer', 'Observers', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-user-search';
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;
     }
 
-    #[Override]
+    
     public function getAllowedActorTypes(): array
     {
         return [User::class, Group::class];
     }
 
-    #[Override]
+    
     public function getGroupConditions(): array
     {
         return ['is_watcher' => 1];
     }
 
-    #[Override]
+    
     public function prepareEndUserAnswer(Question $question, mixed $answer): mixed
     {
         $actors = parent::prepareEndUserAnswer($question, $answer);

@@ -52,7 +52,7 @@ final class TemplateFieldConfig implements
         private ?int $specific_template_id = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = TemplateFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -66,7 +66,7 @@ final class TemplateFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -75,7 +75,7 @@ final class TemplateFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

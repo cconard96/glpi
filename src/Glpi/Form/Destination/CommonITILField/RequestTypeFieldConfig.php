@@ -55,7 +55,7 @@ final class RequestTypeFieldConfig implements
         private ?int $specific_request_type = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = RequestTypeFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -70,7 +70,7 @@ final class RequestTypeFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -80,7 +80,7 @@ final class RequestTypeFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

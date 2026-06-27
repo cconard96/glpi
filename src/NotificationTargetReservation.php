@@ -40,7 +40,7 @@
  */
 class NotificationTargetReservation extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
         return ['new'    => __('New reservation'),
@@ -50,7 +50,7 @@ class NotificationTargetReservation extends NotificationTarget
         ];
     }
 
-    #[Override]
+    
     public function addAdditionalTargets($event = '')
     {
         if ($event != 'alert') {
@@ -67,7 +67,7 @@ class NotificationTargetReservation extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
         //----------- Reservation infos -------------- //
@@ -156,7 +156,7 @@ class NotificationTargetReservation extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
 
@@ -214,7 +214,7 @@ class NotificationTargetReservation extends NotificationTarget
         asort($this->tag_descriptions);
     }
 
-    #[Override]
+    
     public function getObjectItem($event = '')
     {
         if ($this->obj) {

@@ -1608,4 +1608,81 @@ class Auth extends CommonGLPI
             $_COOKIE[$cookie_name] = $cookie_value;
         }
     }
+
+    /**
+     * Redirect user to page if authenticated
+     *
+     * @param string $redirect redirect string if exists, if null, check in $_POST or $_GET
+     *
+     * @return void|bool nothing if redirect is true, else false
+     */
+    public static function redirectIfAuthenticated($redirect = null)
+    {
+        global $CFG_GLPI;
+
+        if (!Session::getLoginUserID()) {
+            return false;
+        }
+
+        if (Session::mustChangePassword()) {
+            Html::redirect($CFG_GLPI['root_doc'] . '/front/updatepassword.php');
+        }
+
+        if (!$redirect) {
+            if (isset($_POST['redirect']) && ($_POST['redirect'] !== '')) {
+                $redirect = $_POST['redirect'];
+            } elseif (isset($_GET['redirect']) && $_GET['redirect'] !== '') {
+                $redirect = $_GET['redirect'];
+            }
+            $redirect ??= '';
+        }
+
+        //Direct redirect
+        if ($redirect) {
+            Toolbox::manageRedirect($redirect);
+        }
+
+        // Redirect to Command Central if not post-only
+        if (Session::getCurrentInterface() === "helpdesk") {
+            if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']) {
+                Html::redirect($CFG_GLPI['root_doc'] . "/ServiceCatalog");
+            }
+            Html::redirect($CFG_GLPI['root_doc'] . "/Helpdesk");
+        } else {
+            if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']) {
+                Html::redirect(Ticket::getFormURL());
+            }
+            Html::redirect($CFG_GLPI['root_doc'] . "/front/central.php");
+        }
+    }
+
+    /**
+     * Display the authentication source dropdown for login form
+     *
+     * @param bool $display
+     * @param int $rand
+     *
+     * @return string
+     */
+    public static function dropdownLogin(bool $display = true, $rand = 1)
+    {
+        $out = "";
+        $elements = self::getLoginAuthMethods();
+        $default = $elements['_default'];
+        unset($elements['_default']);
+        // show dropdown of login src only when multiple src
+        $out .= Dropdown::showFromArray('auth', $elements, [
+            'display'   => false,
+            'rand'      => $rand,
+            'value'     => $default,
+            'width'     => '100%',
+        ]);
+
+        if ($display) {
+            echo $out;
+            return "";
+        }
+
+        return $out;
+    }
 }

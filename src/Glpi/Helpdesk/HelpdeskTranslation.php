@@ -49,19 +49,19 @@ final class HelpdeskTranslation extends ItemTranslation implements ProvideTransl
 {
     public static $rightname = 'form';
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Helpdesk translation', 'Helpdesk translations', $nb);
     }
 
-    #[Override]
+    
     public static function getIcon()
     {
         return "ti ti-language";
     }
 
-    #[Override]
+    
     public static function getTable($classname = null)
     {
         if (is_a($classname ?? self::class, ItemTranslation::class, true)) {
@@ -70,13 +70,13 @@ final class HelpdeskTranslation extends ItemTranslation implements ProvideTransl
         return parent::getTable($classname);
     }
 
-    #[Override]
+    
     public function getName($options = []): string
     {
         return Dropdown::getLanguageName($this->fields['language']);
     }
 
-    #[Override]
+    
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         if ($item instanceof Config) {
@@ -95,7 +95,7 @@ final class HelpdeskTranslation extends ItemTranslation implements ProvideTransl
         return '';
     }
 
-    #[Override]
+    
     public static function displayTabContentForItem(
         CommonGLPI $item,
         $tabnum = 1,
@@ -120,7 +120,7 @@ final class HelpdeskTranslation extends ItemTranslation implements ProvideTransl
         return false;
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $tiles_manager = TilesManager::getInstance();
@@ -181,7 +181,7 @@ final class HelpdeskTranslation extends ItemTranslation implements ProvideTransl
         );
     }
 
-    #[Override]
+    
     protected function getTranslationsHandlersForStats(): array
     {
         // Filter out handlers with empty values and those that do not have a translation yet

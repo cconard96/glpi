@@ -44,7 +44,7 @@ use Glpi\Toolbox\URL;
  */
 class NotificationTargetProject extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
 
@@ -56,7 +56,7 @@ class NotificationTargetProject extends NotificationTarget
         return $events;
     }
 
-    #[Override]
+    
     public function addAdditionalTargets($event = '')
     {
         $this->addTarget(Notification::MANAGER_USER, _n('Manager', 'Managers', 1));
@@ -248,7 +248,7 @@ class NotificationTargetProject extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
         global $CFG_GLPI, $DB;
@@ -614,7 +614,7 @@ class NotificationTargetProject extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
 

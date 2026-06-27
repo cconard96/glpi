@@ -52,19 +52,19 @@ final class QuestionTypeDropdown extends AbstractQuestionTypeSelectable implemen
     UsedAsCriteriaInterface,
     ConditionValueTransformerInterface
 {
-    #[Override]
+    
     public function getInputType(?Question $question): string
     {
         return $this->isMultipleDropdown($question) ? 'checkbox' : 'radio';
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::DROPDOWN;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): array
     {
         $values = json_decode($rawData['values'] ?? '[]', true) ?? [];
@@ -103,7 +103,7 @@ final class QuestionTypeDropdown extends AbstractQuestionTypeSelectable implemen
         return $config->isMultipleDropdown();
     }
 
-    #[Override]
+    
     public function hideOptionsContainerWhenUnfocused(): bool
     {
         return true;
@@ -114,19 +114,19 @@ final class QuestionTypeDropdown extends AbstractQuestionTypeSelectable implemen
         return true;
     }
 
-    #[Override]
+    
     protected function getFormInlineScript(): string
     {
         return "{% include 'pages/admin/form/question_type/dropdown/form_inline_script.html.twig' %}";
     }
 
-    #[Override]
+    
     protected function getSelectableQuestionOptionsClass(): string
     {
         return 'dropdown-border';
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $parent = parent::renderAdministrationTemplate($question);
@@ -154,7 +154,7 @@ final class QuestionTypeDropdown extends AbstractQuestionTypeSelectable implemen
         ) . $parent;
     }
 
-    #[Override]
+    
     public function renderAdministrationOptionsTemplate(?Question $question): string
     {
         return TemplateRenderer::getInstance()->render(
@@ -166,7 +166,7 @@ final class QuestionTypeDropdown extends AbstractQuestionTypeSelectable implemen
         );
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(
         Question $question,
     ): string {
@@ -232,13 +232,13 @@ final class QuestionTypeDropdown extends AbstractQuestionTypeSelectable implemen
         );
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): string
     {
         return QuestionTypeDropdownExtraDataConfig::class;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {

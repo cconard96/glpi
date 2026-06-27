@@ -49,19 +49,19 @@ final class MultipleChoiceFromValuesConditionHandler implements
         private array $values,
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return $this->getSupportedArrayValueOperators();
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/dropdown_multiple.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [
@@ -69,7 +69,7 @@ final class MultipleChoiceFromValuesConditionHandler implements
         ];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,
@@ -78,7 +78,7 @@ final class MultipleChoiceFromValuesConditionHandler implements
         return $this->applyArrayValueOperator($a, $operator, $b);
     }
 
-    #[Override]
+    
     public function convertConditionValue(string $value): array
     {
         $value = array_search($value, $this->values, true) ?: 0;

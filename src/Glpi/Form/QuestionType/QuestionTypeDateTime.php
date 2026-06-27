@@ -57,19 +57,19 @@ use function Safe\preg_match;
  */
 class QuestionTypeDateTime extends AbstractQuestionType implements FormQuestionDataConverterInterface, UsedAsCriteriaInterface
 {
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::DATE_AND_TIME;
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): mixed
     {
         return $rawData['default_values'] ?? null;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): mixed
     {
         return (new QuestionTypeDateTimeExtraDataConfig(
@@ -209,7 +209,7 @@ class QuestionTypeDateTime extends AbstractQuestionType implements FormQuestionD
         }
     }
 
-    #[Override]
+    
     public function validateExtraDataInput(array $input): bool
     {
         $allowed_keys = [
@@ -226,7 +226,7 @@ class QuestionTypeDateTime extends AbstractQuestionType implements FormQuestionD
             );
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -280,7 +280,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderAdministrationOptionsTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -320,7 +320,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(
         Question $question,
     ): string {
@@ -342,25 +342,25 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         return $this->formatAnswer($answer);
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): ?string
     {
         return QuestionTypeDateTimeExtraDataConfig::class;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
@@ -382,14 +382,14 @@ TWIG;
         }
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return static::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 
 }

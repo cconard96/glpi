@@ -57,7 +57,7 @@ abstract class SLMFieldConfig implements
         private ?string $time_definition = null,
     ) {}
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -69,7 +69,7 @@ abstract class SLMFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

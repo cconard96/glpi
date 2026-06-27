@@ -49,7 +49,7 @@ final class QuestionTypeDropdownExtraDataConfig extends QuestionTypeSelectableEx
         parent::__construct(options: $options);
     }
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -58,7 +58,7 @@ final class QuestionTypeDropdownExtraDataConfig extends QuestionTypeSelectableEx
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return array_merge(

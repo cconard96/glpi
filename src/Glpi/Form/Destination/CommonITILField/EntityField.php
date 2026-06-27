@@ -55,19 +55,19 @@ use Override;
 
 final class EntityField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return _n("Entity", "Entities", 1);
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return EntityFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -105,7 +105,7 @@ final class EntityField extends AbstractConfigField implements DestinationFieldC
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -131,7 +131,7 @@ final class EntityField extends AbstractConfigField implements DestinationFieldC
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): EntityFieldConfig
     {
         // Return last valid answer by default and fallback
@@ -180,19 +180,19 @@ final class EntityField extends AbstractConfigField implements DestinationFieldC
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         /**
@@ -242,7 +242,7 @@ final class EntityField extends AbstractConfigField implements DestinationFieldC
         return $this->getDefaultConfig($form);
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -269,7 +269,7 @@ final class EntityField extends AbstractConfigField implements DestinationFieldC
         return new DynamicExportDataField($config, [$requirement]);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

@@ -62,7 +62,7 @@ final class ValidationFieldStrategyConfig implements JsonFieldInterface
         private ?int $specific_validation_step_id = null
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = ValidationFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -79,7 +79,7 @@ final class ValidationFieldStrategyConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

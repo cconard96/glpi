@@ -52,19 +52,19 @@ use Ticket;
 
 final class RequestTypeField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Request type");
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return RequestTypeFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -103,7 +103,7 @@ final class RequestTypeField extends AbstractConfigField implements DestinationF
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -130,7 +130,7 @@ final class RequestTypeField extends AbstractConfigField implements DestinationF
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): RequestTypeFieldConfig
     {
         return new RequestTypeFieldConfig(
@@ -138,7 +138,7 @@ final class RequestTypeField extends AbstractConfigField implements DestinationF
         );
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         switch ($rawData['type_rule']) {
@@ -191,19 +191,19 @@ final class RequestTypeField extends AbstractConfigField implements DestinationF
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 30;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

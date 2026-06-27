@@ -42,7 +42,7 @@ enum VisibilityStrategy: string implements StrategyInterface
     case VISIBLE_IF = 'visible_if';
     case HIDDEN_IF = 'hidden_if';
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return match ($this) {
@@ -52,7 +52,7 @@ enum VisibilityStrategy: string implements StrategyInterface
         };
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return match ($this) {
@@ -62,7 +62,7 @@ enum VisibilityStrategy: string implements StrategyInterface
         };
     }
 
-    #[Override]
+    
     public function showEditor(): bool
     {
         return match ($this) {

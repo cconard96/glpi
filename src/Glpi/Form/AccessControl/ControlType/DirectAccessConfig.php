@@ -51,7 +51,7 @@ final class DirectAccessConfig implements JsonFieldInterface, PrepareForCloneInt
         }
     }
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -60,7 +60,7 @@ final class DirectAccessConfig implements JsonFieldInterface, PrepareForCloneInt
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -69,7 +69,7 @@ final class DirectAccessConfig implements JsonFieldInterface, PrepareForCloneInt
         ];
     }
 
-    #[Override]
+    
     public function prepareInputForClone(array $data): array
     {
         // Make sure the token is always unique

@@ -52,7 +52,7 @@ class HasAntivirusCapacity extends AbstractCapacity
         return ItemAntivirus::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("List antivirus software");

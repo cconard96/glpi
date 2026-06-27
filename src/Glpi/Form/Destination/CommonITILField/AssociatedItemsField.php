@@ -57,19 +57,19 @@ use function Safe\json_decode;
 
 final class AssociatedItemsField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Associated items");
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return AssociatedItemsFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -113,7 +113,7 @@ final class AssociatedItemsField extends AbstractConfigField implements Destinat
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -148,7 +148,7 @@ final class AssociatedItemsField extends AbstractConfigField implements Destinat
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): AssociatedItemsFieldConfig
     {
         return new AssociatedItemsFieldConfig(
@@ -205,13 +205,13 @@ final class AssociatedItemsField extends AbstractConfigField implements Destinat
         return $form->getQuestionsByType(QuestionTypeUserDevice::class);
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 300;
     }
 
-    #[Override]
+    
     public function prepareInput(array $input): array
     {
         $input = parent::prepareInput($input);
@@ -266,19 +266,19 @@ final class AssociatedItemsField extends AbstractConfigField implements Destinat
         return $input;
     }
 
-    #[Override]
+    
     public function canHaveMultipleStrategies(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::ASSOCIATED_ITEMS;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         if (isset($rawData['associate_rule'])) {
@@ -312,7 +312,7 @@ final class AssociatedItemsField extends AbstractConfigField implements Destinat
         return $this->getDefaultConfig($form);
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -345,7 +345,7 @@ final class AssociatedItemsField extends AbstractConfigField implements Destinat
         return new DynamicExportDataField($config, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

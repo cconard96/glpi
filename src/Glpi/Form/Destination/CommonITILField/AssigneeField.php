@@ -45,43 +45,43 @@ use User;
 
 final class AssigneeField extends ITILActorField
 {
-    #[Override]
+    
     public function getAllowedQuestionType(): array
     {
         return [new QuestionTypeAssignee(), new QuestionTypeEmail()];
     }
 
-    #[Override]
+    
     public function getAllowedQuestionItemTypes(): array
     {
         return [User::class, Group::class, Supplier::class];
     }
 
-    #[Override]
+    
     public function getActorType(): string
     {
         return 'assign';
     }
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return _n('Assignee', 'Assignees', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 120;
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return AssigneeFieldConfig::class;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): AssigneeFieldConfig
     {
         return new AssigneeFieldConfig(

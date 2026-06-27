@@ -51,7 +51,7 @@ class EmptyConditionHandler implements ConditionHandlerInterface
         private ?JsonFieldInterface $question_config
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -60,20 +60,20 @@ class EmptyConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): null
     {
         // No input field needed for empty conditions
         return null;
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

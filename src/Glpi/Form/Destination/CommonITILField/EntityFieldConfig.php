@@ -56,7 +56,7 @@ final class EntityFieldConfig implements
         private ?int $specific_entity_id = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = EntityFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -71,7 +71,7 @@ final class EntityFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -81,7 +81,7 @@ final class EntityFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

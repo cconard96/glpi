@@ -52,25 +52,25 @@ use Override;
 
 final class UrgencyField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Urgency");
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 70;
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return UrgencyFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -109,7 +109,7 @@ final class UrgencyField extends AbstractConfigField implements DestinationField
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -136,13 +136,13 @@ final class UrgencyField extends AbstractConfigField implements DestinationField
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): UrgencyFieldConfig
     {
         return new UrgencyFieldConfig(UrgencyFieldStrategy::LAST_VALID_ANSWER);
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         switch ($rawData['urgency_rule']) {
@@ -195,13 +195,13 @@ final class UrgencyField extends AbstractConfigField implements DestinationField
         return $values;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

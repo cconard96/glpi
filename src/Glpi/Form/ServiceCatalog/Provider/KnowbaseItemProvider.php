@@ -52,7 +52,7 @@ final class KnowbaseItemProvider implements LeafProviderInterface
         $this->matcher = new FuzzyMatcher(new PartialMatchStrategy());
     }
 
-    #[Override]
+    
     public function getItems(ItemRequest $item_request): array
     {
         $category_id = $item_request->getCategoryID();
@@ -103,13 +103,13 @@ final class KnowbaseItemProvider implements LeafProviderInterface
         return $knowbase_items;
     }
 
-    #[Override]
+    
     public function getItemsLabel(): string
     {
         return __("FAQ articles");
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;

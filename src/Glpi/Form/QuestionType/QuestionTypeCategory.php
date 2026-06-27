@@ -97,7 +97,7 @@ enum QuestionTypeCategory: string implements QuestionTypeCategoryInterface
      */
     case ITEM = "item";
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return match ($this) {
@@ -115,7 +115,7 @@ enum QuestionTypeCategory: string implements QuestionTypeCategoryInterface
         };
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return match ($this) {
@@ -133,7 +133,7 @@ enum QuestionTypeCategory: string implements QuestionTypeCategoryInterface
         };
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return match ($this) {

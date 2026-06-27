@@ -104,7 +104,7 @@ class UpdateCommand extends AbstractCommand implements ConfigurationCommandInter
 
     protected $requires_db_up_to_date = false;
 
-    #[Override]
+    
     public function getSpecificMandatoryRequirements(): array
     {
         $valid_db = $this->db instanceof DBmysql && $this->db->connected;

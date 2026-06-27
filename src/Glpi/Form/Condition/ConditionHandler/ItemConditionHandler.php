@@ -54,7 +54,7 @@ final class ItemConditionHandler implements ConditionHandlerInterface, Condition
         private string $itemtype,
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -63,19 +63,19 @@ final class ItemConditionHandler implements ConditionHandlerInterface, Condition
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/item_dropdown.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return ['itemtype' => $this->itemtype];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,
@@ -93,7 +93,7 @@ final class ItemConditionHandler implements ConditionHandlerInterface, Condition
         return $this->applyArrayValueOperator($a, $operator, $b);
     }
 
-    #[Override]
+    
     public function convertConditionValue(string $value): array|int
     {
         $nameFields = [];

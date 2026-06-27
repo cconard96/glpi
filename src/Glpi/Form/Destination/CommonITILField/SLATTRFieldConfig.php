@@ -38,7 +38,7 @@ use Override;
 
 final class SLATTRFieldConfig extends SLMFieldConfig
 {
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = SLMFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");

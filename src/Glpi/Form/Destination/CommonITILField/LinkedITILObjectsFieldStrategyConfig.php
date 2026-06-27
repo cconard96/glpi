@@ -63,7 +63,7 @@ final class LinkedITILObjectsFieldStrategyConfig implements JsonFieldInterface
         private array $specific_itilobject = []
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = LinkedITILObjectsFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -77,7 +77,7 @@ final class LinkedITILObjectsFieldStrategyConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

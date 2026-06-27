@@ -52,7 +52,7 @@ class HasRemoteManagementCapacity extends AbstractCapacity
         return Item_RemoteManagement::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Generate links for common remote access and control services");

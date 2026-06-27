@@ -45,7 +45,7 @@ class ChangeTemplate extends ITILTemplate
     /** @use Clonable<static> */
     use Clonable;
 
-    #[Override]
+    
     public static function getPredefinedFields(): ITILTemplatePredefinedField
     {
         return new ChangeTemplatePredefinedField();

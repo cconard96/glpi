@@ -92,7 +92,7 @@ abstract class AbstractCommand extends Command implements GlpiCommandInterface
      */
     protected $progress_bar;
 
-    #[Override]
+    
     public function getSpecificMandatoryRequirements(): array
     {
         return [];

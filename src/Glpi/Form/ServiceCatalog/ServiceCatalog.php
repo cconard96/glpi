@@ -44,19 +44,19 @@ use Session;
 
 final class ServiceCatalog extends CommonGLPI
 {
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return __("Service catalog");
     }
 
-    // TODO: Should be #[Override] but getIcon() is defined by CommonDBTM instead of CommonGLPI.
+    // TODO: Should be  but getIcon() is defined by CommonDBTM instead of CommonGLPI.
     public static function getIcon(): string
     {
         return "ti ti-library";
     }
 
-    #[Override]
+    
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         // This tab is only available for service catalog leafs
@@ -67,7 +67,7 @@ final class ServiceCatalog extends CommonGLPI
         return self::createTabEntry(self::getTypeName());
     }
 
-    #[Override]
+    
     public static function displayTabContentForItem(
         CommonGLPI $item,
         $tabnum = 1,
@@ -87,7 +87,7 @@ final class ServiceCatalog extends CommonGLPI
         return true;
     }
 
-    #[Override]
+    
     public static function getSearchURL($full = true): string
     {
         global $CFG_GLPI;
@@ -95,7 +95,7 @@ final class ServiceCatalog extends CommonGLPI
         return $full ? $CFG_GLPI['root_doc'] . '/ServiceCatalog' : '/ServiceCatalog';
     }
 
-    #[Override]
+    
     public static function canView(): bool
     {
         $session_info = Session::getCurrentSessionInfo();

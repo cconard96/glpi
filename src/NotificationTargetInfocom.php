@@ -40,13 +40,13 @@
  */
 class NotificationTargetInfocom extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
         return ['alert' => __('Alarms on financial and administrative information')];
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
 
@@ -84,7 +84,7 @@ class NotificationTargetInfocom extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
 

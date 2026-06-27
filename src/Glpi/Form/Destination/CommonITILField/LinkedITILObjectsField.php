@@ -60,19 +60,19 @@ use function Safe\json_decode;
 
 final class LinkedITILObjectsField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Link to assistance objects");
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return LinkedITILObjectsFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -146,7 +146,7 @@ final class LinkedITILObjectsField extends AbstractConfigField implements Destin
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueAfterDestinationCreation(
         FormDestination $destination,
         JsonFieldInterface $config,
@@ -220,19 +220,19 @@ final class LinkedITILObjectsField extends AbstractConfigField implements Destin
         $link->add($input);
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): LinkedITILObjectsFieldConfig
     {
         return new LinkedITILObjectsFieldConfig();
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 300;
     }
 
-    #[Override]
+    
     public function prepareInput(array $input): array
     {
         $input = parent::prepareInput($input);
@@ -304,7 +304,7 @@ final class LinkedITILObjectsField extends AbstractConfigField implements Destin
         return $input;
     }
 
-    #[Override]
+    
     public function canHaveMultipleStrategies(): bool
     {
         return true;
@@ -319,13 +319,13 @@ final class LinkedITILObjectsField extends AbstractConfigField implements Destin
         ];
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::ASSOCIATED_ITEMS;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         if (isset($rawData['linked_itilobjects'])) {
@@ -395,7 +395,7 @@ final class LinkedITILObjectsField extends AbstractConfigField implements Destin
         return $this->getDefaultConfig($form);
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -429,7 +429,7 @@ final class LinkedITILObjectsField extends AbstractConfigField implements Destin
         return new DynamicExportDataField($config, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

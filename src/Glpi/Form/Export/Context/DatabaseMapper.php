@@ -64,7 +64,7 @@ final class DatabaseMapper implements MapperInterface
         $this->entities_restrictions = $entities_restrictions;
     }
 
-    #[Override]
+    
     public function addMappedItem(string $itemtype, string|int $key, int $id): void
     {
         if (!$this->isValidItemtype($itemtype)) {
@@ -78,7 +78,7 @@ final class DatabaseMapper implements MapperInterface
         $this->values[$itemtype][$key] = $id;
     }
 
-    #[Override]
+    
     public function getItemId(string $itemtype, string|int $key): int
     {
         if (!$this->contextExist($itemtype, $key)) {

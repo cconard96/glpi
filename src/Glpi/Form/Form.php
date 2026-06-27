@@ -123,31 +123,31 @@ final class Form extends CommonDBTM implements
     /** @var ?FormAccessControl[] */
     private ?array $access_controls = null;
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Form', 'Forms', $nb);
     }
 
-    #[Override]
+    
     public function getUUID(): string
     {
         return $this->fields['uuid'];
     }
 
-    #[Override]
+    
     public static function getIcon(): string
     {
         return "ti ti-forms";
     }
 
-    #[Override]
+    
     public static function getSectorizedDetails(): array
     {
         return ['admin', self::class];
     }
 
-    #[Override]
+    
     public function defineTabs($options = [])
     {
         $tabs = parent::defineTabs();
@@ -170,7 +170,6 @@ final class Form extends CommonDBTM implements
         return $tabs;
     }
 
-    #[Override]
     public function showForm($id, array $options = [])
     {
         if (!empty($id)) {
@@ -209,7 +208,7 @@ final class Form extends CommonDBTM implements
         return true;
     }
 
-    #[Override]
+    
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         if (!$item instanceof Category) {
@@ -230,7 +229,7 @@ final class Form extends CommonDBTM implements
         );
     }
 
-    #[Override]
+    
     public static function displayTabContentForItem(
         CommonGLPI $item,
         $tabnum = 1,
@@ -251,7 +250,7 @@ final class Form extends CommonDBTM implements
         return true;
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $search_options = parent::rawSearchOptions();
@@ -307,14 +306,14 @@ final class Form extends CommonDBTM implements
         return $search_options;
     }
 
-    #[Override]
+    
     public function post_getFromDB()
     {
         // Clear lazy loaded data
         $this->clearLazyLoadedData();
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         $from_import    = $this->input['_from_import']    ?? false;
@@ -343,7 +342,7 @@ final class Form extends CommonDBTM implements
         }
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         if (!isset($input['uuid'])) {
@@ -359,7 +358,7 @@ final class Form extends CommonDBTM implements
         return parent::prepareInputForAdd($input);
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input): array
     {
         // Insert date_mod even if the framework would handle it by itself
@@ -383,7 +382,7 @@ final class Form extends CommonDBTM implements
         return $input;
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         global $DB;
@@ -424,7 +423,7 @@ final class Form extends CommonDBTM implements
         }
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -439,7 +438,7 @@ final class Form extends CommonDBTM implements
         );
     }
 
-    #[Override]
+    
     public function getSpecificMassiveActions($checkitem = null): array
     {
         $actions = parent::getSpecificMassiveActions($checkitem);
@@ -452,7 +451,7 @@ final class Form extends CommonDBTM implements
         return $actions;
     }
 
-    #[Override]
+    
     public static function showMassiveActionsSubForm(MassiveAction $ma): bool
     {
         global $CFG_GLPI;
@@ -468,7 +467,7 @@ final class Form extends CommonDBTM implements
         return true;
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $key = sprintf('%s_%d', self::getType(), $this->getID());
@@ -1183,7 +1182,7 @@ final class Form extends CommonDBTM implements
         ;
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemTitle(): string
     {
         return FormTranslation::translate(
@@ -1192,7 +1191,7 @@ final class Form extends CommonDBTM implements
         ) ?? '';
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemDescription(): string
     {
         return FormTranslation::translate(
@@ -1201,19 +1200,19 @@ final class Form extends CommonDBTM implements
         ) ?? '';
     }
 
-    #[Override]
+    
     public function getServiceCatalogItemIllustration(): string
     {
         return $this->fields['illustration'] ?: IllustrationManager::DEFAULT_ILLUSTRATION;
     }
 
-    #[Override]
+    
     public function isServiceCatalogItemPinned(): bool
     {
         return $this->fields['is_pinned'] ?? false;
     }
 
-    #[Override]
+    
     public function getServiceCatalogLink(): string
     {
         return Html::getPrefixedUrl("/Form/Render/" . $this->getID());

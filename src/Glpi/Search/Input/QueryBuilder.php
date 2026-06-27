@@ -657,7 +657,7 @@ final class QueryBuilder implements SearchInputInterface
         ]);
     }
 
-    #[Override]
+    
     public static function manageParams($itemtype, $params = [], $usesession = true, $forcebookmark = false): array
     {
         global $CFG_GLPI;
@@ -847,7 +847,7 @@ final class QueryBuilder implements SearchInputInterface
         return self::cleanParams($params);
     }
 
-    #[Override]
+    
     public static function cleanParams(array $params): array
     {
         $int_params = [

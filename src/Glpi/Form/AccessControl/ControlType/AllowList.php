@@ -55,31 +55,31 @@ use User;
 
 final class AllowList implements ControlTypeInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Allow specifics users, groups or profiles");
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return "ti ti-list-check";
     }
 
-    #[Override]
+    
     public function getConfig(): JsonFieldInterface
     {
         return new AllowListConfig();
     }
 
-    #[Override]
+    
     public function getWarnings(Form $form): array
     {
         return [];
     }
 
-    #[Override]
+    
     public function renderConfigForm(FormAccessControl $access_control): string
     {
         $config = $access_control->getConfig();
@@ -95,13 +95,13 @@ final class AllowList implements ControlTypeInterface
         ]);
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;
     }
 
-    #[Override]
+    
     public function createConfigFromUserInput(array $input): AllowListConfig
     {
         $values = $input['_allow_list_dropdown'] ?? [];
@@ -113,7 +113,7 @@ final class AllowList implements ControlTypeInterface
         ]);
     }
 
-    #[Override]
+    
     public function canAnswer(
         Form $form,
         JsonFieldInterface $config,
@@ -204,7 +204,7 @@ final class AllowList implements ControlTypeInterface
         return false;
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         JsonFieldInterface $config
     ): DynamicExportDataField {
@@ -248,7 +248,7 @@ final class AllowList implements ControlTypeInterface
         return new DynamicExportDataField($data, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         DatabaseMapper $mapper,

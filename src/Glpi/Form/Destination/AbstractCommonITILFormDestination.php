@@ -76,7 +76,7 @@ abstract class AbstractCommonITILFormDestination implements FormDestinationInter
 
     final public function __construct() {}
 
-    #[Override]
+    
     final public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -95,25 +95,25 @@ abstract class AbstractCommonITILFormDestination implements FormDestinationInter
         );
     }
 
-    #[Override]
+    
     public function useDefaultConfigLayout(): bool
     {
         return false;
     }
 
-    #[Override]
+    
     final public function getLabel(): string
     {
         return $this->getTarget()::getTypeName(1);
     }
 
-    #[Override]
+    
     final public function getIcon(): string
     {
         return $this->getTarget()::getIcon();
     }
 
-    #[Override]
+    
     final public function createDestinationItems(
         Form $form,
         AnswersSet $answers_set,
@@ -227,7 +227,7 @@ abstract class AbstractCommonITILFormDestination implements FormDestinationInter
         return [$itil_object];
     }
 
-    #[Override]
+    
     public function postCreateDestinationItems(
         Form $form,
         AnswersSet $answers_set,
@@ -244,7 +244,7 @@ abstract class AbstractCommonITILFormDestination implements FormDestinationInter
         }
     }
 
-    #[Override]
+    
     public function prepareInputForClone(array $data): array
     {
         $fields = $this->defineConfigurableFields();
@@ -368,7 +368,7 @@ abstract class AbstractCommonITILFormDestination implements FormDestinationInter
         return "config[$field_key]";
     }
 
-    #[Override]
+    
     final public function exportDynamicConfig(
         array $config
     ): DynamicExportDataField {
@@ -388,7 +388,7 @@ abstract class AbstractCommonITILFormDestination implements FormDestinationInter
         return new DynamicExportDataField($config, $requirements);
     }
 
-    #[Override]
+    
     final public static function prepareDynamicConfigDataForImport(
         array $config,
         DatabaseMapper $mapper,

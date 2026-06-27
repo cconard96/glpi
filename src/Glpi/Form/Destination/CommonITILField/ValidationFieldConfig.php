@@ -60,7 +60,7 @@ final class ValidationFieldConfig implements
         }
     }
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy_configs = [];
@@ -70,7 +70,7 @@ final class ValidationFieldConfig implements
         return new self($strategy_configs);
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -81,7 +81,7 @@ final class ValidationFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGIES;

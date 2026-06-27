@@ -40,7 +40,7 @@ use Override;
 
 class StringConditionHandler implements ConditionHandlerInterface
 {
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -55,13 +55,13 @@ class StringConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/input.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         switch ($condition->getValueOperator()) {
@@ -81,7 +81,7 @@ class StringConditionHandler implements ConditionHandlerInterface
         }
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

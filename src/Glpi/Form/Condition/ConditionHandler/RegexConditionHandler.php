@@ -48,7 +48,7 @@ class RegexConditionHandler implements ConditionHandlerInterface
         private ?JsonFieldInterface $question_config
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -57,13 +57,13 @@ class RegexConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/input.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [
@@ -71,7 +71,7 @@ class RegexConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

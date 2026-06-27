@@ -42,19 +42,19 @@ use Override;
 
 final class FormTagProvider implements TagProviderInterface, TagWithIdValueInterface
 {
-    #[Override]
+    
     public function getTagColor(): string
     {
         return "yellow";
     }
 
-    #[Override]
+    
     public function getTags(Form $form): array
     {
         return [$this->getTagForForm($form)];
     }
 
-    #[Override]
+    
     public function getTagContentForValue(
         string $value,
         AnswersSet $answers_set
@@ -68,13 +68,13 @@ final class FormTagProvider implements TagProviderInterface, TagWithIdValueInter
         return FormTranslation::translate($form, Form::TRANSLATION_KEY_NAME) ?? $form->fields['name'];
     }
 
-    #[Override]
+    
     public function getItemtype(): string
     {
         return Form::class;
     }
 
-    #[Override]
+    
     public function getTagFromRawValue(string $value): ?Tag
     {
         $form = Form::getById((int) $value);

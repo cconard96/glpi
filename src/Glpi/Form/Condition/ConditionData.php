@@ -167,7 +167,7 @@ final class ConditionData implements JsonSerializable
         return $config;
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

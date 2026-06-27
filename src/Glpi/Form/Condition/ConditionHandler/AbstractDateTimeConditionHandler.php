@@ -39,7 +39,7 @@ use Override;
 
 abstract class AbstractDateTimeConditionHandler implements ConditionHandlerInterface
 {
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -52,13 +52,13 @@ abstract class AbstractDateTimeConditionHandler implements ConditionHandlerInter
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/input.html.twig';
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

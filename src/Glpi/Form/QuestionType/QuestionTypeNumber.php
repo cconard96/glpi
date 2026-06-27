@@ -42,44 +42,44 @@ use Override;
 
 final class QuestionTypeNumber extends AbstractQuestionTypeShortAnswer implements UsedAsCriteriaInterface, CustomMandatoryMessageInterface
 {
-    #[Override]
+    
     public function getInputType(): string
     {
         return 'number';
     }
 
-    #[Override]
+    
     public function getName(): string
     {
         return __("Number");
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-number-123';
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 30;
     }
 
-    #[Override]
+    
     public function getInputAttributes(): array
     {
         return ['step' => 'any'];
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return array_merge(parent::getConditionHandlers($question_config), [new NumberConditionHandler()]);
     }
 
-    #[Override]
+    
     public function getCustomMandatoryErrorMessage(): string
     {
         // On some browsers, filling text into a `number` input is allowed but

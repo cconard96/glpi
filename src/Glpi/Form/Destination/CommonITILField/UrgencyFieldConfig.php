@@ -55,7 +55,7 @@ final class UrgencyFieldConfig implements
         private ?int $specific_urgency_value = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = UrgencyFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -70,7 +70,7 @@ final class UrgencyFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -80,7 +80,7 @@ final class UrgencyFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;
@@ -89,7 +89,7 @@ final class UrgencyFieldConfig implements
     /**
      * @return array<UrgencyFieldStrategy>
      */
-    #[Override]
+    
     public function getStrategies(): array
     {
         return [$this->strategy];

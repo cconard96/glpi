@@ -47,7 +47,7 @@ final class UserDevicesConditionHandler implements ConditionHandlerInterface
         private bool $is_multiple_devices = false,
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         if ($this->is_multiple_devices) {
@@ -63,13 +63,13 @@ final class UserDevicesConditionHandler implements ConditionHandlerInterface
         }
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/user_devices_dropdown.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [
@@ -81,7 +81,7 @@ final class UserDevicesConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

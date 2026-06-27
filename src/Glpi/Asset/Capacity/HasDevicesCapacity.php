@@ -53,7 +53,7 @@ class HasDevicesCapacity extends AbstractCapacity
         return CommonDevice::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Includes sub-components like CPUs, drives or memory");

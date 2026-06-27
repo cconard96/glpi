@@ -56,7 +56,7 @@ final class QuestionTypeUserDevice extends AbstractQuestionType implements
     UsedAsCriteriaInterface,
     ConditionValueTransformerInterface
 {
-    #[Override]
+    
     public function validateExtraDataInput(array $input): bool
     {
         // Only one key is allowed and optional: 'is_multiple_devices'.
@@ -92,7 +92,7 @@ final class QuestionTypeUserDevice extends AbstractQuestionType implements
         }
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -150,7 +150,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderAdministrationOptionsTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -190,7 +190,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         $template = <<<TWIG
@@ -221,7 +221,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function prepareEndUserAnswer(Question $question, mixed $answer): mixed
     {
         if (!is_array($answer)) {
@@ -248,7 +248,7 @@ TWIG;
         return $devices;
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         if (is_string($answer)) {
@@ -266,37 +266,37 @@ TWIG;
         return implode(', ', $formatted_devices);
     }
 
-    #[Override]
+    
     public function getName(): string
     {
         return _n('User Device', 'User Devices', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-devices';
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::ITEM;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return false;
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): string
     {
         return QuestionTypeUserDevicesConfig::class;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
@@ -313,7 +313,7 @@ TWIG;
         );
     }
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): array
     {
         if (!is_array($value)) {

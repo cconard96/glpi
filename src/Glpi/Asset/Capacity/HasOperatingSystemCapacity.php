@@ -53,7 +53,7 @@ class HasOperatingSystemCapacity extends AbstractCapacity
         return OperatingSystem::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Display operating system information");

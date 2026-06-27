@@ -54,7 +54,7 @@ class HasNotepadCapacity extends AbstractCapacity
         return Notepad::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Enable a simple notepad");

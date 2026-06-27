@@ -55,7 +55,7 @@ final class ITILCategoryFieldConfig implements
         private ?int $specific_itilcategory_id = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = ITILCategoryFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -70,7 +70,7 @@ final class ITILCategoryFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -80,7 +80,7 @@ final class ITILCategoryFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

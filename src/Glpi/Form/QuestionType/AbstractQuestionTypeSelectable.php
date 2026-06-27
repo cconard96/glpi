@@ -57,7 +57,7 @@ abstract class AbstractQuestionTypeSelectable extends AbstractQuestionType imple
 
     public function __construct() {}
 
-    #[Override]
+    
     public function getFormEditorJsOptions(): string
     {
         return <<<JS
@@ -149,7 +149,7 @@ TWIG;
         return $js;
     }
 
-    #[Override]
+    
     public function formatDefaultValueForDB(mixed $value): ?string
     {
         if (is_array($value)) {
@@ -161,7 +161,7 @@ TWIG;
         return $value;
     }
 
-    #[Override]
+    
     public function validateExtraDataInput(array $input): bool
     {
         // The input can not be empty, always have at least one option : the last one can be empty
@@ -172,7 +172,7 @@ TWIG;
         return true;
     }
 
-    #[Override]
+    
     public function prepareExtraData(array $input): array
     {
         // Sort options by order
@@ -193,7 +193,7 @@ TWIG;
         return $input;
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): array
     {
         if (
@@ -226,7 +226,7 @@ TWIG;
         return array_map(fn($value) => array_search($value, $options) + 1, $default_values);
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): array
     {
         $values = json_decode($rawData['values'] ?? '[]', true) ?? [];
@@ -247,7 +247,7 @@ TWIG;
         return $config->jsonSerialize();
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(Question $question): array
     {
         $options = $this->getOptions($question);
@@ -343,7 +343,7 @@ TWIG;
         return [];
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -454,7 +454,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(
         Question $question,
     ): string {
@@ -503,13 +503,13 @@ TWIG;
         return $value;
     }
 
-    #[Override]
+    
     public function prepareEndUserAnswer(Question $question, mixed $answer): mixed
     {
         return $this->filterEmptyValues($answer);
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         if (is_string($answer)) {
@@ -529,19 +529,19 @@ TWIG;
         return implode(', ', $answer);
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): ?string
     {
         return QuestionTypeSelectableExtraDataConfig::class;
     }
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): array
     {
         // Handle empty cases first
@@ -561,13 +561,13 @@ TWIG;
         return array_filter(array_map(fn($item) => $question_config->getOptions()[$item] ?? null, $value));
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return static::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 }

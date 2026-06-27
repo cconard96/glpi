@@ -104,7 +104,7 @@ class Ticket extends CommonITILObject implements DefaultSearchRequestInterface
     public const CHANGEPRIORITY   =  65536;
     public const READNEWTICKET    = 262144;
 
-    #[Override]
+    
     public static function supportHelpdeskDisplayPreferences(): bool
     {
         return true;
@@ -631,7 +631,7 @@ class Ticket extends CommonITILObject implements DefaultSearchRequestInterface
         return self::canupdate();
     }
 
-    #[Override]
+    
     public function canRequesterUpdateItem()
     {
         return ($this->isUser(CommonITILActor::REQUESTER, Session::getLoginUserID())
@@ -1762,7 +1762,7 @@ class Ticket extends CommonITILObject implements DefaultSearchRequestInterface
         ]);
     }
 
-    #[Override]
+    
     public function updateDateMod($ID, $no_stat_computation = false, $users_id_lastupdater = 0)
     {
 
@@ -1907,7 +1907,7 @@ class Ticket extends CommonITILObject implements DefaultSearchRequestInterface
         return false;
     }
 
-    #[Override]
+    
     public static function getDefaultSearchRequest(): array
     {
         // Technician don't want to be bothered by already solved items.

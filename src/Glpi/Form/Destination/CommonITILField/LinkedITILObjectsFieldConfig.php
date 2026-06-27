@@ -66,7 +66,7 @@ final class LinkedITILObjectsFieldConfig implements JsonFieldInterface
         }
     }
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy_configs = [];
@@ -76,7 +76,7 @@ final class LinkedITILObjectsFieldConfig implements JsonFieldInterface
         return new self($strategy_configs);
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

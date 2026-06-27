@@ -62,25 +62,25 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
     public const TRANSLATION_KEY_TITLE = 'title';
     public const TRANSLATION_KEY_DESCRIPTION = 'description';
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;
     }
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("GLPI page");
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         return self::canUpdate();
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         return self::canUpdate();
@@ -97,7 +97,7 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
         ];
     }
 
-    #[Override]
+    
     public function getTitle(): string
     {
         return HelpdeskTranslation::translate(
@@ -106,7 +106,7 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
         ) ?? '';
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return HelpdeskTranslation::translate(
@@ -115,13 +115,13 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
         ) ?? '';
     }
 
-    #[Override]
+    
     public function getIllustration(): string
     {
         return $this->fields['illustration'] ?? IllustrationManager::DEFAULT_ILLUSTRATION;
     }
 
-    #[Override]
+    
     public function getTileUrl(): string
     {
         $approval_criteria = [
@@ -186,7 +186,7 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
         return Html::getPrefixedUrl($url);
     }
 
-    #[Override]
+    
     public function isAvailable(SessionInfo $session_info): bool
     {
         return match ($this->fields['page']) {
@@ -211,19 +211,19 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
         };
     }
 
-    #[Override]
+    
     public function getDatabaseId(): int
     {
         return $this->fields['id'];
     }
 
-    #[Override]
+    
     public function getConfigFieldsTemplate(): string
     {
         return "pages/admin/glpi_page_tile_config_fields.html.twig";
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -234,7 +234,7 @@ final class GlpiPageTile extends CommonDBTM implements TileInterface, ProvideTra
         );
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $handlers = [];

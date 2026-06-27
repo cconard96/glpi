@@ -43,7 +43,7 @@ class RuleProblem extends RuleCommonITILObject
         return __('Business rules for problems');
     }
 
-    #[Override]
+    
     public function getTargetItilType(): Problem
     {
         return new Problem();

@@ -53,7 +53,7 @@ class HasCertificatesCapacity extends AbstractCapacity
         return Certificate::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Track certificates used by the assets");

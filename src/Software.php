@@ -966,7 +966,7 @@ class Software extends CommonDBTM implements TreeBrowseInterface, AssignableItem
         return $i === ($nb + 1);
     }
 
-    #[Override]
+    
     public static function getDefaultSearchRequest(): array
     {
         return [

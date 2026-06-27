@@ -127,13 +127,13 @@ class GenericobjectPluginMigration extends AbstractPluginMigration
      */
     private array $generic_object_fields_definitions = [];
 
-    #[Override]
+    
     protected function getHasBeenExecutedConfigurationKey(): string
     {
         return 'glpi_11_assets_migration';
     }
 
-    #[Override]
+    
     protected function getMainPluginTables(): array
     {
         return ['glpi_plugin_genericobject_objects'];

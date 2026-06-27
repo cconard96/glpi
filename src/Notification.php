@@ -170,19 +170,19 @@ class Notification extends CommonDBTM implements FilterableInterface
         return __("Notifications will only be sent for items that match the defined filter.");
     }
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Notification', 'Notifications', $nb);
     }
 
-    #[Override]
+    
     public static function getSectorizedDetails(): array
     {
         return ['config', self::class, self::class];
     }
 
-    #[Override]
+    
     public static function getMenuContent()
     {
         $menu = [];
@@ -231,7 +231,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return false;
     }
 
-    #[Override]
+    
     public function defineTabs($options = [])
     {
         // Get parents tabs
@@ -264,7 +264,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return $tabs;
     }
 
-    #[Override]
+    
     public function showForm($ID, array $options = [])
     {
         TemplateRenderer::getInstance()->display('pages/setup/notification/notification.html.twig', [
@@ -276,7 +276,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return true;
     }
 
-    #[Override]
+    
     public static function getSpecificValueToDisplay($field, $values, array $options = [])
     {
 
@@ -293,7 +293,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return parent::getSpecificValueToDisplay($field, $values, $options);
     }
 
-    #[Override]
+    
     public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
     {
 
@@ -334,7 +334,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return parent::getSpecificValueToSelect($field, $name, $values, $options);
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $tab = [];
@@ -458,7 +458,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return $tab;
     }
 
-    #[Override]
+    
     public function getSpecificMassiveActions($checkitem = null)
     {
 
@@ -473,7 +473,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return $actions;
     }
 
-    #[Override]
+    
     public static function showMassiveActionsSubForm(MassiveAction $ma)
     {
         switch ($ma->getAction()) {
@@ -537,7 +537,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return;
     }
 
-    #[Override]
+    
     public function canViewItem(): bool
     {
 
@@ -551,7 +551,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return Session::haveAccessToEntity($this->getEntityID(), $this->isRecursive());
     }
 
-    #[Override]
+    
     public function canCreateItem(): bool
     {
         if (
@@ -671,7 +671,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return $DB->request($criteria);
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
 
@@ -683,7 +683,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
 
@@ -695,7 +695,7 @@ class Notification extends CommonDBTM implements FilterableInterface
         return $input;
     }
 
-    #[Override]
+    
     public static function getIcon()
     {
         return "ti ti-bell";

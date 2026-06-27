@@ -381,7 +381,7 @@ class Grid
                 $label = sprintf(
                     __("Number of %s by type"),
                     $itemtype::getTypeName(Session::getPluralNumber()),
-                    $fk_itemtype::getFieldLabel()
+                    $fk_itemtype::getTypeName(),
                 );
 
                 $cards["count_" . $itemtype . "_" . $fk_itemtype] = [
@@ -437,7 +437,7 @@ class Grid
                     $label = sprintf(
                         __("%s by %s"),
                         $itemtype::getTypeName(Session::getPluralNumber()),
-                        $fk_itemtype::getFieldLabel()
+                        $fk_itemtype::getTypeName()
                     );
 
                     $cards["count_" . $itemtype . "_" . $fk_itemtype] = [

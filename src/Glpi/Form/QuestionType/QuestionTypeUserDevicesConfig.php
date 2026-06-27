@@ -47,7 +47,7 @@ final class QuestionTypeUserDevicesConfig implements JsonFieldInterface
         private bool $is_multiple_devices = false,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -55,7 +55,7 @@ final class QuestionTypeUserDevicesConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

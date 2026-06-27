@@ -40,7 +40,7 @@
  */
 class NotificationTargetChange extends NotificationTargetCommonITILObject
 {
-    #[Override]
+    
     public function validateSendTo($event, array $infos, $notify_me = false, $emitter = null)
     {
         if ($event == 'satisfaction') {
@@ -50,7 +50,7 @@ class NotificationTargetChange extends NotificationTargetCommonITILObject
         return parent::validateSendTo($event, $infos, $notify_me, $emitter);
     }
 
-    #[Override]
+    
     public function getEvents()
     {
 
@@ -70,7 +70,7 @@ class NotificationTargetChange extends NotificationTargetCommonITILObject
         return $events;
     }
 
-    #[Override]
+    
     public function getDataForObject(CommonDBTM $item, array $options, $simple = false)
     {
         // Common ITIL data
@@ -264,7 +264,7 @@ class NotificationTargetChange extends NotificationTargetCommonITILObject
         return $data;
     }
 
-    #[Override]
+    
     public function getTags()
     {
 

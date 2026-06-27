@@ -66,13 +66,13 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
     public const REFUSED                = 13;
     public const CANCELED               = 14;
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Change', 'Changes', $nb);
     }
 
-    #[Override]
+    
     public function canSolve()
     {
 
@@ -90,13 +90,13 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
     }
 
 
-    #[Override]
+    
     public static function canView(): bool
     {
         return Session::haveRightsOr(self::$rightname, [self::READALL, self::READMY]);
     }
 
-    #[Override]
+    
     public function canViewItem(): bool
     {
 
@@ -121,7 +121,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
                               ))))));
     }
 
-    #[Override]
+    
     public function canCreateItem(): bool
     {
 
@@ -142,7 +142,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
                  || $this->isAllowedStatus($this->fields['status'], self::EVALUATION));
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         $input =  parent::prepareInputForAdd($input);
@@ -172,7 +172,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
         $input = $this->transformActorsInput($input);
@@ -184,7 +184,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $input;
     }
 
-    #[Override]
+    
     public function pre_deleteItem()
     {
         global $CFG_GLPI;
@@ -195,7 +195,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return true;
     }
 
-    #[Override]
+    
     public function getSpecificMassiveActions($checkitem = null)
     {
         $actions = parent::getSpecificMassiveActions($checkitem);
@@ -221,7 +221,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $actions;
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
 
@@ -252,7 +252,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         parent::cleanDBonPurge();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         global $CFG_GLPI;
@@ -297,7 +297,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         $this->handleSatisfactionSurveyOnUpdate();
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         global $DB;
@@ -365,7 +365,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         $this->handleNewItemNotifications();
     }
 
-    #[Override]
+    
     public static function getDefaultSearchRequest(): array
     {
 
@@ -381,7 +381,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $search;
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $tab = [];
@@ -618,7 +618,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-    #[Override]
+    
     public static function getAllStatusArray($withmetaforsearch = false)
     {
 
@@ -647,7 +647,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-    #[Override]
+    
     public static function getClosedStatusArray()
     {
 
@@ -660,7 +660,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-    #[Override]
+    
     public static function getSolvedStatusArray()
     {
         // To be overridden by class
@@ -668,13 +668,13 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-    #[Override]
+    
     public static function getNewStatusArray()
     {
         return [self::INCOMING, self::ACCEPTED, self::EVALUATION, self::APPROVAL];
     }
 
-    #[Override]
+    
     public static function getProcessStatusArray()
     {
 
@@ -683,13 +683,13 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $tab;
     }
 
-    #[Override]
+    
     public static function getReopenableStatusArray()
     {
         return array_merge(self::getClosedStatusArray(), [self::SOLVED]);
     }
 
-    #[Override]
+    
     public function getRights($interface = 'central')
     {
 
@@ -759,7 +759,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         return $restrict;
     }
 
-    #[Override]
+    
     public static function getDefaultValues($entity = 0)
     {
         if (is_numeric(Session::getLoginUserID(false))) {
@@ -857,13 +857,13 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         ]);
     }
 
-    #[Override]
+    
     public static function getItemLinkClass(): string
     {
         return Change_Item::class;
     }
 
-    #[Override]
+    
     public static function getStatusKey($status)
     {
         switch ($status) {
@@ -876,7 +876,7 @@ class Change extends CommonITILObject implements DefaultSearchRequestInterface
         }
     }
 
-    #[Override]
+    
     public static function getContentTemplatesParametersClassInstance(): CommonITILObjectParameters
     {
         return new ChangeParameters();

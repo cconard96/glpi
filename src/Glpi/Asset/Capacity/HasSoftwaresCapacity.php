@@ -56,7 +56,7 @@ class HasSoftwaresCapacity extends AbstractCapacity
         return Software::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("List installed software");

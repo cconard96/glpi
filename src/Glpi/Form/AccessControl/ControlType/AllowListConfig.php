@@ -51,7 +51,7 @@ final class AllowListConfig implements JsonFieldInterface
         private array $profile_ids = [],
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -61,7 +61,7 @@ final class AllowListConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

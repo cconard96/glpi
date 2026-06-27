@@ -80,25 +80,25 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
 
     private ?Section $section = null;
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Question', 'Questions', $nb);
     }
 
-    #[Override]
+    
     public function getUUID(): string
     {
         return $this->fields['uuid'];
     }
 
-    #[Override]
+    
     public function isEntityAssign()
     {
         return false;
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         parent::post_addItem();
@@ -114,7 +114,7 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         $this->logCreationInParentForm();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         parent::post_updateItem($history);
@@ -130,14 +130,14 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         $this->logUpdateInParentForm($history);
     }
 
-    #[Override]
+    
     public function post_deleteFromDB()
     {
         // Report logs to the parent form
         $this->logDeleteInParentForm();
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -147,7 +147,7 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         );
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $key = sprintf('%s_%d', self::getType(), $this->getID());
@@ -182,7 +182,7 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         return $handlers;
     }
 
-    #[Override]
+    
     public function displayBlockForEditor(bool $can_update, bool $allow_unauthenticated): void
     {
         TemplateRenderer::getInstance()->display('pages/admin/form/form_question.html.twig', [
@@ -196,13 +196,13 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         ]);
     }
 
-    #[Override]
+    
     public function getUntitledLabel(): string
     {
         return __('Untitled question');
     }
 
-    #[Override]
+    
     public function getCloneRelations(): array
     {
         return [
@@ -259,7 +259,7 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         return (new EndUserInputNameProvider())->getEndUserInputName($this);
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         if (!isset($input['uuid'])) {
@@ -279,7 +279,7 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         return parent::prepareInputForAdd($input);
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
         $input = $this->prepareInput($input);
@@ -344,7 +344,7 @@ final class Question extends CommonDBChild implements BlockInterface, Conditiona
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForClone($input)
     {
         $input = parent::prepareInputForClone($input);

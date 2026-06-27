@@ -54,19 +54,19 @@ use Override;
 
 final class ITILCategoryField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return _n('ITIL category', 'ITIL categories', 1);
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return ITILCategoryFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -104,7 +104,7 @@ final class ITILCategoryField extends AbstractConfigField implements Destination
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -130,7 +130,7 @@ final class ITILCategoryField extends AbstractConfigField implements Destination
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): ITILCategoryFieldConfig
     {
         return new ITILCategoryFieldConfig(
@@ -138,7 +138,7 @@ final class ITILCategoryField extends AbstractConfigField implements Destination
         );
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         switch ($rawData['category_rule']) {
@@ -196,19 +196,19 @@ final class ITILCategoryField extends AbstractConfigField implements Destination
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 40;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -235,7 +235,7 @@ final class ITILCategoryField extends AbstractConfigField implements Destination
         return new DynamicExportDataField($config, [$requirement]);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

@@ -52,7 +52,7 @@ class HasVolumesCapacity extends AbstractCapacity
         return Item_Disk::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("List storage volumes");

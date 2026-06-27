@@ -47,7 +47,7 @@ final class SingleChoiceFromValuesConditionHandler implements
         private array $values,
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -60,19 +60,19 @@ final class SingleChoiceFromValuesConditionHandler implements
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/dropdown.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return ['values' => $this->values];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,
@@ -101,7 +101,7 @@ final class SingleChoiceFromValuesConditionHandler implements
         };
     }
 
-    #[Override]
+    
     public function convertConditionValue(string $value): int
     {
         return array_search($value, $this->values, true) ?: 0;

@@ -61,19 +61,19 @@ use function Safe\json_decode;
 
 final class ValidationField extends AbstractConfigField implements DestinationFieldConverterInterface
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return CommonITILValidation::getTypeName(1);
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return ValidationFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -148,7 +148,7 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -191,7 +191,7 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): ValidationFieldConfig
     {
         return new ValidationFieldConfig([
@@ -236,13 +236,13 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 30;
     }
 
-    #[Override]
+    
     public function prepareInput(array $input): array
     {
         $input = parent::prepareInput($input);
@@ -338,7 +338,7 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         return $input;
     }
 
-    #[Override]
+    
     public function canHaveMultipleStrategies(): bool
     {
         return true;
@@ -352,13 +352,13 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         ];
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::TIMELINE;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         if (isset($rawData['commonitil_validation_rule'])) {
@@ -409,7 +409,7 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         return $this->getDefaultConfig($form);
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -438,7 +438,7 @@ final class ValidationField extends AbstractConfigField implements DestinationFi
         return new DynamicExportDataField($config, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

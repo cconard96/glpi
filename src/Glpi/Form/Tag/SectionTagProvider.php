@@ -43,13 +43,13 @@ use Override;
 
 final class SectionTagProvider implements TagProviderInterface, TagWithIdValueInterface
 {
-    #[Override]
+    
     public function getTagColor(): string
     {
         return "cyan";
     }
 
-    #[Override]
+    
     public function getTags(Form $form): array
     {
         $tags = [];
@@ -60,7 +60,7 @@ final class SectionTagProvider implements TagProviderInterface, TagWithIdValueIn
         return $tags;
     }
 
-    #[Override]
+    
     public function getTagContentForValue(
         string $value,
         AnswersSet $answers_set
@@ -74,13 +74,13 @@ final class SectionTagProvider implements TagProviderInterface, TagWithIdValueIn
         return FormTranslation::translate($section, Section::TRANSLATION_KEY_NAME) ?? $section->fields['name'];
     }
 
-    #[Override]
+    
     public function getItemtype(): string
     {
         return Section::class;
     }
 
-    #[Override]
+    
     public function getTagFromRawValue(string $value): ?Tag
     {
         $section = Section::getById((int) $value);

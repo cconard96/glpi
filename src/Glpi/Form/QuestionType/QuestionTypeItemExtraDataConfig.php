@@ -53,7 +53,7 @@ class QuestionTypeItemExtraDataConfig implements JsonFieldInterface
         private bool $selectable_tree_root = false,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -64,7 +64,7 @@ class QuestionTypeItemExtraDataConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

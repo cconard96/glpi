@@ -52,7 +52,7 @@ final class ITILTaskFieldConfig implements
         private ?array $specific_itiltasktemplates_ids = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = ITILTaskFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -66,7 +66,7 @@ final class ITILTaskFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -75,7 +75,7 @@ final class ITILTaskFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

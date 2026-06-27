@@ -54,26 +54,26 @@ abstract class ItemTranslation extends CommonDBChild
     public static $itemtype = 'itemtype';
     public static $items_id = 'items_id';
 
-    #[Override]
+    
     public function prepareInputForAdd($input): array
     {
         return $this->prepapreInput($input);
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input): array
     {
         return $this->prepapreInput($input);
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         parent::post_addItem();
         $this->processRichTextFileUploads();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         parent::post_updateItem($history);

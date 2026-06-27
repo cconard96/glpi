@@ -47,7 +47,7 @@ final class ItemAsTextConditionHandler implements ConditionHandlerInterface
         private string $itemtype,
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -56,19 +56,19 @@ final class ItemAsTextConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/input.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

@@ -42,19 +42,19 @@ use Symfony\Component\Console\Input\InputOption;
 
 class FormCreatorPluginToCoreCommand extends AbstractPluginMigrationCommand
 {
-    #[Override]
+    
     public function getName(): string
     {
         return 'migration:formcreator_plugin_to_core';
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return sprintf(__('Migrate %s plugin data into GLPI core tables'), 'Formcreator');
     }
 
-    #[Override]
+    
     public function getMigration(): AbstractPluginMigration
     {
         return new FormMigration(
@@ -64,7 +64,7 @@ class FormCreatorPluginToCoreCommand extends AbstractPluginMigrationCommand
         );
     }
 
-    #[Override]
+    
     protected function configure()
     {
         parent::configure();

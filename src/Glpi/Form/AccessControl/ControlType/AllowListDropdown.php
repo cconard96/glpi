@@ -46,7 +46,7 @@ use User;
 
 final class AllowListDropdown extends AbstractRightsDropdown
 {
-    #[Override]
+    
     protected static function addAllUsersOption(): true
     {
         return true;
@@ -71,7 +71,7 @@ final class AllowListDropdown extends AbstractRightsDropdown
         ];
     }
 
-    #[Override]
+    
     protected static function getAjaxUrl(): string
     {
         global $CFG_GLPI;
@@ -79,7 +79,7 @@ final class AllowListDropdown extends AbstractRightsDropdown
         return $CFG_GLPI['root_doc'] . "/ajax/form/allowListDropdownValue.php";
     }
 
-    #[Override]
+    
     protected static function getTypes(array $options = []): array
     {
         return [

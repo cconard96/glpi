@@ -72,7 +72,7 @@ class NotificationAjax implements NotificationInterface
         ]);
     }
 
-    #[Override]
+    
     public function sendNotification($options = [])
     {
         $data = [];

@@ -86,7 +86,7 @@ final class FormProvider implements LeafProviderInterface
         return $this->entity_restriction_cache[$cache_key];
     }
 
-    #[Override]
+    
     public function getItems(ItemRequest $item_request): array
     {
         $category_id = $item_request->getCategoryID();
@@ -142,13 +142,13 @@ final class FormProvider implements LeafProviderInterface
         return $forms;
     }
 
-    #[Override]
+    
     public function getItemsLabel(): string
     {
         return Form::getTypeName(Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;

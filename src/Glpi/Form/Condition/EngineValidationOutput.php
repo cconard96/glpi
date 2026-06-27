@@ -42,7 +42,7 @@ final class EngineValidationOutput implements JsonSerializable
     /** @var array<int, ConditionData[]> */
     private array $questions_validation = [];
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

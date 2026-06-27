@@ -44,19 +44,19 @@ use Override;
 
 final class QuestionTypeCheckbox extends AbstractQuestionTypeSelectable implements UsedAsCriteriaInterface
 {
-    #[Override]
+    
     public function getInputType(?Question $question): string
     {
         return 'checkbox';
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::CHECKBOX;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {

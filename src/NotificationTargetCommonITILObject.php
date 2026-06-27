@@ -70,7 +70,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function validateSendTo($event, array $infos, $notify_me = false, $emitter = null)
     {
         // Check global ones for notification to myself
@@ -90,14 +90,14 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         return true;
     }
 
-    #[Override]
+    
     protected function canNotificationBeDisabled(string $event): bool
     {
         // Notifications on ITIL objects are relying on `use_notification` property of actors.
         return false;
     }
 
-    #[Override]
+    
     public function getSubjectPrefix($event = '')
     {
         $perso_tag = trim(Entity::getUsedConfig(
@@ -114,7 +114,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         return sprintf("[$perso_tag #%07d] ", $this->obj->getField('id'));
     }
 
-    #[Override]
+    
     public function getEvents()
     {
         $events = [
@@ -328,7 +328,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function addItemAuthor()
     {
         $this->addLinkedUserByType(CommonITILActor::REQUESTER);
@@ -825,7 +825,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
     }
 
 
-    #[Override]
+    
     public function addAdditionnalUserInfo(array $data)
     {
         return [
@@ -890,7 +890,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         return true;
     }
 
-    #[Override]
+    
     public function getProfileJoinCriteria()
     {
         $criteria = parent::getProfileJoinCriteria();
@@ -917,7 +917,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
 
 
 
-    #[Override]
+    
     public function isPrivate()
     {
 
@@ -1156,7 +1156,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
         $events    = $this->getAllEvents();
@@ -2014,7 +2014,7 @@ abstract class NotificationTargetCommonITILObject extends NotificationTarget
         return $data;
     }
 
-    #[Override]
+    
     public function getTags()
     {
 

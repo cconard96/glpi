@@ -51,31 +51,31 @@ final class FormTile extends CommonDBChild implements TileInterface
 
     private Form $form;
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;
     }
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return Form::getTypeName(1);
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         return self::canUpdate();
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         return self::canUpdate();
     }
 
-    #[Override]
+    
     public function post_getFromDB(): void
     {
         $form = $this->getItem();
@@ -86,31 +86,31 @@ final class FormTile extends CommonDBChild implements TileInterface
         }
     }
 
-    #[Override]
+    
     public function getTitle(): string
     {
         return $this->form->getServiceCatalogItemTitle();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return $this->form->getServiceCatalogItemDescription();
     }
 
-    #[Override]
+    
     public function getIllustration(): string
     {
         return $this->form->getServiceCatalogItemIllustration();
     }
 
-    #[Override]
+    
     public function getTileUrl(): string
     {
         return Html::getPrefixedUrl('/Form/Render/' . $this->form->getID());
     }
 
-    #[Override]
+    
     public function isAvailable(SessionInfo $session_info): bool
     {
         $form_access_manager = FormAccessControlManager::getInstance();
@@ -143,19 +143,19 @@ final class FormTile extends CommonDBChild implements TileInterface
         return true;
     }
 
-    #[Override]
+    
     public function getDatabaseId(): int
     {
         return $this->fields['id'];
     }
 
-    #[Override]
+    
     public function getConfigFieldsTemplate(): string
     {
         return "pages/admin/form_tile_config_fields.html.twig";
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(

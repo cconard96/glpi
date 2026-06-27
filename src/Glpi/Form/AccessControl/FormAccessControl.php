@@ -57,19 +57,19 @@ final class FormAccessControl extends CommonDBChild
     public static $itemtype = Form::class;
     public static $items_id = 'forms_forms_id';
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Access control', 'Access controls', $nb);
     }
 
-    #[Override]
+    
     public static function getIcon(): string
     {
         return "ti ti-key";
     }
 
-    #[Override]
+    
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         // This tab is only available for forms
@@ -87,7 +87,7 @@ final class FormAccessControl extends CommonDBChild
         return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $count);
     }
 
-    #[Override]
+    
     public static function displayTabContentForItem(
         CommonGLPI $item,
         $tabnum = 1,
@@ -113,14 +113,14 @@ final class FormAccessControl extends CommonDBChild
         return true;
     }
 
-    #[Override]
+    
     public static function canView(): bool
     {
         // Must be able to view forms
         return Form::canView();
     }
 
-    #[Override]
+    
     public function canViewItem(): bool
     {
         $form = Form::getByID($this->fields['forms_forms_id']);
@@ -132,14 +132,14 @@ final class FormAccessControl extends CommonDBChild
         return $form->canViewItem();
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         // Must be able to update parent form
         return Form::canUpdate();
     }
 
-    #[Override]
+    
     public function canCreateItem(): bool
     {
         $form = Form::getByID($this->input['forms_forms_id']);
@@ -151,14 +151,14 @@ final class FormAccessControl extends CommonDBChild
         return $form->canCreateItem();
     }
 
-    #[Override]
+    
     public static function canUpdate(): bool
     {
         // Must be able to update forms
         return Form::canUpdate();
     }
 
-    #[Override]
+    
     public function canUpdateItem(): bool
     {
         $form = Form::getByID($this->fields['forms_forms_id']);
@@ -170,35 +170,35 @@ final class FormAccessControl extends CommonDBChild
         return $form->canUpdateItem();
     }
 
-    #[Override]
+    
     public static function canDelete(): bool
     {
         // Never deleted from the UX
         return false;
     }
 
-    #[Override]
+    
     public function canDeleteItem(): bool
     {
         // Never deleted from the UX
         return false;
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         // Never purged from the UX
         return false;
     }
 
-    #[Override]
+    
     public function canPurgeItem(): bool
     {
         // Never purged from the UX
         return false;
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         // Config is mandatory on creation; inject default config if missing.
@@ -223,7 +223,7 @@ final class FormAccessControl extends CommonDBChild
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input): array
     {
         $input = $this->prepareConfigInput($input);
@@ -235,7 +235,7 @@ final class FormAccessControl extends CommonDBChild
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForClone($input)
     {
         $input = parent::prepareInputForClone($input);
@@ -330,7 +330,7 @@ final class FormAccessControl extends CommonDBChild
         return $input;
     }
 
-    #[Override]
+    
     protected function computeFriendlyName()
     {
         $strategy = $this->getStrategy();

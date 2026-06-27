@@ -57,19 +57,19 @@ final class AnswersSet extends CommonDBChild
 
     public DelegationData $delegation;
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return __('Answers');
     }
 
-    #[Override]
+    
     public static function getIcon(): string
     {
         return "ti ti-circle-check";
     }
 
-    #[Override]
+    
     public function maybeRecursive(): bool
     {
         return false;
@@ -144,7 +144,7 @@ final class AnswersSet extends CommonDBChild
         );
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $search_options = parent::rawSearchOptions();
@@ -178,28 +178,28 @@ final class AnswersSet extends CommonDBChild
         return $search_options;
     }
 
-    #[Override]
+    
     public static function canView(): bool
     {
         // Answers set can't be viewed from the UI
         return false;
     }
 
-    #[Override]
+    
     public static function canUpdate(): bool
     {
         // Answers set can't be updated from the UI
         return false;
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         // Answers set can't be created from the UI
         return false;
     }
 
-    #[Override]
+    
     public static function canDelete(): bool
     {
         // Answers set can't be deleted from the UI

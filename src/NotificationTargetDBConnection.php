@@ -40,7 +40,7 @@
  */
 class NotificationTargetDBConnection extends NotificationTarget
 {
-    #[Override]
+    
     public function addNotificationTargets($entity)
     {
         $this->addProfilesToTargets();
@@ -48,13 +48,13 @@ class NotificationTargetDBConnection extends NotificationTarget
         $this->addTarget(Notification::GLOBAL_ADMINISTRATOR, __('Administrator'));
     }
 
-    #[Override]
+    
     public function getEvents()
     {
         return ['desynchronization' => __('Desynchronization SQL replica')];
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
         if ($options['diff'] > 1000000000) {
@@ -72,7 +72,7 @@ class NotificationTargetDBConnection extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
         $tags = ['dbconnection.delay' => __('Difference between main and replica')];

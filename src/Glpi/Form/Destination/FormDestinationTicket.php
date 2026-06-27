@@ -46,13 +46,13 @@ use Ticket;
 
 final class FormDestinationTicket extends AbstractCommonITILFormDestination
 {
-    #[Override]
+    
     public function getTarget(): CommonITILObject
     {
         return new Ticket();
     }
 
-    #[Override]
+    
     protected function defineConfigurableFields(): array
     {
         return array_merge(parent::defineConfigurableFields(), [
@@ -65,7 +65,7 @@ final class FormDestinationTicket extends AbstractCommonITILFormDestination
         ]);
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;

@@ -48,19 +48,19 @@ final class StatusField extends AbstractConfigField
 {
     public const DEFAULT_STATUS = 'default_status';
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("Status");
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return SimpleValueConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -103,7 +103,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -120,19 +120,19 @@ TWIG;
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): SimpleValueConfig
     {
         return new SimpleValueConfig(self::DEFAULT_STATUS);
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 50;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;

@@ -43,13 +43,13 @@ use Override;
 
 final class AnswerTagProvider implements TagProviderInterface, TagWithIdValueInterface
 {
-    #[Override]
+    
     public function getTagColor(): string
     {
         return "teal";
     }
 
-    #[Override]
+    
     public function getTags(Form $form): array
     {
         $tags = [];
@@ -60,7 +60,7 @@ final class AnswerTagProvider implements TagProviderInterface, TagWithIdValueInt
         return $tags;
     }
 
-    #[Override]
+    
     public function getTagContentForValue(
         string $value,
         AnswersSet $answers_set
@@ -80,13 +80,13 @@ final class AnswerTagProvider implements TagProviderInterface, TagWithIdValueInt
         return $answer->getFormattedAnswer() ?? '';
     }
 
-    #[Override]
+    
     public function getItemtype(): string
     {
         return Question::class;
     }
 
-    #[Override]
+    
     public function getTagFromRawValue(string $value): ?Tag
     {
         $question = Question::getById((int) $value);

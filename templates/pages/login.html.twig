@@ -1,0 +1,103 @@
+{#
+# ---------------------------------------------------------------------
+#
+# GLPI - Gestionnaire Libre de Parc Informatique
+#
+# http://glpi-project.org
+#
+# @copyright 2015-2026 Teclib' and contributors.
+# @licence   https://www.gnu.org/licenses/gpl-3.0.html
+#
+# ---------------------------------------------------------------------
+#
+# LICENSE
+#
+# This file is part of GLPI.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# ---------------------------------------------------------------------
+#}
+
+{% extends 'layout/page_card_notlogged.html.twig' %}
+
+{% block content_block %}
+    <form action="{{ path('front/login.php') }}" method="post" autocomplete="off" data-submit-once>
+        <input type="hidden" name="noAUTO" value="{{ noAuto }}"/>
+        <input type="hidden" name="redirect" value="{{ redirect }}"/>
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}"/>
+        {% if text_login|length > 0 %}
+            <div class="rich_text_container" style="text-align: center;">
+                {{ text_login|safe_html }}
+            </div>
+        {% endif %}
+        <div style="flex-direction: row; justify-content: center;">
+            <div style="display: grid;">
+                <label class="form-label" for="login_name">{{ __('Login') }}</label>
+                <input type="text" class="form-control" id="login_name" name="login_name" placeholder=""/>
+                <label class="form-label" for="login_password">{{ __('Password') }}</label>
+                <input type="password" class="form-control" id="login_password" name="login_password" placeholder="" autocomplete="off"/>
+
+                {% if config('display_login_source') %}
+                    <label class="form-label" for="dropdown_auth{{ rand }}">{{ __('Login source') }}</label>
+                    <select name="auth">
+                        {% for source_key, source_name in auth_sources %}
+                            <option value="{{ source_key }}" {% if source_key == default_auth_source %}selected{% endif %}>
+                                {{ source_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <script type="module">
+                        if (document.querySelector('select[name="auth"]').value === 'local') {
+                            document.querySelector('.forgot_password').style.display = 'block';
+                        }
+                        document.querySelector('select[name="auth"]').addEventListener('change', function () {
+                            if (this.value === 'local') {
+                                document.querySelector('.forgot_password').style.display = 'block';
+                            } else {
+                                document.querySelector('.forgot_password').style.display = 'none';
+                            }
+                        });
+                    </script>
+                {% endif %}
+
+                {% if config('login_remember_time') %}
+                    <div class="mb-2">
+                        <label class="form-check" for="login_remember">
+                            <input type="checkbox" class="form-check-input" id="login_remember" name="login_remember" {{ config('login_remember_default') ? 'checked' : '' }}/>
+                            <span class="form-check-label">{{ __('Remember me') }}</span>
+                        </label>
+                    </div>
+                {% endif %}
+
+                <div class="form-footer">
+                    <button type="submit" name="submit" class="btn btn-primary" style="width: 100%; margin-block-end: 1rem;">
+                        {{ __('Sign in') }}
+                    </button>
+                    {% if show_lost_password %}
+                        <div class="ms-auto text-center forgot_password {{ config('display_login_source') ? 'd-none' : '' }}">
+                            <a href="{{ path('front/lostpassword.php?lostpassword=1') }}">
+                                {{ __('Forgotten password?') }}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block footer_block %}
+    {{ copyright_message|raw }}
+{% endblock %}

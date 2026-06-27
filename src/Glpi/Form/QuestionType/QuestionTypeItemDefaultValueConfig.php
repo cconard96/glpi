@@ -51,7 +51,7 @@ final class QuestionTypeItemDefaultValueConfig implements JsonFieldInterface
         private int|string|null $items_id = null
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -59,7 +59,7 @@ final class QuestionTypeItemDefaultValueConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

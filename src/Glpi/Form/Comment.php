@@ -74,19 +74,19 @@ final class Comment extends CommonDBChild implements
 
     private ?Section $section = null;
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Comment', 'Comments', $nb);
     }
 
-    #[Override]
+    
     public function getUUID(): string
     {
         return $this->fields['uuid'];
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         parent::post_addItem();
@@ -102,7 +102,7 @@ final class Comment extends CommonDBChild implements
         $this->logCreationInParentForm();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         parent::post_updateItem($history);
@@ -118,14 +118,14 @@ final class Comment extends CommonDBChild implements
         $this->logUpdateInParentForm($history);
     }
 
-    #[Override]
+    
     public function post_deleteFromDB()
     {
         // Report logs to the parent form
         $this->logDeleteInParentForm();
     }
 
-    #[Override]
+    
     public function cleanDBonPurge()
     {
         $this->deleteChildrenAndRelationsFromDb(
@@ -135,7 +135,7 @@ final class Comment extends CommonDBChild implements
         );
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         if (!isset($input['uuid'])) {
@@ -151,14 +151,14 @@ final class Comment extends CommonDBChild implements
         return parent::prepareInputForUpdate($input);
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
         $input = $this->prepareInput($input);
         return parent::prepareInputForUpdate($input);
     }
 
-    #[Override]
+    
     public function getCloneRelations(): array
     {
         return [
@@ -192,7 +192,7 @@ final class Comment extends CommonDBChild implements
         return $input;
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $key = sprintf('%s_%d', self::getType(), $this->getID());
@@ -220,14 +220,14 @@ final class Comment extends CommonDBChild implements
         return $handlers;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return [new VisibilityConditionHandler()];
     }
 
-    #[Override]
+    
     public function getSupportedValueOperators(
         ?JsonFieldInterface $question_config
     ): array {
@@ -239,7 +239,7 @@ final class Comment extends CommonDBChild implements
         );
     }
 
-    #[Override]
+    
     public function displayBlockForEditor(bool $can_update, bool $allow_unauthenticated): void
     {
         TemplateRenderer::getInstance()->display('pages/admin/form/form_comment.html.twig', [
@@ -250,7 +250,7 @@ final class Comment extends CommonDBChild implements
         ]);
     }
 
-    #[Override]
+    
     public function getUntitledLabel(): string
     {
         return __('Untitled comment');
@@ -286,7 +286,7 @@ final class Comment extends CommonDBChild implements
         $this->section = $section;
     }
 
-    #[Override]
+    
     public function prepareInputForClone($input)
     {
         $input = parent::prepareInputForClone($input);

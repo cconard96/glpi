@@ -151,28 +151,28 @@ class DocumentType extends CommonDropdown
         return self::$uploadable_patterns;
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         $this->clearCachedUploadablePatterns();
         parent::post_addItem();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         $this->clearCachedUploadablePatterns();
         parent::post_updateItem($history);
     }
 
-    #[Override]
+    
     public function post_deleteItem()
     {
         $this->clearCachedUploadablePatterns();
         parent::post_deleteItem();
     }
 
-    #[Override]
+    
     public function post_purgeItem()
     {
         $this->clearCachedUploadablePatterns();

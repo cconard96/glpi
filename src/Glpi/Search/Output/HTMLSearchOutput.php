@@ -66,7 +66,7 @@ use function Safe\preg_split;
  */
 class HTMLSearchOutput extends AbstractSearchOutput
 {
-    #[Override]
+    
     public function canDisplayResultsContainerWithoutExecutingSearch(): bool
     {
         return true;

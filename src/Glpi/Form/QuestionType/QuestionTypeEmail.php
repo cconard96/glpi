@@ -46,38 +46,38 @@ use Session;
 
 final class QuestionTypeEmail extends AbstractQuestionTypeShortAnswer implements UsedAsCriteriaInterface, QuestionTypeValidationInterface
 {
-    #[Override]
+    
     public function getInputType(): string
     {
         return 'email';
     }
 
-    #[Override]
+    
     public function getName(): string
     {
         return _n('Email', 'Emails', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-mail';
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 20;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return array_merge(parent::getConditionHandlers($question_config), [new StringConditionHandler()]);
     }
 
-    #[Override]
+    
     public function validateAnswer(
         Question $question,
         mixed $answer

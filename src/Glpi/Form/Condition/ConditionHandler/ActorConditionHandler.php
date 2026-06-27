@@ -49,19 +49,19 @@ class ActorConditionHandler implements ConditionHandlerInterface
         private QuestionTypeActorsExtraDataConfig $extra_data_config,
     ) {}
 
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return $this->getSupportedArrayValueOperators();
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/actor.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [
@@ -70,7 +70,7 @@ class ActorConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

@@ -46,7 +46,7 @@ use Session;
  */
 class NotificationTargetController extends NotificationTarget
 {
-    #[Override]
+    
     public function addNotificationTargets($entity)
     {
         $this->addProfilesToTargets();
@@ -54,13 +54,13 @@ class NotificationTargetController extends NotificationTarget
         $this->addTarget(Notification::GLOBAL_ADMINISTRATOR, __('Administrator'));
     }
 
-    #[Override]
+    
     public function getEvents()
     {
         return ['checkpluginsupdate' => __('Check all plugin updates')];
     }
 
-    #[Override]
+    
     public function addDataForTemplate($event, $options = [])
     {
         $updated_plugins = $options['plugins'];
@@ -89,7 +89,7 @@ class NotificationTargetController extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getTags()
     {
         //Tags with just lang

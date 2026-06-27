@@ -70,7 +70,7 @@ final class QuestionTypeUrgency extends AbstractQuestionType implements UsedAsCr
         return 0;
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -98,7 +98,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         $template = <<<TWIG
@@ -127,25 +127,25 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         return CommonITILObject::getUrgencyName($answer);
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::URGENCY;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function formatPredefinedValue(string $value): ?string
     {
         $value = strtolower($value);
@@ -160,14 +160,14 @@ TWIG;
         };
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return array_merge(parent::getConditionHandlers($question_config), [new UrgencyConditionHandler()]);
     }
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): string
     {
         if (empty($value)) {
@@ -177,7 +177,7 @@ TWIG;
         return strval($value);
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): ?int
     {
         if (!isset($rawData['default_values'])) {
@@ -187,19 +187,19 @@ TWIG;
         return (int) $rawData['default_values'];
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): null
     {
         return null;
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return self::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 }

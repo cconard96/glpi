@@ -53,7 +53,7 @@ class HasPlugCapacity extends AbstractCapacity
         return Plug::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Has power plugs. Usually related to PDU or UPS");

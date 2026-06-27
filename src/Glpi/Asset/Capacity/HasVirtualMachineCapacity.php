@@ -52,7 +52,7 @@ class HasVirtualMachineCapacity extends AbstractCapacity
         return ItemVirtualMachine::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("List virtual machines attached to these assets");

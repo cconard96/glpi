@@ -53,7 +53,7 @@ class IsReservableCapacity extends AbstractCapacity
         return Reservation::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("These assets can be made reservable");

@@ -55,7 +55,7 @@ final class LocationFieldConfig implements
         private ?int $specific_location_id = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = LocationFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -70,7 +70,7 @@ final class LocationFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -80,7 +80,7 @@ final class LocationFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

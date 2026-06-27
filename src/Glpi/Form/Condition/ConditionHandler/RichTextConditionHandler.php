@@ -39,7 +39,7 @@ use Override;
 
 final class RichTextConditionHandler extends StringConditionHandler implements ConditionHandlerInterface
 {
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

@@ -66,19 +66,19 @@ final class FormDestination extends CommonDBChild implements ConditionableCreati
     public static $itemtype = Form::class;
     public static $items_id = 'forms_forms_id';
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Destination', 'Destinations', $nb);
     }
 
-    #[Override]
+    
     public static function getIcon(): string
     {
         return "ti ti-arrow-forward";
     }
 
-    #[Override]
+    
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
         // Only for forms
@@ -99,7 +99,7 @@ final class FormDestination extends CommonDBChild implements ConditionableCreati
         );
     }
 
-    #[Override]
+    
     public static function displayTabContentForItem(
         CommonGLPI $item,
         $tabnum = 1,
@@ -140,14 +140,14 @@ final class FormDestination extends CommonDBChild implements ConditionableCreati
         return true;
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         // Must be able to update forms
         return Form::canUpdate();
     }
 
-    #[Override]
+    
     public function canCreateItem(): bool
     {
         $form = Form::getByID($this->fields['forms_forms_id']);
@@ -159,21 +159,21 @@ final class FormDestination extends CommonDBChild implements ConditionableCreati
         return $form->canUpdateItem();
     }
 
-    #[Override]
+    
     public static function canUpdate(): bool
     {
         // Must be able to update forms
         return Form::canUpdate();
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         // Must be able to update forms
         return Form::canUpdate();
     }
 
-    #[Override]
+    
     public function canPurgeItem(): bool
     {
         $form = Form::getByID($this->fields['forms_forms_id']);
@@ -185,7 +185,7 @@ final class FormDestination extends CommonDBChild implements ConditionableCreati
         return $form->canUpdateItem();
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input): array
     {
         $input = $this->prepareInput($input);
@@ -205,13 +205,13 @@ final class FormDestination extends CommonDBChild implements ConditionableCreati
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input): array
     {
         return $this->prepareInput($input);
     }
 
-    #[Override]
+    
     public function prepareInputForClone($input)
     {
         $input = parent::prepareInputForClone($input);

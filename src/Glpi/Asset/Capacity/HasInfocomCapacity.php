@@ -51,7 +51,7 @@ class HasInfocomCapacity extends AbstractCapacity
         return Infocom::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Manage and track assets lifecycle, financial, administrative and warranty information");

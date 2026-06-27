@@ -47,19 +47,19 @@ class NotificationTemplateTranslation extends CommonDBChild
     public $dohistory = true;
 
 
-    #[Override]
+    
     public static function getTypeName($nb = 0)
     {
         return _n('Template translation', 'Template translations', $nb);
     }
 
-    #[Override]
+    
     public static function getNameField()
     {
         return 'id';
     }
 
-    #[Override]
+    
     public function getForbiddenStandardMassiveAction()
     {
         $forbidden   = parent::getForbiddenStandardMassiveAction();
@@ -67,7 +67,7 @@ class NotificationTemplateTranslation extends CommonDBChild
         return $forbidden;
     }
 
-    #[Override]
+    
     protected function computeFriendlyName()
     {
         global $CFG_GLPI;
@@ -97,19 +97,19 @@ class NotificationTemplateTranslation extends CommonDBChild
         return $input;
     }
 
-    #[Override]
+    
     public function prepareInputForAdd($input)
     {
         return parent::prepareInputForAdd(self::cleanContentHtml($input));
     }
 
-    #[Override]
+    
     public function prepareInputForUpdate($input)
     {
         return parent::prepareInputForUpdate(self::cleanContentHtml($input));
     }
 
-    #[Override]
+    
     public function post_addItem()
     {
         // Handle rich-text images and uploaded documents
@@ -123,7 +123,7 @@ class NotificationTemplateTranslation extends CommonDBChild
         parent::post_addItem();
     }
 
-    #[Override]
+    
     public function post_updateItem($history = true)
     {
         // Handle rich-text images and uploaded documents
@@ -137,7 +137,7 @@ class NotificationTemplateTranslation extends CommonDBChild
         parent::post_updateItem($history);
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $tab = [];

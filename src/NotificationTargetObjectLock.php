@@ -42,13 +42,13 @@
  **/
 class NotificationTargetObjectLock extends NotificationTarget
 {
-    #[Override]
+    
     public function getEvents()
     {
         return ['unlock'               => __('Unlock Item Request')];
     }
 
-    #[Override]
+    
     public function getTags()
     {
 
@@ -74,7 +74,7 @@ class NotificationTargetObjectLock extends NotificationTarget
         asort($this->tag_descriptions);
     }
 
-    #[Override]
+    
     public function addNotificationTargets($entity)
     {
         $this->addTarget(Notification::USER, __('Locking User'));
@@ -131,7 +131,7 @@ class NotificationTargetObjectLock extends NotificationTarget
         }
     }
 
-    #[Override]
+    
     public function getSender(): array
     {
 
@@ -160,7 +160,7 @@ class NotificationTargetObjectLock extends NotificationTarget
         return $ret;
     }
 
-    #[Override]
+    
     public function getReplyTo(): array
     {
         return $this->getSender();

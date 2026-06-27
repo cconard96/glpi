@@ -46,19 +46,19 @@ use RequestType;
 
 final class RequestSourceField extends AbstractConfigField
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return RequestType::getTypeName(1);
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return RequestSourceFieldConfig::class;
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -88,7 +88,7 @@ final class RequestSourceField extends AbstractConfigField
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -122,7 +122,7 @@ final class RequestSourceField extends AbstractConfigField
         return $input;
     }
 
-    #[Override]
+    
     public function getDefaultConfig(Form $form): RequestSourceFieldConfig
     {
         return new RequestSourceFieldConfig(
@@ -139,13 +139,13 @@ final class RequestSourceField extends AbstractConfigField
         return $values;
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 60;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::PROPERTIES;

@@ -86,7 +86,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         $this->items_id_aria_label = __('Select an item');
     }
 
-    #[Override]
+    
     public function formatPredefinedValue(string $value): ?string
     {
         if (!ctype_digit($value) || (int) $value <= 0) {
@@ -96,7 +96,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return json_encode(new QuestionTypeItemDefaultValueConfig((int) $value));
     }
 
-    #[Override]
+    
     public function formatDefaultValueForDB(mixed $value): ?string
     {
         if (is_array($value) && isset($value['items_id'])) {
@@ -110,13 +110,13 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return json_encode(new QuestionTypeItemDefaultValueConfig((int) $value));
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): mixed
     {
         return $rawData['default_values'] ?? null;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): mixed
     {
         // Decode JSON string to array
@@ -257,7 +257,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return $default_value;
     }
 
-    #[Override]
+    
     public function validateExtraDataInput(array $input): bool
     {
         // Check if the itemtype is set
@@ -301,31 +301,31 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return true;
     }
 
-    #[Override]
+    
     public function getSubTypes(): array
     {
         return Dropdown::buildItemtypesDropdownOptions($this->getAllowedItemtypes());
     }
 
-    #[Override]
+    
     public function getSubTypeFieldName(): string
     {
         return 'itemtype';
     }
 
-    #[Override]
+    
     public function getSubTypeFieldAriaLabel(): string
     {
         return $this->itemtype_aria_label;
     }
 
-    #[Override]
+    
     public function getSubTypeDefaultValue(?Question $question): ?string
     {
         return $this->getDefaultValueItemtype($question);
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $default_itemtype = $this->getDefaultValueItemtype($question);
@@ -377,7 +377,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         );
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         $itemtype = $this->getDefaultValueItemtype($question) ?? '0';
@@ -397,7 +397,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         );
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         global $CFG_GLPI;
@@ -450,43 +450,43 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return $name;
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::ITEM;
     }
 
-    #[Override]
+    
     public function getName(): string
     {
         return _n('GLPI Object', 'GLPI Objects', Session::getPluralNumber());
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return 'ti ti-link';
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 10;
     }
 
-    #[Override]
+    
     public function getExtraDataConfigClass(): ?string
     {
         return QuestionTypeItemExtraDataConfig::class;
     }
 
-    #[Override]
+    
     public function getDefaultValueConfigClass(): ?string
     {
         return QuestionTypeItemDefaultValueConfig::class;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
@@ -507,7 +507,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         );
     }
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): string
     {
         // Handle empty cases first
@@ -601,7 +601,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return new DynamicExportDataField($default_value_data, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicDefaultValueForImport(
         ?array $extra_data,
         array|int|float|bool|string|null $default_value_data,
@@ -685,14 +685,14 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return ['WHERE' => $params];
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return static::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 
     /**
@@ -758,7 +758,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return $config->isSelectableTreeRoot();
     }
 
-    #[Override]
+    
     public function exportDynamicExtraData(
         ?array $extra_data_config,
     ): DynamicExportDataField {
@@ -781,7 +781,7 @@ class QuestionTypeItem extends AbstractQuestionType implements
         return new DynamicExportDataField($extra_data_config, [$requirement]);
     }
 
-    #[Override]
+    
     public static function prepareDynamicExtraDataForImport(
         ?array $extra_data,
         DatabaseMapper $mapper,

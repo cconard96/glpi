@@ -69,7 +69,7 @@ final class QuestionTypeRequestType extends AbstractQuestionType implements Used
         return 0;
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -97,7 +97,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         $template = <<<TWIG
@@ -126,25 +126,25 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function formatRawAnswer(mixed $answer, Question $question): string
     {
         return Ticket::getTicketTypeName($answer);
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::REQUEST_TYPE;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function formatPredefinedValue(string $value): ?string
     {
         $value = strtolower($value);
@@ -156,36 +156,36 @@ TWIG;
         };
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return array_merge(parent::getConditionHandlers($question_config), [new RequestTypeConditionHandler()]);
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): ?int
     {
         return $rawData['default_values'] ?? null;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): null
     {
         return null;
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return self::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): string
     {
         if ($value == 0) {

@@ -44,7 +44,7 @@ final class EngineVisibilityOutput implements JsonSerializable
     private array $questions_visibility = [];
     private array $comments_visibility  = [];
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

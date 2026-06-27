@@ -45,13 +45,13 @@ use Override;
  */
 final class UrgencyConditionHandler extends NumberConditionHandler
 {
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/dropdown.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return ['values' => Urgency::getEnabledUrgencyValuesForDropdown()];

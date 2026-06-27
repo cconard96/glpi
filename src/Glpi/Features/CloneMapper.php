@@ -46,7 +46,7 @@ final class CloneMapper implements MapperInterface
     /** @var array<class-string<\CommonDBTM>, array<int, int>> */
     private array $mapped_ids = [];
 
-    #[Override]
+    
     /** @param class-string<\CommonDBTM> $class */
     public function addMappedItem(string $class, string|int $old_id, int $new_id): void
     {
@@ -57,7 +57,7 @@ final class CloneMapper implements MapperInterface
         $this->mapped_ids[$class][$old_id] = $new_id;
     }
 
-    #[Override]
+    
     /** @param class-string<\CommonDBTM> $class */
     public function getItemId(string $class, string|int $old_id): int
     {

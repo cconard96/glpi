@@ -51,7 +51,7 @@ final class ITILFollowupFieldConfig implements
         private ?array $specific_itilfollowuptemplates_ids = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         $strategy = ITILFollowupFieldStrategy::tryFrom($data[self::STRATEGY] ?? "");
@@ -65,7 +65,7 @@ final class ITILFollowupFieldConfig implements
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [
@@ -74,7 +74,7 @@ final class ITILFollowupFieldConfig implements
         ];
     }
 
-    #[Override]
+    
     public static function getStrategiesInputName(): string
     {
         return self::STRATEGY;

@@ -263,7 +263,7 @@ class Entity extends CommonTreeDropdown implements
     /**
      * @return array<string, mixed>
      */
-    #[Override]
+    
     public static function getDefaultSearchRequest(): array
     {
         return [
@@ -2839,19 +2839,19 @@ class Entity extends CommonTreeDropdown implements
         return __("How can we help you?");
     }
 
-    #[Override]
+    
     public function acceptTiles(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function getTilesConfigInformationText(): ?string
     {
         return __("Tiles may be overriden by profile.");
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(): array
     {
         $handlers = [];

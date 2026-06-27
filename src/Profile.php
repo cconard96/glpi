@@ -3190,13 +3190,13 @@ class Profile extends CommonDBTM implements LinkableToTilesInterface
         return true;
     }
 
-    #[Override]
+    
     public function acceptTiles(): bool
     {
         return $this->fields['interface'] === 'helpdesk';
     }
 
-    #[Override]
+    
     public function getTilesConfigInformationText(): ?string
     {
         return __("Users with this profile will see the tiles below if defined, overriding the one found in the entities configuration.");

@@ -53,7 +53,7 @@ class HasContractsCapacity extends AbstractCapacity
         return Contract::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Link contracts to the assets for costs, renewal and supplier tracking");

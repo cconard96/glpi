@@ -9052,7 +9052,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
      */
     abstract public static function getContentTemplatesParametersClassInstance(): CommonITILObjectParameters;
 
-    #[Override]
+    
     public static function getDataToDisplayOnKanban($ID, $criteria = [])
     {
         global $DB;
@@ -9319,7 +9319,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $items;
     }
 
-    #[Override]
+    
     public static function getKanbanColumns($ID, $column_field = null, $column_ids = [], $get_default = false)
     {
         // TODO Make this function only return the card data and leave rendering to Vue components. This will deduplicate the data between display and filters.
@@ -9488,7 +9488,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $columns;
     }
 
-    #[Override]
+    
     public static function showKanban($ID)
     {
         $itilitem = new static();
@@ -9587,7 +9587,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         ]);
     }
 
-    #[Override]
+    
     public static function getAllForKanban($active = true, $current_id = -1)
     {
         // ITIL items only have a global view
@@ -9597,7 +9597,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $items;
     }
 
-    #[Override]
+    
     public static function getAllKanbanColumns($column_field = null, $column_ids = [], $get_default = false)
     {
 
@@ -9622,7 +9622,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return $columns[$column_field];
     }
 
-    #[Override]
+    
     public static function getTeamRoles(): array
     {
         return [
@@ -9632,7 +9632,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         ];
     }
 
-    #[Override]
+    
     public static function getTeamRoleName(int $role, int $nb = 1): string
     {
         return match ($role) {
@@ -9643,13 +9643,13 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         };
     }
 
-    #[Override]
+    
     public static function getTeamItemtypes(): array
     {
         return [User::class, Group::class, Supplier::class];
     }
 
-    #[Override]
+    
     public function addTeamMember(string $itemtype, int $items_id, array $params = []): bool
     {
         if (
@@ -9670,7 +9670,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return (bool) $result;
     }
 
-    #[Override]
+    
     public function deleteTeamMember(string $itemtype, int $items_id, array $params = []): bool
     {
         $role = $params['role'] ?? CommonITILActor::ASSIGN;
@@ -9684,7 +9684,7 @@ abstract class CommonITILObject extends CommonDBTM implements KanbanInterface, T
         return (bool) $result;
     }
 
-    #[Override]
+    
     public function getTeam(): array
     {
         global $DB;

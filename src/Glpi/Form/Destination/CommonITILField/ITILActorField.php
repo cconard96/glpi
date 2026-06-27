@@ -84,7 +84,7 @@ abstract class ITILActorField extends AbstractConfigField implements Destination
         ));
     }
 
-    #[Override]
+    
     public function renderConfigForm(
         Form $form,
         FormDestination $destination,
@@ -145,7 +145,7 @@ abstract class ITILActorField extends AbstractConfigField implements Destination
         ]);
     }
 
-    #[Override]
+    
     public function applyConfiguratedValueToInputUsingAnswers(
         JsonFieldInterface $config,
         array $input,
@@ -298,7 +298,7 @@ abstract class ITILActorField extends AbstractConfigField implements Destination
         $input[$notif_key]['alternative_email'][] = $itilactor['alternative_email'] ?? '';
     }
 
-    #[Override]
+    
     public function prepareInput(array $input): array
     {
         $input = parent::prepareInput($input);
@@ -330,7 +330,7 @@ abstract class ITILActorField extends AbstractConfigField implements Destination
         return $input;
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         $actor_role = match ($this->getActorType()) {
@@ -486,19 +486,19 @@ abstract class ITILActorField extends AbstractConfigField implements Destination
         );
     }
 
-    #[Override]
+    
     public function canHaveMultipleStrategies(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function getCategory(): Category
     {
         return Category::ACTORS;
     }
 
-    #[Override]
+    
     public function exportDynamicConfig(
         array $config,
         AbstractCommonITILFormDestination $destination,
@@ -531,7 +531,7 @@ abstract class ITILActorField extends AbstractConfigField implements Destination
         return new DynamicExportDataField($config, $requirements);
     }
 
-    #[Override]
+    
     public static function prepareDynamicConfigDataForImport(
         array $config,
         AbstractCommonITILFormDestination $destination,

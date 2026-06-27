@@ -53,7 +53,7 @@ final class QuestionTypeActorsExtraDataConfig implements JsonFieldInterface
         private ?array $enabled_types = null,
     ) {}
 
-    #[Override]
+    
     public static function jsonDeserialize(array $data): self
     {
         return new self(
@@ -62,7 +62,7 @@ final class QuestionTypeActorsExtraDataConfig implements JsonFieldInterface
         );
     }
 
-    #[Override]
+    
     public function jsonSerialize(): array
     {
         return [

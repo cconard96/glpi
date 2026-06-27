@@ -44,25 +44,25 @@ use Override;
 
 final class QuestionTypeRadio extends AbstractQuestionTypeSelectable implements UsedAsCriteriaInterface
 {
-    #[Override]
+    
     public function getInputType(?Question $question): string
     {
         return 'radio';
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::RADIO;
     }
 
-    #[Override]
+    
     protected function getExtraInputAttributes(): array
     {
         return ['data-glpi-form-radio-uncheckable' => ''];
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {

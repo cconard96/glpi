@@ -53,7 +53,7 @@ abstract class AbstractQuestionTypeShortAnswer extends AbstractQuestionType impl
      */
     abstract public function getInputType(): string;
 
-    #[Override]
+    
     public function getFormEditorJsOptions(): string
     {
         return <<<JS
@@ -104,7 +104,7 @@ abstract class AbstractQuestionTypeShortAnswer extends AbstractQuestionType impl
         return [];
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -131,7 +131,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(
         Question $question,
     ): string {
@@ -168,43 +168,43 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::SHORT_ANSWER;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function formatPredefinedValue(string $value): string
     {
         return $value;
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): ?string
     {
         return $rawData['default_values'] ?? null;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): null
     {
         return null;
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return static::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 }

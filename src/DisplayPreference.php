@@ -84,49 +84,49 @@ class DisplayPreference extends CommonDBTM
         return false;
     }
 
-    #[Override]
+    
     public static function canCreate(): bool
     {
         return static::canCrud();
     }
 
-    #[Override]
+    
     public static function canView(): bool
     {
         return static::canCrud();
     }
 
-    #[Override]
+    
     public static function canUpdate(): bool
     {
         return static::canCrud();
     }
 
-    #[Override]
+    
     public static function canPurge(): bool
     {
         return static::canCrud();
     }
 
-    #[Override]
+    
     public function canCreateItem(): bool
     {
         return $this->canCrudItem();
     }
 
-    #[Override]
+    
     public function canViewItem(): bool
     {
         return $this->canCrudItem();
     }
 
-    #[Override]
+    
     public function canUpdateItem(): bool
     {
         return $this->canCrudItem();
     }
 
-    #[Override]
+    
     public function canPurgeItem(): bool
     {
         return $this->canCrudItem();
@@ -541,7 +541,7 @@ class DisplayPreference extends CommonDBTM
         return true;
     }
 
-    #[Override]
+    
     public function rawSearchOptions()
     {
         $search_options = parent::rawSearchOptions();

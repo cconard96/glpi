@@ -42,7 +42,7 @@ enum CreationStrategy: string implements StrategyInterface
     case CREATED_IF = 'created_if';
     case CREATED_UNLESS = 'created_unless';
 
-    #[Override]
+    
     public function getLabel(): string
     {
         return match ($this) {
@@ -52,7 +52,7 @@ enum CreationStrategy: string implements StrategyInterface
         };
     }
 
-    #[Override]
+    
     public function getIcon(): string
     {
         return match ($this) {
@@ -62,7 +62,7 @@ enum CreationStrategy: string implements StrategyInterface
         };
     }
 
-    #[Override]
+    
     public function showEditor(): bool
     {
         return match ($this) {

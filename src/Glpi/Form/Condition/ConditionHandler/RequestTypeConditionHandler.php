@@ -41,7 +41,7 @@ use Ticket;
 
 class RequestTypeConditionHandler implements ConditionHandlerInterface
 {
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -50,19 +50,19 @@ class RequestTypeConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): string
     {
         return '/pages/admin/form/condition_handler_templates/dropdown.html.twig';
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return ['values' => Ticket::getTypes()];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

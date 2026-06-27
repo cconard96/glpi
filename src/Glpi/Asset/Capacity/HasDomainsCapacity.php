@@ -53,7 +53,7 @@ class HasDomainsCapacity extends AbstractCapacity
         return Domain::getIcon();
     }
 
-    #[Override]
+    
     public function getDescription(): string
     {
         return __("Track domains, records and their expiration dates");

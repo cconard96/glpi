@@ -45,43 +45,43 @@ use SLM;
 
 final class SLATTRField extends SLMField
 {
-    #[Override]
+    
     public function getLabel(): string
     {
         return __("TTR");
     }
 
-    #[Override]
+    
     public function getWeight(): int
     {
         return 210;
     }
 
-    #[Override]
+    
     public function getSLM(): LevelAgreement
     {
         return new SLA();
     }
 
-    #[Override]
+    
     public function getType(): int
     {
         return SLM::TTR;
     }
 
-    #[Override]
+    
     public function getConfigClass(): string
     {
         return SLATTRFieldConfig::class;
     }
 
-    #[Override]
+    
     protected function getFieldNameToConvertSpecificSLMID(): string
     {
         return 'sla_question_ttr';
     }
 
-    #[Override]
+    
     public function convertFieldConfig(FormMigration $migration, Form $form, array $rawData): JsonFieldInterface
     {
         $parent_config = parent::convertFieldConfig($migration, $form, $rawData);

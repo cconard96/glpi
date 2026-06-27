@@ -58,7 +58,7 @@ final class QuestionTypeLongText extends AbstractQuestionType implements
     ConditionValueTransformerInterface,
     RawAnswerIsHtmlInterface
 {
-    #[Override]
+    
     public function getFormEditorJsOptions(): string
     {
         return <<<JS
@@ -106,7 +106,7 @@ final class QuestionTypeLongText extends AbstractQuestionType implements
         JS;
     }
 
-    #[Override]
+    
     public function renderAdministrationTemplate(?Question $question): string
     {
         $template = <<<TWIG
@@ -140,7 +140,7 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function renderEndUserTemplate(Question $question): string
     {
         // TODO: handle required
@@ -177,50 +177,50 @@ TWIG;
         ]);
     }
 
-    #[Override]
+    
     public function getCategory(): QuestionTypeCategoryInterface
     {
         return QuestionTypeCategory::LONG_ANSWER;
     }
 
-    #[Override]
+    
     public function isAllowedForUnauthenticatedAccess(): bool
     {
         return true;
     }
 
-    #[Override]
+    
     public function formatPredefinedValue(string $value): string
     {
         return $value;
     }
 
-    #[Override]
+    
     public function getConditionHandlers(
         ?JsonFieldInterface $question_config
     ): array {
         return array_merge(parent::getConditionHandlers($question_config), [new RichTextConditionHandler()]);
     }
 
-    #[Override]
+    
     public function transformConditionValueForComparisons(mixed $value, ?JsonFieldInterface $question_config): string
     {
         return strip_tags(strval($value));
     }
 
-    #[Override]
+    
     public function convertDefaultValue(array $rawData): ?string
     {
         return $rawData['default_values'] ?? null;
     }
 
-    #[Override]
+    
     public function convertExtraData(array $rawData): null
     {
         return null;
     }
 
-    #[Override]
+    
     public function listTranslationsHandlers(Question $question): array
     {
         $handlers = [];
@@ -236,13 +236,13 @@ TWIG;
         return $handlers;
     }
 
-    #[Override]
+    
     public function getTargetQuestionType(array $rawData): string
     {
         return self::class;
     }
 
 
-    #[Override]
+    
     public function beforeConversion(array $rawData): void {}
 }

@@ -43,7 +43,7 @@ use Override;
  */
 class VisibilityConditionHandler implements ConditionHandlerInterface
 {
-    #[Override]
+    
     public function getSupportedValueOperators(): array
     {
         return [
@@ -52,20 +52,20 @@ class VisibilityConditionHandler implements ConditionHandlerInterface
         ];
     }
 
-    #[Override]
+    
     public function getTemplate(): null
     {
         // No input field needed for visibility conditions
         return null;
     }
 
-    #[Override]
+    
     public function getTemplateParameters(ConditionData $condition): array
     {
         return [];
     }
 
-    #[Override]
+    
     public function applyValueOperator(
         mixed $a,
         ValueOperator $operator,

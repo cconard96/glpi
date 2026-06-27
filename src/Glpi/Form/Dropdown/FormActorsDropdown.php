@@ -44,7 +44,7 @@ use User;
 
 final class FormActorsDropdown extends AbstractRightsDropdown
 {
-    #[Override]
+    
     protected static function getAjaxUrl(): string
     {
         global $CFG_GLPI;
@@ -52,7 +52,7 @@ final class FormActorsDropdown extends AbstractRightsDropdown
         return $CFG_GLPI['root_doc'] . "/Form/Question/ActorsDropdown";
     }
 
-    #[Override]
+    
     protected static function getTypes(array $options = []): array
     {
         $allowed_types = [
@@ -68,7 +68,7 @@ final class FormActorsDropdown extends AbstractRightsDropdown
         return $allowed_types;
     }
 
-    #[Override]
+    
     public static function show(string $name, array $values, array $params = []): string
     {
         $params['width'] = '100%';
@@ -102,7 +102,7 @@ final class FormActorsDropdown extends AbstractRightsDropdown
         return parent::show($name, $values, $params);
     }
 
-    #[Override]
+    
     protected static function getValueNames(array $values): array
     {
         return array_map(function ($value) {
@@ -117,7 +117,7 @@ final class FormActorsDropdown extends AbstractRightsDropdown
         }, $values);
     }
 
-    #[Override]
+    
     protected static function getUsers(string $text, array $options): array
     {
         $right = 'all';
@@ -143,7 +143,7 @@ final class FormActorsDropdown extends AbstractRightsDropdown
         return $users_items;
     }
 
-    #[Override]
+    
     public static function fetchValues(string $text = "", array $options = []): array
     {
         $possible_rights = [];
