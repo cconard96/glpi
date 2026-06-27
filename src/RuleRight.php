@@ -393,45 +393,4 @@ class RuleRight extends Rule
     {
         return Profile::getIcon();
     }
-
-    public function showForm($ID, array $options = [])
-    {
-        global $CFG_GLPI;
-
-        $new_item = static::isNewID($ID);
-        if (!$new_item) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $this->checkGlobal(UPDATE);
-        }
-
-        $canedit = $this->canEdit($ID);
-
-        $add_buttons = [];
-        if (!$new_item && $canedit) {
-            $add_buttons = [
-                [
-                    'text' => _x('button', 'Test'),
-                    'type' => 'button',
-                    'onclick' => "$('#ruletestmodal').modal('show');",
-                ],
-            ];
-        }
-
-        $twig_params = array_merge_recursive([
-            'item' => $this,
-            'match_operators' => $this->getRulesMatch(),
-            'conditions' => static::getConditionsArray(),
-            'rand' => mt_rand(),
-            'test_url' => $CFG_GLPI["root_doc"] . "/front/rule.test.php",
-            'params' => [
-                'canedit' => $canedit,
-                'addbuttons' => $add_buttons,
-            ],
-        ], $options);
-        TemplateRenderer::getInstance()->display('pages/admin/rules/ruleright_form.html.twig', $twig_params);
-
-        return true;
-    }
 }

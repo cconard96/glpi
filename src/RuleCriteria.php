@@ -661,31 +661,4 @@ class RuleCriteria extends CommonDBChild
         }
         return Dropdown::showFromArray($p['name'], $elements, ['value' => $p['value']]);
     }
-
-    public function showForm($ID, array $options = [])
-    {
-        // Yllen: you always have parent for criteria
-        $rule = $options['parent'];
-
-        if ($ID > 0) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $options[static::$items_id] = $rule->getField('id');
-
-            //force itemtype of parent
-            static::$itemtype = get_class($rule);
-
-            $this->check(-1, CREATE, $options);
-        }
-
-        TemplateRenderer::getInstance()->display('pages/admin/rules/criteria.html.twig', [
-            'rule' => $rule,
-            'rules_id_field' => static::$items_id,
-            'item' => $this,
-            'rand' => mt_rand(),
-        ]);
-
-        return true;
-    }
 }

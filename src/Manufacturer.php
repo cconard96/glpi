@@ -36,7 +36,6 @@
 use Glpi\Features\Clonable;
 
 /// Class Manufacturer
-/// @todo study if we should integrate getHTMLTableHeader and getHTMLTableCellsForItem ...
 class Manufacturer extends CommonDropdown
 {
     /** @use Clonable<static> */

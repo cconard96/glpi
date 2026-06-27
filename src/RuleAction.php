@@ -684,34 +684,4 @@ class RuleAction extends CommonDBChild
                 }
         }
     }
-
-    public function showForm($ID, array $options = [])
-    {
-        // Yllen: you always have parent for action
-        $rule = $options['parent'];
-
-        if (!static::isNewID($ID)) {
-            $this->check($ID, READ);
-        } else {
-            // Create item
-            $options[static::$items_id] = $rule->getField('id');
-            // force itemtype of parent
-            static::$itemtype = get_class($rule);
-            $this->check(-1, CREATE, $options);
-        }
-
-        $used = $this->getAlreadyUsedForRuleID($rule->getID(), get_class($rule));
-        if (isset($used[$this->fields['field']]) && !static::isNewID($ID)) {
-            unset($used[$this->fields['field']]);
-        }
-        TemplateRenderer::getInstance()->display('pages/admin/rules/action.html.twig', [
-            'rule' => $rule,
-            'rules_id_field' => static::$items_id,
-            'item' => $this,
-            'used_actions' => $used,
-            'rand' => mt_rand(),
-        ]);
-
-        return true;
-    }
 }

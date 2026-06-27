@@ -1202,36 +1202,6 @@ TWIG, $twig_params);
         return in_array($criterion, $this->getNetportCriteria());
     }
 
-    public static function getSpecificValueToDisplay($field, $values, array $options = [])
-    {
-        if (!is_array($values)) {
-            $values = [$field => $values];
-        }
-        switch ($field) {
-            case 'id':
-                $rule = new static();
-                $rule->getFromDB($values['id']);
-                return $rule->getLink();
-        }
-        return parent::getSpecificValueToDisplay($field, $values, $options);
-    }
-
-    public static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = [])
-    {
-        switch ($field) {
-            case 'id':
-                $options['display'] = false;
-                return Rule::dropdown(
-                    [
-                        'sub_type' => static::class,
-                        'display' => false,
-                        'name' => $name,
-                    ] + $options
-                );
-        }
-        return parent::getSpecificValueToSelect($field, $name, $values, $options);
-    }
-
     /**
      * Get default rules as XML
      *

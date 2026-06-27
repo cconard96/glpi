@@ -3336,13 +3336,13 @@ TWIG, ['label' => $this->getTitle()]);
                         $ong[1] = self::createTabEntry(
                             RuleCriteria::getTypeName(Session::getPluralNumber()),
                             $nbcriteria,
-                            $item::getType(),
+                            $item::class,
                             RuleCriteria::getIcon()
                         );
                         $ong[2] = self::createTabEntry(
                             RuleAction::getTypeName(Session::getPluralNumber()),
                             $nbaction,
-                            $item::getType(),
+                            $item::class,
                             RuleAction::getIcon()
                         );
                         return $ong;

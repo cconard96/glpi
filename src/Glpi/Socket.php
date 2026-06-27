@@ -43,8 +43,6 @@ use Dropdown;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\DBAL\QuerySubQuery;
 use Glpi\DBAL\QueryUnion;
-use HTMLTableCell;
-use HTMLTableRow;
 use Location;
 use Log;
 use NetworkPort;
@@ -896,33 +894,5 @@ class Socket extends CommonDBChild
         ]);
 
         return true;
-    }
-
-    /**
-     * @param ?HTMLTableRow $row
-     * @param ?CommonDBTM $item
-     * @param ?HTMLTableCell $father
-     * @param array $options
-     *
-     * @return void
-     **/
-    public static function getHTMLTableCellsForItem(
-        ?HTMLTableRow $row = null,
-        ?CommonDBTM $item = null,
-        ?HTMLTableCell $father = null,
-        $options = []
-    ) {
-
-        $column_name = self::class;
-
-        if (isset($options['dont_display'][$column_name])) {
-            return;
-        }
-
-        $row->addCell(
-            $row->getHeaderByName($column_name),
-            htmlescape(Dropdown::getDropdownName("glpi_sockets", $item->fields["sockets_id"])),
-            $father
-        );
     }
 }

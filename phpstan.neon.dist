@@ -13,7 +13,6 @@ parameters:
         - stubs/glpi_constants.php
         - stubs/plugins_migrations_classes.php
     paths:
-        - ajax
         - front
         - inc
         - install
