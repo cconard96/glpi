@@ -1141,6 +1141,7 @@ EOT,
                     'description' => 'The rating scaled to a 5-point scale.',
                     'minimum' => 1,
                     'maximum' => 5,
+                    'readOnly' => true,
                 ],
                 'comment' => [
                     'type' => Doc\Schema::TYPE_STRING,
@@ -1189,6 +1190,7 @@ EOT,
                     'description' => 'The rating scaled to a 5-point scale.',
                     'minimum' => 1,
                     'maximum' => 5,
+                    'readOnly' => true,
                 ],
                 'comment' => [
                     'type' => Doc\Schema::TYPE_STRING,
@@ -2728,5 +2730,28 @@ EOT,
         $filters = 'itemtype==' . $itemtype;
         $request->setParameter('filter', $filters);
         return ResourceAccessor::getOneBySchema($schema, ['items_id' => $request->getAttribute('id')], $request->getParameters(), 'items_id');
+    }
+
+    #[Route(path: '/Ticket/{id}/Satisfaction', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\GetRoute(schema_name: 'TicketSatisfaction')]
+    public function getTicketSatisfaction(Request $request): Response
+    {
+        return new Response();
+    }
+
+    public function answerTicketSatisfaction(Request $request): Response
+    {
+        return new Response();
+    }
+
+    public function getChangeSatisfaction(Request $request): Response
+    {
+        return new Response();
+    }
+
+    public function answerChangeSatisfaction(Request $request): Response
+    {
+        return new Response();
     }
 }
