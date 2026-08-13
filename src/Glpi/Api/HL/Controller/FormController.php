@@ -48,9 +48,13 @@ use Glpi\DBAL\QueryFunction;
 use Glpi\Form\AccessControl\ControlType\AllowList;
 use Glpi\Form\AccessControl\ControlType\DirectAccess;
 use Glpi\Form\AccessControl\FormAccessControl;
+use Glpi\Form\AnswersSet;
 use Glpi\Form\Category;
+use Glpi\Form\Comment;
+use Glpi\Form\Condition\CreationStrategy;
 use Glpi\Form\Condition\ValidationStrategy;
 use Glpi\Form\Condition\VisibilityStrategy;
+use Glpi\Form\Destination\FormDestination;
 use Glpi\Form\Form;
 use Glpi\Form\Question;
 use Glpi\Form\QuestionType\QuestionTypesManager;
@@ -65,6 +69,7 @@ use Session;
 use stdClass;
 use Throwable;
 
+use User;
 use function Safe\json_encode;
 
 #[Route(path: '/Form', priority: 1, tags: ['Forms'])]
@@ -83,6 +88,7 @@ final class FormController extends AbstractController
             array: array_map(static fn($t) => $t::class, QuestionTypesManager::getInstance()->getQuestionTypes()),
             callback: static fn($t) => !str_starts_with($t, 'GlpiPlugin\\Tester\\'),
         );
+        $creation_strategies = array_map(static fn($s) => $s->value, CreationStrategy::cases());
 
         return [
             'Form' => [
@@ -252,6 +258,12 @@ EOT,
                         full_schema: 'FormSection',
                         graphql_only: true,
                     ),
+                    'destinations' => self::getChildrenTypeSchema(
+                        parent_class: Form::class,
+                        class: FormDestination::class,
+                        full_schema: 'FormDestination',
+                        graphql_only: true,
+                    ),
                 ],
             ],
             'FormCategory' => [
@@ -370,6 +382,73 @@ EOT,
                         'default' => ValidationStrategy::NO_VALIDATION->value,
                     ],
                     'validation_conditions' => ['type' => Doc\Schema::TYPE_STRING],
+                ],
+            ],
+            'FormComment' => [
+                'type' => Doc\Schema::TYPE_OBJECT,
+                'x-version-introduced' => '2.4.0',
+                'x-graphql-no-query' => true,
+                'x-itemtype' => Comment::class,
+                'properties' => [
+                    'id' => [
+                        'type' => Doc\Schema::TYPE_INTEGER,
+                        'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                        'readOnly' => true,
+                    ],
+                    'uuid' => ['type' => Doc\Schema::TYPE_STRING,  'pattern' => Doc\Schema::PATTERN_UUIDV4, 'readOnly' => true],
+                    'section' => self::getDropdownTypeSchema(class: Section::class, full_schema: 'FormSection'),
+                    'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255, 'default' => ''],
+                    'description' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_HTML],
+                    'vertical_rank' => ['type' => Doc\Schema::TYPE_INTEGER, 'default' => 0],
+                    'horizontal_rank' => ['type' => Doc\Schema::TYPE_INTEGER],
+                    'visibility_strategy' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'enum' => $visibility_strategies,
+                        'default' => VisibilityStrategy::ALWAYS_VISIBLE->value,
+                    ],
+                    'conditions' => ['type' => Doc\Schema::TYPE_STRING],
+                ],
+            ],
+            'FormResponse' => [
+                'type' => Doc\Schema::TYPE_OBJECT,
+                'x-version-introduced' => '2.4.0',
+                'x-graphql-no-query' => true,
+                'x-itemtype' => AnswersSet::class,
+                'properties' => [
+                    'id' => [
+                        'type' => Doc\Schema::TYPE_INTEGER,
+                        'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                        'readOnly' => true,
+                    ],
+                    'form' => self::getDropdownTypeSchema(class: Form::class, full_schema: 'Form'),
+                    'entity' => self::getDropdownTypeSchema(class: Entity::class, full_schema: 'Entity'),
+                    'user' => self::getDropdownTypeSchema(class: User::class, full_schema: 'User'),
+                    'name' => ['type' => Doc\Schema::TYPE_STRING, 'default' => ''],
+                    'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                    'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                    'index' =>  ['type' => Doc\Schema::TYPE_INTEGER, 'readOnly' => true],
+                    'answers' => ['type' => Doc\Schema::TYPE_STRING],
+                ],
+            ],
+            'FormDestination' => [
+                'type' => Doc\Schema::TYPE_OBJECT,
+                'x-version-introduced' => '2.4.0',
+                'x-graphql-no-query' => true,
+                'x-itemtype' => FormDestination::class,
+                'properties' => [
+                    'id' => [
+                        'type' => Doc\Schema::TYPE_INTEGER,
+                        'format' => Doc\Schema::FORMAT_INTEGER_INT64,
+                        'readOnly' => true,
+                    ],
+                    'form' => self::getDropdownTypeSchema(class: Form::class, full_schema: 'Form'),
+                    'itemtype' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                    'name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255],
+                    'config' => ['type' => Doc\Schema::TYPE_STRING],
+                    'creation_strategy' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'enum' => $creation_strategies,
+                    ],
                 ],
             ],
         ];
