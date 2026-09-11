@@ -76,6 +76,7 @@
         "tinymce": "^8.8.2",
         "tinymce-i18n": "^26.8.2",
         "vue": "^3.5.42",
+        "vue-dompurify-html": "^5.3.0",
         "wunderbaum": "^0.14.1"
     },
     "scripts": {

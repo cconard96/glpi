@@ -32,6 +32,7 @@
 
 {% import "pages/tools/kb/_actions_menu.html.twig" as actions_menu %}
 
+<div id="kb-article-vue"></div>
 <div
     class="d-flex mx-n2 my-n2 pe-none"
     data-glpi-knowbase-article
@@ -568,6 +569,39 @@
 </div>
 
 <script type="module">
+    window.Vue.createApp(window.Vue.components['Knowbase/KBArticle'].component, {
+        article: {
+            id: {{ item_id }},
+            subject: '{{ subject|e('js') }}',
+            answer: '{{ answer|e('js') }}',
+            illustration: '{{ illustration|e('js') }}',
+            last_update_date: '{{ last_update_date|e('js') }}',
+            last_update_relative_date: '{{ last_update_relative_date|e('js') }}',
+            last_update_author_name: '{{ last_update_author_name|e('js') }}',
+            last_update_author_link: '{{ last_update_author_link|e('js') }}',
+            last_update_can_view_author: {{ last_update_can_view_author ? 'true' : 'false' }},
+            views: {{ views }},
+            translations_count: {{ translations_count }},
+            documents_count: {{ documents_count }},
+            related_items_count: {{ related_items_count }},
+            comments_count: {{ comments_count }},
+            begin_date: {{ begin_date is defined and begin_date is not null ? '"' ~ begin_date ~ '"' : 'null' }},
+            end_date: {{ end_date is defined and end_date is not null ? '"' ~ end_date ~ '"' : 'null' }},
+            child_articles: {{ child_articles|json_encode|raw }},
+            documents: {{ documents|json_encode|raw }},
+            related_items: {{ related_items|json_encode|raw }},
+            can_add_documents: {{ can_add_documents ? 'true' : 'false' }},
+            can_link_items: {{ can_link_items ? 'true' : 'false' }},
+            document_idor_token: '{{ document_idor_token|e('js') }}',
+            actions: {{ actions|json_encode|raw }},
+        },
+        initialMode: '{{ mode|e('js') }}',
+        canEdit: {{ can_edit ? 'true' : 'false' }},
+        canComment: {{ can_comment is defined and can_comment ? 'true' : 'false' }},
+        parentArticleId: {{ parent_article_id is defined and parent_article_id is not null ? parent_article_id : 'null' }},
+        defaultLanguage: '{{ default_language|e('js') }}',
+        existingTranslationLanguages: {{ existing_translations|json_encode|raw }},
+    }).mount('#kb-article-vue');
     (async () => {
         const module = await import(
             "/js/modules/Knowbase/ArticleController.js"

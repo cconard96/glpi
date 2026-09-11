@@ -33,6 +33,7 @@
 
 import { createApp } from 'vue/dist/vue.esm-bundler.js';
 import * as vue from "vue";
+import VueDOMPurifyHTML from 'vue-dompurify-html';
 
 let existing_components = {};
 if (window.Vue !== undefined && window.Vue.components !== undefined) {
@@ -42,6 +43,7 @@ window.Vue = {
     createApp: (...args) => {
         // pass arguments directly to createApp
         const app = createApp(...args);
+        app.use(VueDOMPurifyHTML);
         // add default global properties so they can be used within the templates
         app.config.globalProperties.__ = __;
         app.config.globalProperties._n = _n;
