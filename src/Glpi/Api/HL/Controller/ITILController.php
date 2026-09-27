@@ -55,10 +55,12 @@ use CommonITILValidation;
 use Document_Item;
 use Entity;
 use Glpi\Api\HL\Doc as Doc;
+use Glpi\Api\HL\Doc\SchemaReference;
 use Glpi\Api\HL\Middleware\ResultFormatterMiddleware;
 use Glpi\Api\HL\ResourceAccessor;
 use Glpi\Api\HL\Route;
 use Glpi\Api\HL\RouteVersion;
+use Glpi\Api\HL\Schemas;
 use Glpi\Http\JSONResponse;
 use Glpi\Http\Request;
 use Glpi\Http\Response;
@@ -88,9 +90,11 @@ use Problem_Ticket;
 use ProblemCost;
 use ProblemTask;
 use ProblemTemplate;
+use Profile;
 use RecurrentChange;
 use RequestType;
 use RuntimeException;
+use Safe\Exceptions\JsonException;
 use Session;
 use SLA;
 use SlaLevel;
@@ -1559,7 +1563,51 @@ EOT,
             ],
         ];
 
+        $associable_types = self::getAssociatedItemSchemas(false, '2.4');
+
+        $schemas['Assistance_AssociatedItem'] = [
+            'type' => Doc\Schema::TYPE_OBJECT,
+            'x-version-introduced' => '2.4',
+            'properties' => [
+                '_type' => ['type' => Doc\Schema::TYPE_STRING, 'enum' => $associable_types],
+                'data' => [
+                    'oneOf' => array_map(static function ($type) {
+                        return ['$ref' => "#/components/schemas/{$type}"];
+                    }, $associable_types),
+                ],
+            ],
+            'discriminator' => [
+                'propertyName' => '_type',
+                'mapping' => array_combine($associable_types, array_map(static function ($type) {
+                    return "#/components/schemas/{$type}";
+                }, $associable_types)),
+            ],
+        ];
+
         return $schemas;
+    }
+
+    /**
+     * Get a list of schema names that may be associated with an assistance item.
+     * If using the results in a context where it may be cached (such as in the schemas themselves), you should not restrict the list by the current user's profile, as that may change between requests.
+     * @param bool $restrict_by_profile Whether to restrict the list of associable types to those allowed by the current user's profile.
+     * @return string[] List of schema names that may be associated with an assistance item.
+     */
+    private static function getAssociatedItemSchemas(bool $restrict_by_profile, string $api_version): array
+    {
+        $associable_types = array_keys(Profile::getHelpdeskItemtypes());
+
+        if ($restrict_by_profile) {
+            $profile_allowed = $_SESSION['glpiactiveprofile']['helpdesk_item_type'];
+            $associable_types = array_filter($associable_types, static function ($type) use ($profile_allowed) {
+                return in_array($type, $profile_allowed, true);
+            });
+        }
+
+        // map associable types to their schema names and remove any that do not have a schema defined
+        return array_values(array_filter(array_map(static function ($type) use ($api_version) {
+            return Schemas::getInstance($api_version)->getSchemaNameForItemtype($type);
+        }, $associable_types)));
     }
 
     /**
@@ -1826,7 +1874,7 @@ EOT,
             'Document' => 'Document_Item',
             'Solution' => 'ITILSolution',
             'Validation' => 'ITILValidation',
-            'Log'    => 'Log',
+            'Log' => 'Log',
             default => $friendly_name,
         };
     }
@@ -1839,7 +1887,7 @@ EOT,
             'Document_Item' => 'Document',
             'ITILSolution' => 'Solution',
             'ITILValidation' => 'Validation',
-            'Log'    => 'Log',
+            'Log' => 'Log',
             default => $itemtype,
         };
     }
@@ -2275,7 +2323,7 @@ EOT,
         $role_id = self::getRoleID($request->getParameter('role'));
 
         $result = $item->addTeamMember($member_itemtype, $member_items_id, [
-            'role'  => $role_id,
+            'role' => $role_id,
         ]);
         if ($result) {
             return new JSONResponse(null, 201);
@@ -2328,7 +2376,7 @@ EOT,
         $role_id = self::getRoleID($request->getParameter('role'));
 
         $result = $item->deleteTeamMember($member_itemtype, $member_items_id, [
-            'role'  => $role_id,
+            'role' => $role_id,
         ]);
         if ($result) {
             return new JSONResponse(null, 200);
@@ -2717,5 +2765,220 @@ EOT,
         $filters = 'itemtype==' . $itemtype;
         $request->setParameter('filter', $filters);
         return ResourceAccessor::getOneBySchema($schema, ['items_id' => $request->getAttribute('id')], $request->getParameters(), 'items_id');
+    }
+
+    #[Route(path: '/{itemtype}/{id}/AssociatedItem', methods: ['PUT'], requirements: [
+        'itemtype' => 'Ticket|Change|Problem',
+    ])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\Route(methods: ['PUT'], parameters: [
+        new Doc\Parameter(
+            name: 'linked_itemtype',
+            schema: new Doc\Schema(type: Doc\Schema::TYPE_STRING),
+            description: 'The type of the associated item',
+            location: Doc\Parameter::LOCATION_BODY
+        ),
+        new Doc\Parameter(
+            name: 'linked_id',
+            schema: new Doc\Schema(type: Doc\Schema::TYPE_INTEGER),
+            description: 'The ID of the associated item',
+            location: Doc\Parameter::LOCATION_BODY
+        ),
+    ])]
+    public function linkAssociatedItemToITILItem(Request $request): Response
+    {
+        $allowed_types = $_SESSION['glpiactiveprofile']['helpdesk_item_type'];
+
+        /** @var class-string<CommonITILObject> $itil_type */
+        $itil_type = $request->getAttribute('itemtype');
+        $itil_id = $request->getAttribute('id');
+        $itil_fk = $itil_type::getForeignKeyField();
+        $link_type = match ($request->getAttribute('itemtype')) {
+            'Ticket' => Item_Ticket::class,
+            'Change' => Change_Item::class,
+            'Problem' => Item_Problem::class,
+        };
+        $link_item = new $link_type();
+        $linked_type = $request->getParameter('linked_itemtype');
+        $linked_id = $request->getParameter('linked_id');
+
+        if (!in_array($linked_type, $allowed_types, true)) {
+            return self::getAccessDeniedErrorResponse();
+        }
+
+        $itil_item = new $itil_type();
+        $linked_item = new $linked_type();
+        if (!$linked_item->can($linked_id, READ) || !$itil_item->can($itil_id, UPDATE)) {
+            return self::getAccessDeniedErrorResponse();
+        }
+
+        $input = [
+            $itil_fk => $request->getAttribute('id'),
+            'itemtype' => $linked_type,
+            'items_id' => $linked_id,
+        ];
+        if (!$link_item->can(0, CREATE, $input)) {
+            return self::getAccessDeniedErrorResponse();
+        }
+
+        if (
+            countElementsInTable(
+                $link_item::getTable(),
+                [
+                    'WHERE' => [
+                        $link_item::$items_id_1 => $input[$link_item::$items_id_1],
+                        $link_item::$itemtype_2   => $input[$link_item::$itemtype_2],
+                        $link_item::$items_id_2   => $input[$link_item::$items_id_2],
+                    ],
+                    'LIMIT' => 1,
+                ]
+            ) > 0
+        ) {
+            return new JSONResponse(null, 204);
+        }
+
+        $result = $link_item->add($input);
+        if ($result) {
+            return new JSONResponse(null, 201);
+        }
+        return self::getInvalidParametersErrorResponse();
+    }
+
+    #[Route(path: '/{itemtype}/{id}/AssociatedItem', methods: ['GET'], requirements: [
+        'itemtype' => 'Ticket|Change|Problem',
+    ], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\Route(
+        methods: ['GET'],
+        responses: [new Doc\Response(new SchemaReference('Assistance_AssociatedItem[]'))]
+    )]
+    public function listAssociatedItems(Request $request): Response
+    {
+        global $DB;
+
+        $allowed_types = $_SESSION['glpiactiveprofile']['helpdesk_item_type'];
+
+        /** @var class-string<CommonITILObject> $itil_type */
+        $itil_type = $request->getAttribute('itemtype');
+        $itil_id = $request->getAttribute('id');
+        $itil_item = new $itil_type();
+        $link_type = match ($request->getAttribute('itemtype')) {
+            'Ticket' => Item_Ticket::class,
+            'Change' => Change_Item::class,
+            'Problem' => Item_Problem::class,
+        };
+
+        if (empty($allowed_types) || !$itil_item->can($itil_id, READ)) {
+            return self::getAccessDeniedErrorResponse();
+        }
+
+        $iterator = $DB->request([
+            'SELECT' => ['itemtype', 'items_id'],
+            'FROM' => $link_type::getTable(),
+            'WHERE' => [
+                $itil_type::getForeignKeyField() => $itil_id,
+                'itemtype' => $allowed_types
+            ],
+        ]);
+
+        $itemtype_ids = [];
+        foreach ($iterator as $row) {
+            $itemtype_ids[$row['itemtype']][] = $row['items_id'];
+        }
+
+        $results = [];
+        foreach ($itemtype_ids as $itemtype => $ids) {
+            if (empty($ids)) {
+                continue;
+            }
+            $schemas = Schemas::getInstance($this->getAPIVersion($request));
+            $schema_name = $schemas->getSchemaNameForItemtype($itemtype);
+            if ($schema_name === null) {
+                continue;
+            }
+            $schema = $schemas->getSchema($schema_name);
+            if ($schema === null) {
+                continue;
+            }
+            $items_result = ResourceAccessor::searchBySchema($schema, [
+                'filter' => 'id=in=(' . implode(',', $ids) . ')',
+                'start' => 0,
+                'limit' => count($ids),
+            ]);
+            if ($items_result->getStatusCode() !== 200) {
+                continue;
+            }
+            try {
+                $items = json_decode((string) $items_result->getBody(), true);
+            } catch (JsonException $e) {
+                continue;
+            }
+            foreach ($items as $item) {
+                $results[] = [
+                    '_type' => $schema_name,
+                    'data' => $item,
+                ];
+            }
+        }
+        return new JSONResponse($results, 200, [
+            'Content-Range' => '0-' . (count($results) - 1) . '/' . count($results),
+        ]);
+    }
+
+    #[Route(path: '/{itemtype}/{id}/AssociatedItem/{linked_itemtype}/{linked_id}', methods: ['DELETE'], requirements: [
+        'itemtype' => 'Ticket|Change|Problem',
+        'linked_itemtype' => '\w+',
+        'linked_id' => '\d+',
+    ])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\Route(
+        methods: ['DELETE'],
+        parameters: [
+            new Doc\Parameter(
+                name: 'linked_itemtype',
+                schema: new Doc\Schema(type: Doc\Schema::TYPE_STRING),
+                location: Doc\Parameter::LOCATION_PATH
+            ),
+            new Doc\Parameter(
+                name: 'linked_id',
+                schema: new Doc\Schema(type: Doc\Schema::TYPE_INTEGER),
+                location: Doc\Parameter::LOCATION_PATH
+            ),
+        ]
+    )]
+    public function deleteAssociatedItem(Request $request): Response
+    {
+        /** @var class-string<CommonITILObject> $itil_type */
+        $itil_type = $request->getAttribute('itemtype');
+        $itil_id = $request->getAttribute('id');
+        $linked_type = $request->getAttribute('linked_itemtype');
+        $linked_id = $request->getAttribute('linked_id');
+
+        if (!in_array($linked_type, $_SESSION['glpiactiveprofile']['helpdesk_item_type'], true)) {
+            return self::getAccessDeniedErrorResponse();
+        }
+
+        $link_type = match ($request->getAttribute('itemtype')) {
+            'Ticket' => Item_Ticket::class,
+            'Change' => Change_Item::class,
+            'Problem' => Item_Problem::class,
+        };
+
+        $itil_item = new $itil_type();
+        if (!$itil_item->can($itil_id, READ) || !$itil_item->can($itil_id, UPDATE)) {
+            return self::getAccessDeniedErrorResponse();
+        }
+
+        $link_item = new $link_type();
+        $result = $link_item->deleteByCriteria([
+            $link_item::$items_id_1 => $itil_id,
+            $link_item::$itemtype_2 => $linked_type,
+            $link_item::$items_id_2 => $linked_id,
+        ]);
+
+        if ($result) {
+            return new JSONResponse(null, 204);
+        }
+        return self::getInvalidParametersErrorResponse();
     }
 }
