@@ -168,9 +168,11 @@ final class ITILController extends AbstractController
             'properties' => $common_itiltemplate_properties,
         ];
 
+        $itil_types = [Ticket::class, Change::class, Problem::class];
+
         // Template hidden/mandatory/readonly/predefined fields. These are stored using search option numbers,
         // which are exposed as the "field" name (see TemplateFieldMapper) and as the read-only "num".
-        foreach (TemplateFieldMapper::ITIL_TYPES as $template_itil_type) {
+        foreach ($itil_types as $template_itil_type) {
             $template_class = TemplateFieldMapper::getTemplateClass($template_itil_type);
             foreach (TemplateFieldMapper::KINDS as $template_field_kind) {
                 $template_field_class = TemplateFieldMapper::getFieldClass($template_itil_type, $template_field_kind);
@@ -198,7 +200,7 @@ final class ITILController extends AbstractController
                         'description' => 'The name of the field. This is null for fields that can no longer be used in this type of template.',
                         'x-mapped-from' => 'num',
                         'x-mapper' => static fn($v) => TemplateFieldMapper::getNameForNum($template_itil_type, $template_field_kind, (int) $v),
-                        'readOnly' => true,
+                        //TODO Input mapper for writes (Needs code from https://github.com/glpi-project/glpi/pull/25917)
                     ],
                 ];
                 if ($template_field_kind === 'Predefined') {
@@ -328,8 +330,6 @@ final class ITILController extends AbstractController
                 'role' => ['type' => Doc\Schema::TYPE_STRING],
             ],
         ];
-
-        $itil_types = [Ticket::class, Change::class, Problem::class];
 
         foreach ($itil_types as $itil_type) {
             $schemas[$itil_type] = $base_schema;

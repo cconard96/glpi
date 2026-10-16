@@ -34,10 +34,13 @@
 
 namespace tests\units\Glpi\Api\HL\Search;
 
+use Change;
 use Glpi\Api\HL\Search\SearchOptionMapper;
 use Glpi\Api\HL\Search\TemplateFieldMapper;
 use Glpi\Tests\HLAPITestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Problem;
+use Ticket;
 use TicketTemplateHiddenField;
 
 class TemplateFieldMapperTest extends HLAPITestCase
@@ -51,7 +54,7 @@ class TemplateFieldMapperTest extends HLAPITestCase
 
     public static function itilTypeAndKindProvider(): iterable
     {
-        foreach (TemplateFieldMapper::ITIL_TYPES as $itil_type) {
+        foreach ([Ticket::class, Change::class, Problem::class] as $itil_type) {
             foreach (TemplateFieldMapper::KINDS as $kind) {
                 yield "$itil_type $kind" => [$itil_type, $kind];
             }

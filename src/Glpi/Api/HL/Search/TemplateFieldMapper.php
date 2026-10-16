@@ -35,6 +35,7 @@
 namespace Glpi\Api\HL\Search;
 
 use Change;
+use CommonITILObject;
 use ITILTemplate;
 use ITILTemplateField;
 use Problem;
@@ -55,8 +56,6 @@ use Ticket;
 final class TemplateFieldMapper
 {
     public const KINDS = ['Hidden', 'Mandatory', 'Readonly', 'Predefined'];
-
-    public const ITIL_TYPES = [Ticket::class, Change::class, Problem::class];
 
     /**
      * Readable names of the template pseudo-fields, indexed by the legacy name.
@@ -80,48 +79,54 @@ final class TemplateFieldMapper
     private static array $cache = [];
 
     /**
-     * @param string $itiltype One of {@link self::ITIL_TYPES}
+     * @param class-string<CommonITILObject> $type
      * @param string $kind One of {@link self::KINDS}
-     * @return class-string<ITILTemplateField>|null The template field class or null if the ITIL type or kind is invalid
+     * @return class-string<ITILTemplateField>|null
      */
-    public static function getFieldClass(string $itiltype, string $kind): ?string
+    public static function getFieldClass(string $type, string $kind): ?string
     {
-        if (!in_array($itiltype, self::ITIL_TYPES, true) || !in_array($kind, self::KINDS, true)) {
+        if (!is_subclass_of($type, CommonITILObject::class) || !in_array($kind, self::KINDS, true)) {
             return null;
         }
         /** @var class-string<ITILTemplateField> $class */
-        $class = $itiltype . 'Template' . $kind . 'Field';
+        $class = $type . 'Template' . $kind . 'Field';
+        if (!is_subclass_of($class, ITILTemplateField::class)) {
+            return null;
+        }
         return $class;
     }
 
     /**
-     * @param string $itiltype One of {@link self::ITIL_TYPES}
+     * @param class-string<CommonITILObject> $type
      * @return class-string<ITILTemplate>|null The template class or null if the ITIL type is invalid
      */
-    public static function getTemplateClass(string $itiltype): ?string
+    public static function getTemplateClass(string $type): ?string
     {
-        if (!in_array($itiltype, self::ITIL_TYPES, true)) {
+        if (!is_subclass_of($type, CommonITILObject::class)) {
             return null;
         }
         /** @var class-string<ITILTemplate> $class */
-        $class = $itiltype . 'Template';
+        $class = $type . 'Template';
+        if (!is_subclass_of($class, ITILTemplate::class)) {
+            return null;
+        }
         return $class;
     }
 
     /**
-     * @param string $itiltype One of {@link self::ITIL_TYPES}
+     * @param class-string<CommonITILObject> $type
      * @param string $kind One of {@link self::KINDS}
      * @return array<int, string> API field names indexed by search option number for the fields that can be used for this kind of template field.
      */
-    public static function getAllowedFields(string $itiltype, string $kind): array
+    public static function getAllowedFields(string $type, string $kind): array
     {
-        $template_class = self::getTemplateClass($itiltype);
-        $field_class = self::getFieldClass($itiltype, $kind);
+        $template_class = self::getTemplateClass($type);
+        $field_class = self::getFieldClass($type, $kind);
         if ($template_class === null || $field_class === null) {
             return [];
         }
 
-        $cache_key = $itiltype . '|' . $kind . '|' . (Session::getLoginUserID() ?: 0);
+        $cache_key = $type . '|' . $kind . '|' . (Session::getLoginUserID() ?: 0);
         if (!isset(self::$cache[$cache_key])) {
             $excluded = $field_class::getExcludedFields();
             $names = [];
@@ -129,7 +134,7 @@ final class TemplateFieldMapper
                 if ($num === -1 || isset($excluded[$num])) {
                     continue;
                 }
-                $names[(int) $num] = self::resolveName($itiltype, (int) $num, (string) $legacy_name);
+                $names[(int) $num] = self::resolveName($type, (int) $num, (string) $legacy_name);
             }
             self::$cache[$cache_key] = $names;
         }
@@ -137,25 +142,25 @@ final class TemplateFieldMapper
     }
 
     /**
-     * @param string $itiltype One of {@link self::ITIL_TYPES}
+     * @param class-string<CommonITILObject> $type
      * @param string $kind One of {@link self::KINDS}
      * @param int $num The search option number
      * @return string|null The API field name or null if the number is not usable for this kind of template field.
      */
-    public static function getNameForNum(string $itiltype, string $kind, int $num): ?string
+    public static function getNameForNum(string $type, string $kind, int $num): ?string
     {
-        return self::getAllowedFields($itiltype, $kind)[$num] ?? null;
+        return self::getAllowedFields($type, $kind)[$num] ?? null;
     }
 
     /**
-     * @param string $itiltype One of {@link self::ITIL_TYPES}
+     * @param class-string<CommonITILObject> $type
      * @param string $kind One of {@link self::KINDS}
      * @param string $name The API field name
      * @return int|null The search option number or null if the name is not usable for this kind of template field.
      */
-    public static function getNumForName(string $itiltype, string $kind, string $name): ?int
+    public static function getNumForName(string $type, string $kind, string $name): ?int
     {
-        $num = array_search($name, self::getAllowedFields($itiltype, $kind), true);
+        $num = array_search($name, self::getAllowedFields($type, $kind), true);
         return $num === false ? null : (int) $num;
     }
 
@@ -164,12 +169,12 @@ final class TemplateFieldMapper
         self::$cache = [];
     }
 
-    private static function resolveName(string $itiltype, int $num, string $legacy_name): string
+    private static function resolveName(string $type, int $num, string $legacy_name): string
     {
         if (isset(self::PSEUDO_FIELDS[$legacy_name])) {
             return self::PSEUDO_FIELDS[$legacy_name];
         }
-        $path = SearchOptionMapper::getPropertyForOption($itiltype, $num);
+        $path = SearchOptionMapper::getPropertyForOption($type, $num);
         if ($path !== null) {
             $last_dot = strrpos($path, '.');
             return $last_dot === false ? $path : substr($path, 0, $last_dot);
