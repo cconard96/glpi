@@ -64,6 +64,7 @@ use Enclosure;
 use EnclosureModel;
 use Entity;
 use Glpi\Api\HL\Doc as Doc;
+use Glpi\Api\HL\FileUpload\FileManager;
 use Glpi\Api\HL\Middleware\ResultFormatterMiddleware;
 use Glpi\Api\HL\ResourceAccessor;
 use Glpi\Api\HL\Route;
@@ -131,6 +132,7 @@ use SoftwareLicense;
 use SoftwareLicenseType;
 use SoftwareVersion;
 use State;
+use Toolbox;
 use Unmanaged;
 use User;
 use VirtualMachineState;
@@ -504,6 +506,29 @@ final class AssetController extends AbstractController
                 'cols' => ['x-field' => 'vis_cols', 'type' => Doc\Schema::TYPE_INTEGER],
                 'date_creation' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
                 'date_mod' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE_TIME],
+                'cell_width' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-field' => 'vis_cell_width', 'default' => 40, 'x-version-introduced' => '2.4.0'],
+                'cell_height' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-field' => 'vis_cell_height', 'default' => 40, 'x-version-introduced' => '2.4.0'],
+                'blueprint_upload' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'format' => Doc\Schema::FORMAT_STRING_BINARY,
+                    'writeOnly' => true,
+                    'x-input-field' => 'blueprint',
+                    'x-file-upload-options' => self::getDefaultFileUploadOptions(FileManager::UPLOAD_AS_PICTURE),
+                    'x-version-introduced' => '2.4.0',
+                ],
+                'blueprint' => [
+                    'type' => Doc\Schema::TYPE_STRING,
+                    'x-version-introduced' => '2.4.0',
+                    'x-mapped-from' => 'blueprint',
+                    'x-mapper' => static function ($v) {
+                        $path = Toolbox::getPictureUrl($v, true);
+                        if (!empty($path)) {
+                            return $path;
+                        }
+                        return null;
+                    },
+                    'readOnly' => true,
+                ],
             ],
         ];
 
@@ -1240,6 +1265,9 @@ final class AssetController extends AbstractController
                     graphql_only: true,
                     params: ['x-version-introduced' => '2.4.0']
                 ),
+                'memory_size' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255, 'x-version-introduced' => '2.4.0'],
+                'init_pages_counter' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
+                'last_pages_counter' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
             ],
         ];
 
@@ -1284,6 +1312,46 @@ final class AssetController extends AbstractController
                     'x-version-introduced' => '2.1.0',
                     'type' => Doc\Schema::TYPE_INTEGER,
                     'readOnly' => true,
+                ],
+                'software' => self::getDropdownTypeSchema(class: Software::class, full_schema: 'Software', params: ['x-version-introduced' => '2.4.0']),
+                'parent' => self::getDropdownTypeSchema(class: SoftwareLicense::class, full_schema: 'SoftwareLicense', params: ['x-version-introduced' => '2.4.0']),
+                'version_buy' => self::getDropdownTypeSchema(class: SoftwareVersion::class, field: 'softwareversions_id_buy', full_schema: 'SoftwareVersion', params: ['x-version-introduced' => '2.4.0']),
+                'version_use' => self::getDropdownTypeSchema(class: SoftwareVersion::class, field: 'softwareversions_id_use', full_schema: 'SoftwareVersion', params: ['x-version-introduced' => '2.4.0']),
+                'date_expiration' => ['type' => Doc\Schema::TYPE_STRING, 'format' => Doc\Schema::FORMAT_STRING_DATE, 'x-field' => 'expire', 'x-version-introduced' => '2.4.0'],
+                'number' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
+                'allow_overquota' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.4.0'],
+                'is_valid' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.4.0', 'readOnly' => true],
+                'is_helpdesk_visible' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.4.0'],
+                'is_template' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.4.0'],
+                'template_name' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255, 'x-version-introduced' => '2.4.0'],
+                'pictures_upload' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_BINARY,
+                        'writeOnly' => true,
+                        'x-input-field' => 'pictures',
+                        'x-file-upload-options' => self::getDefaultFileUploadOptions(FileManager::UPLOAD_AS_PICTURE),
+                    ],
+                ],
+                'pictures_remove' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => ['type' => Doc\Schema::TYPE_STRING, 'writeOnly' => true],
+                ],
+                'pictures' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'x-mapped-from' => 'pictures',
+                        'x-mapper' => static function ($v) {
+                            $pictures = is_array($v) ? $v : importArrayFromDB($v);
+                            return array_map(static fn($picture) => Toolbox::getPictureUrl($picture, true) ?? '', $pictures);
+                        },
+                        'readOnly' => true,
+                    ],
                 ],
             ],
         ];
@@ -1564,6 +1632,41 @@ final class AssetController extends AbstractController
                         ],
                     ],
                 ),
+                'reference' => ['type' => Doc\Schema::TYPE_STRING, 'x-field' => 'ref', 'maxLength' => 255, 'x-version-introduced' => '2.4.0'],
+                'location' => self::getDropdownTypeSchema(class: Location::class, full_schema: 'Location', params: ['x-version-introduced' => '2.4.0']),
+                'manufacturer' => self::getDropdownTypeSchema(class: Manufacturer::class, full_schema: 'Manufacturer', params: ['x-version-introduced' => '2.4.0']),
+                'is_deleted' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.4.0'],
+                'alarm_threshold' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
+                'stock_target' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
+                'pictures_upload' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_BINARY,
+                        'writeOnly' => true,
+                        'x-input-field' => 'pictures',
+                        'x-file-upload-options' => self::getDefaultFileUploadOptions(FileManager::UPLOAD_AS_PICTURE),
+                    ],
+                ],
+                'pictures_remove' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => ['type' => Doc\Schema::TYPE_STRING, 'writeOnly' => true],
+                ],
+                'pictures' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'x-mapped-from' => 'pictures',
+                        'x-mapper' => static function ($v) {
+                            $pictures = is_array($v) ? $v : importArrayFromDB($v);
+                            return array_map(static fn($picture) => Toolbox::getPictureUrl($picture, true) ?? '', $pictures);
+                        },
+                        'readOnly' => true,
+                    ],
+                ],
             ],
         ];
 
@@ -1637,6 +1740,42 @@ final class AssetController extends AbstractController
                         ],
                     ],
                 ),
+                'reference' => ['type' => Doc\Schema::TYPE_STRING, 'x-field' => 'ref', 'maxLength' => 255, 'x-version-introduced' => '2.4.0'],
+                'location' => self::getDropdownTypeSchema(class: Location::class, full_schema: 'Location', params: ['x-version-introduced' => '2.4.0']),
+                'manufacturer' => self::getDropdownTypeSchema(class: Manufacturer::class, full_schema: 'Manufacturer', params: ['x-version-introduced' => '2.4.0']),
+                'is_deleted' => ['type' => Doc\Schema::TYPE_BOOLEAN, 'x-version-introduced' => '2.4.0'],
+                'alarm_threshold' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
+                'stock_target' => ['type' => Doc\Schema::TYPE_INTEGER, 'format' => Doc\Schema::FORMAT_INTEGER_INT32, 'x-version-introduced' => '2.4.0'],
+                'otherserial' => ['type' => Doc\Schema::TYPE_STRING, 'maxLength' => 255, 'x-version-introduced' => '2.4.0'],
+                'pictures_upload' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'format' => Doc\Schema::FORMAT_STRING_BINARY,
+                        'writeOnly' => true,
+                        'x-input-field' => 'pictures',
+                        'x-file-upload-options' => self::getDefaultFileUploadOptions(FileManager::UPLOAD_AS_PICTURE),
+                    ],
+                ],
+                'pictures_remove' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => ['type' => Doc\Schema::TYPE_STRING, 'writeOnly' => true],
+                ],
+                'pictures' => [
+                    'type' => Doc\Schema::TYPE_ARRAY,
+                    'x-version-introduced' => '2.4.0',
+                    'items' => [
+                        'type' => Doc\Schema::TYPE_STRING,
+                        'x-mapped-from' => 'pictures',
+                        'x-mapper' => static function ($v) {
+                            $pictures = is_array($v) ? $v : importArrayFromDB($v);
+                            return array_map(static fn($picture) => Toolbox::getPictureUrl($picture, true) ?? '', $pictures);
+                        },
+                        'readOnly' => true,
+                    ],
+                ],
             ],
         ];
 
@@ -3286,6 +3425,46 @@ final class AssetController extends AbstractController
     public function deleteRack(Request $request): Response
     {
         return ResourceAccessor::deleteBySchema($this->getKnownSchema('Rack', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/DCRoom', methods: ['GET'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\SearchRoute(schema_name: 'DCRoom')]
+    public function searchDCRoom(Request $request): Response
+    {
+        return ResourceAccessor::searchBySchema($this->getKnownSchema('DCRoom', $this->getAPIVersion($request)), $request->getParameters());
+    }
+
+    #[Route(path: '/DCRoom/{id}', methods: ['GET'], requirements: ['id' => '\d+'], middlewares: [ResultFormatterMiddleware::class])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\GetRoute(schema_name: 'DCRoom')]
+    public function getDCRoom(Request $request): Response
+    {
+        return ResourceAccessor::getOneBySchema($this->getKnownSchema('DCRoom', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/DCRoom', methods: ['POST'])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\CreateRoute(schema_name: 'DCRoom')]
+    public function createDCRoom(Request $request): Response
+    {
+        return ResourceAccessor::createBySchema($this->getKnownSchema('DCRoom', $this->getAPIVersion($request)), $request->getParameters(), [self::class, 'getDCRoom']);
+    }
+
+    #[Route(path: '/DCRoom/{id}', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\UpdateRoute(schema_name: 'DCRoom')]
+    public function updateDCRoom(Request $request): Response
+    {
+        return ResourceAccessor::updateBySchema($this->getKnownSchema('DCRoom', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
+    }
+
+    #[Route(path: '/DCRoom/{id}', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    #[RouteVersion(introduced: '2.4')]
+    #[Doc\DeleteRoute(schema_name: 'DCRoom')]
+    public function deleteDCRoom(Request $request): Response
+    {
+        return ResourceAccessor::deleteBySchema($this->getKnownSchema('DCRoom', $this->getAPIVersion($request)), $request->getAttributes(), $request->getParameters());
     }
 
     #[Route(path: '/Rack/{rack_id}/Item', methods: ['GET'], requirements: ['rack_id' => '\d+'], middlewares: [ResultFormatterMiddleware::class])]
