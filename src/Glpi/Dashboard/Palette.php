@@ -44,6 +44,7 @@ final class Palette
     private array $colors = [];
 
     private const DEFAULT = "tab10";
+    /** @var array<string, string[]> */
     private const PALETTES = [
         'tab10' => [
             "#4e79a7",
@@ -327,6 +328,10 @@ final class Palette
     }
 
 
+    /**
+     * @param int $nb_series
+     * @return string[] array of hex color strings
+     */
     public function getColors(int $nb_series = 10): array
     {
         $palette = [];

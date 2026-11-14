@@ -92,7 +92,8 @@ final class FakeProvider extends Provider
 
     /**
      * @param string|null $itemtype
-     * @return int|array|null
+     * @return int|array<string, int>|null
+     * @phpstan-return ($itemtype is null ? array<string, int> : (int|null))
      */
     private static function getItemCount(?string $itemtype = null)
     {
@@ -143,6 +144,9 @@ final class FakeProvider extends Provider
 
     public static function bigNumberItem(?CommonDBTM $item = null, array $params = []): array
     {
+        if ($item === null) {
+            throw new InvalidArgumentException("Item must be provided");
+        }
         return [
             'number' => self::getItemCount($item::class) ?? 1500,
             'url'    => '#',
@@ -309,6 +313,13 @@ final class FakeProvider extends Provider
 
     public static function nbItemByFk(?CommonDBTM $item = null, ?CommonDBTM $fk_item = null, array $params = []): array
     {
+        if ($item === null) {
+            throw new InvalidArgumentException("Item must be provided");
+        }
+        if ($fk_item === null) {
+            throw new InvalidArgumentException("FK Item must be provided");
+        }
+
         $item_counts = self::getItemCount();
         $number_fk = $item_counts[$fk_item::class] ?? 20;
         $number = $item_counts[$item::class] ?? 1500;
@@ -338,6 +349,9 @@ final class FakeProvider extends Provider
     public static function articleListItem(?CommonDBTM $item = null, array $params = []): array
     {
         $data = [];
+        if ($item === null) {
+            throw new InvalidArgumentException("Item must be provided");
+        }
         for ($i = 0; $i < 5; $i++) {
             $days_ago = self::getObscureNumberForString($i . $item::class, 30);
             $date = date("Y-m-d", strtotime("-$days_ago days"));

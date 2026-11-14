@@ -498,7 +498,7 @@ class Dashboard extends CommonDBTM
      * Clone current Dashboard.
      * (Clean gridstack_id-id in new one)
      *
-     * @return array with [title, key]
+     * @return array{title: string, key: string}
      */
     public function cloneCurrent(): array
     {
@@ -554,7 +554,7 @@ class Dashboard extends CommonDBTM
      * @param bool   $check_rights use to remove rights checking (use in embed)
      * @param ?string $context only dashboard for given context
      *
-     * @return array dasboards
+     * @return array<string, array<string, mixed>> dasboards
      */
     public static function getAll(bool $force = false, bool $check_rights = true, ?string $context = 'core'): array
     {

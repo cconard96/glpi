@@ -58,6 +58,7 @@ use Glpi\Debug\Profiler;
 use Glpi\Search\Input\QueryBuilder;
 use Group;
 use Group_Ticket;
+use InvalidArgumentException;
 use Item_OperatingSystem;
 use OperatingSystem;
 use Profile_User;
@@ -83,18 +84,19 @@ class Provider
      *
      * @param CommonDBTM|null $item object to count
      *
-     * @param array $params default values for
-     * - 'apply_filters' values from dashboard filters
+     * @param array{apply_filters?: string[]} $params default values for
+     * - 'apply_filters' The IDs of filters to apply
      *
-     * @return array :
-     * - 'number'
-     * - 'url'
-     * - 'label'
-     * - 'icon'
+     * @return array{number: int, url: string, label: string, icon: string}
+     * @todo $item should never be null
      */
     public static function bigNumberItem(?CommonDBTM $item = null, array $params = []): array
     {
         $DB = DBConnection::getReadConnection();
+
+        if ($item === null) {
+            throw new InvalidArgumentException("Item must be provided");
+        }
 
         $default_params = [
             'apply_filters'  => [],
@@ -240,16 +242,12 @@ class Provider
      * - 'planned': ticket with planned status
      * - 'solved': ticket with solved status
      * - 'closed': ticket with closed status
-     * @param array $params default values for
+     * @param array{title?: string, icon?: string, apply_filters?: string[]} $params default values for
      * - 'title' of the card
      * - 'icon' of the card
      * - 'apply_filters' values from dashboard filters
      *
-     * @return array :
-     * - 'number'
-     * - 'url'
-     * - 'label'
-     * - 'icon'
+     * @return array{number: int, url: string, label: string, icon: string}
      */
     public static function nbTicketsGeneric(
         string $case = "",
@@ -534,6 +532,9 @@ class Provider
 
     /**
      * Get the number of late tickets by SLA status and technician
+     *
+     * @param array{label?: string, icon?: string, apply_filters?: string[]} $params
+     * @return array{label: string, icon: string, data: array{nodata?: bool, labels: string[], series: list<array{name: string, data: list<int>}>}}
      */
     public static function nbTicketsByAgreementStatusAndTechnician(array $params = []): array
     {
@@ -888,6 +889,8 @@ class Provider
      * ]
      * - 'label'
      * - 'icon'
+     *
+     * @todo $item and $fk_item should never be null
      */
     public static function nbItemByFk(
         ?CommonDBTM $item = null,
@@ -895,6 +898,13 @@ class Provider
         array $params = []
     ): array {
         $DB = DBConnection::getReadConnection();
+
+        if ($item === null) {
+            throw new InvalidArgumentException("Item must be provided");
+        }
+        if ($fk_item === null) {
+            throw new InvalidArgumentException("FK Item must be provided");
+        }
 
         $c_table     = $item::getTable();
         $fk_table    = $fk_item::getTable();
@@ -1379,10 +1389,15 @@ class Provider
      * - 'apply_filters' values from dashboard filters
      *
      * @return array
+     * @todo $item should never be null
      */
     public static function articleListItem(?CommonDBTM $item = null, array $params = []): array
     {
         $DB = DBConnection::getReadConnection();
+
+        if ($item === null) {
+            throw new InvalidArgumentException("Item must be provided");
+        }
 
         $default_params = [
             'icon'          => $item::getIcon(),

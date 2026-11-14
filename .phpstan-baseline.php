@@ -6116,39 +6116,9 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Glpi/Dashboard/Dashboard.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Cannot access constant class on CommonDBTM\\|null\\.$#',
-	'identifier' => 'classConstant.nonObject',
-	'count' => 5,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/FakeProvider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getIcon\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 3,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/FakeProvider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getSearchURL\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/FakeProvider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getTypeName\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 2,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/FakeProvider.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Match arm comparison between \'closed\' and \'closed\' is always true\\.$#',
 	'identifier' => 'match.alwaysTrue',
 	'count' => 2,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/FakeProvider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$array of function array_keys expects array, array\\|int\\|null given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
 	'path' => __DIR__ . '/src/Glpi/Dashboard/FakeProvider.php',
 ];
 $ignoreErrors[] = [
@@ -6182,96 +6152,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/Glpi/Dashboard/Grid.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Cannot access constant class on CommonDBTM\\|null\\.$#',
-	'identifier' => 'classConstant.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method getSystemSQLCriteria\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method isEntityAssign\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 2,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method maybeDeleted\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method maybeRecursive\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 2,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method maybeTemplate\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method rawSearchOptions\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getFormURLWithID\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getIcon\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 5,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getIndexName\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getSearchURL\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 3,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getSystemSQLCriteria\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getTable\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 5,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getTableField\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call static method getTypeName\\(\\) on CommonDBTM\\|null\\.$#',
-	'identifier' => 'staticMethod.nonObject',
-	'count' => 2,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$array of function array_keys expects array, array\\|null given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -6285,12 +6165,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$item of static method Glpi\\\\Dashboard\\\\Provider\\:\\:nbItemByFk\\(\\) expects CommonDBTM\\|null, CommonDBTM\\|false given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$itemtype of function getForeignKeyFieldForItemType expects class\\-string\\<CommonDBTM\\>, class\\-string\\<CommonDBTM\\>\\|null given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/src/Glpi/Dashboard/Provider.php',
